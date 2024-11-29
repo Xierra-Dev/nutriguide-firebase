@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "849097551029",
+    "project_id": "impal-a78d2",
+    "storage_bucket": "impal-a78d2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:849097551029:android:397e6a309eb8f317dce2fc",
+        "android_client_info": {
+          "package_name": "com.example.nutriguide"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBb3PdcYT6oCa-X_RhxDpBBFo64WZt1oRg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
