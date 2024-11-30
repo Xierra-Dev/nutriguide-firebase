@@ -1,9 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../models/recipe.dart';
 
 class FirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  // Existing methods...
 
   Future<void> saveUserPersonalization(Map<String, dynamic> data) async {
     try {
@@ -59,6 +62,109 @@ class FirestoreService {
     } catch (e) {
       print('Error saving user allergies: $e');
       rethrow;
+    }
+  }
+
+  // New methods for recipe saving functionality
+
+  Future<void> saveRecipe(Recipe recipe) async {
+    try {
+      String? userId = _auth.currentUser?.uid;
+      if (userId != null) {
+        await _firestore.collection('users').doc(userId).collection('saved_recipes').doc(recipe.id).set({
+          'id': recipe.id,
+          'title': recipe.title,
+          'image': recipe.image,
+          'category': recipe.category,
+          'area': recipe.area,
+          'instructions': recipe.instructions,
+          'ingredients': recipe.ingredients,
+          'measurements': recipe.measurements,
+          'preparationTime': recipe.preparationTime,
+          'healthScore': recipe.healthScore,
+          'savedAt': FieldValue.serverTimestamp(),
+        });
+      } else {
+        throw Exception('No authenticated user found');
+      }
+    } catch (e) {
+      print('Error saving recipe: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> unsaveRecipe(String recipeId) async {
+    try {
+      String? userId = _auth.currentUser?.uid;
+      if (userId != null) {
+        await _firestore
+            .collection('users')
+            .doc(userId)
+            .collection('saved_recipes')
+            .doc(recipeId)
+            .delete();
+      } else {
+        throw Exception('No authenticated user found');
+      }
+    } catch (e) {
+      print('Error removing saved recipe: $e');
+      rethrow;
+    }
+  }
+
+  Future<bool> isRecipeSaved(String recipeId) async {
+    try {
+      String? userId = _auth.currentUser?.uid;
+      if (userId != null) {
+        final doc = await _firestore
+            .collection('users')
+            .doc(userId)
+            .collection('saved_recipes')
+            .doc(recipeId)
+            .get();
+        return doc.exists;
+      }
+      return false;
+    } catch (e) {
+      print('Error checking if recipe is saved: $e');
+      return false;
+    }
+  }
+
+  Future<List<Recipe>> getSavedRecipes() async {
+    try {
+      String? userId = _auth.currentUser?.uid;
+      if (userId != null) {
+        final snapshot = await _firestore
+            .collection('users')
+            .doc(userId)
+            .collection('saved_recipes')
+            .orderBy('savedAt', descending: true)
+            .get();
+
+        return snapshot.docs.map((doc) {
+          final data = doc.data();
+          return Recipe(
+            id: data['id'],
+            title: data['title'],
+            image: data['image'],
+            category: data['category'],
+            area: data['area'],
+            ingredients: List<String>.from(data['ingredients']),
+            measurements: List<String>.from(data['measurements']),
+            instructions: data['instructions'],
+            instructionSteps: data['instructions'].split('\n'),
+            preparationTime: data['preparationTime'],
+            healthScore: data['healthScore'].toDouble(),
+            nutritionInfo: NutritionInfo.generateRandom(), // We'll regenerate this since it's not stored
+          );
+        }).toList();
+      } else {
+        throw Exception('No authenticated user found');
+      }
+    } catch (e) {
+      print('Error getting saved recipes: $e');
+      return [];
     }
   }
 }

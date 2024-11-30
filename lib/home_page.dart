@@ -5,6 +5,7 @@ import 'services/firestore_service.dart';
 import 'recipe_detail_page.dart';
 import 'all_recipes_page.dart';
 import 'search_page.dart';
+import 'saved_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -132,7 +133,7 @@ class _HomePageState extends State<HomePage> {
       case 2:
         return const Center(child: Text('Planner Page', style: TextStyle(color: Colors.white)));
       case 3:
-        return const Center(child: Text('Saved Page', style: TextStyle(color: Colors.white)));
+        return const SavedPage();
       default:
         return _buildHomeContent();
     }
