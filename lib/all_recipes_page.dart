@@ -8,20 +8,39 @@ class AllRecipesPage extends StatelessWidget {
 
   const AllRecipesPage({super.key, required this.title, required this.recipes});
 
+  Color _getHealthScoreColor(double healthScore) {
+    if (healthScore < 4.5) {
+      return Colors.red;
+    } else if (healthScore <= 7.5) {
+      return Colors.yellow;
+    } else {
+      return Colors.green;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        title: Text(title),
-        backgroundColor: Colors.transparent,
+        title: Text(
+          title,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        backgroundColor: Colors.black,
         elevation: 0,
+        iconTheme: const IconThemeData(
+          color: Colors.white,
+        ),
       ),
       body: GridView.builder(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(15),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
-          childAspectRatio: 0.75,
+          childAspectRatio: 0.825,
           crossAxisSpacing: 16,
           mainAxisSpacing: 16,
         ),
@@ -47,7 +66,7 @@ class AllRecipesPage extends StatelessWidget {
                 children: [
                   ClipRRect(
                     borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(12),
+                      top: Radius.circular(10),
                     ),
                     child: Image.network(
                       recipe.image,
@@ -64,30 +83,38 @@ class AllRecipesPage extends StatelessWidget {
                       },
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          recipe.title,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Text(
+                            recipe.title,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.start,
                           ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Health Score: ${recipe.healthScore.toStringAsFixed(1)}',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.7),
-                            fontSize: 12,
+                          const Spacer(),
+                          Center(
+                            child: Text(
+                              'Health Score: ${recipe.healthScore.toStringAsFixed(1)}',
+                              style: TextStyle(
+                                color: _getHealthScoreColor(recipe.healthScore),
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 4),
+                        ],
+                      ),
                     ),
                   ),
                 ],
@@ -99,4 +126,3 @@ class AllRecipesPage extends StatelessWidget {
     );
   }
 }
-
