@@ -19,7 +19,6 @@ class MealPlannerApp extends StatelessWidget {
     return MaterialApp(
       title: 'Meal Planner',
       theme: ThemeData(
-        primarySwatch: Colors.green,
         visualDensity: VisualDensity.adaptivePlatformDensity,
         fontFamily: 'Roboto',
       ),
