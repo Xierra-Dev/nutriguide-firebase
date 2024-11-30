@@ -6,6 +6,9 @@ import 'recipe_detail_page.dart';
 import 'all_recipes_page.dart';
 import 'search_page.dart';
 import 'saved_page.dart';
+import 'profile_page.dart';
+import 'notifications_page.dart';
+import 'add_recipe_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -73,10 +76,13 @@ class _HomePageState extends State<HomePage> {
       body: _buildBody(),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // TODO: Handle add recipe
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const AddRecipePage()),
+          );
         },
-        backgroundColor: Colors.deepOrange,
-        child: const Icon(Icons.add),
+      backgroundColor: Colors.deepOrange,
+      child: const Icon(Icons.add),
       ),
       bottomNavigationBar: _buildBottomNavigationBar(),
     );
@@ -110,15 +116,20 @@ class _HomePageState extends State<HomePage> {
         IconButton(
           icon: const Icon(Icons.notifications_outlined, color: Colors.white),
           onPressed: () {
-            // TODO: Handle notification tap
+            Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const NotificationsPage()),
+              );
           },
         ),
-        Container(
-          margin: const EdgeInsets.only(right: 16),
-          child: CircleAvatar(
-            backgroundColor: Colors.grey[800],
-            child: const Icon(Icons.person, color: Colors.white),
-          ),
+        IconButton(
+          icon: const Icon(Icons.person, color: Colors.white),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ProfilePage()),
+            );
+          },
         ),
       ],
     );
