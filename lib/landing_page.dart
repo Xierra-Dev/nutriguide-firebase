@@ -22,7 +22,7 @@ class _LandingPageState extends State<LandingPage> {
     super.initState();
     _loadRandomMealImage();
     // Set up timer to change image every 3 seconds
-    _imageChangeTimer = Timer.periodic(const Duration(seconds: 7), (timer) {
+    _imageChangeTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
       _loadRandomMealImage();
     });
   }
