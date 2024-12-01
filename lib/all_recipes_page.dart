@@ -8,21 +8,6 @@ class AllRecipesPage extends StatelessWidget {
 
   const AllRecipesPage({super.key, required this.title, required this.recipes});
 
-  double _calculateSizedBoxHeight(String text, TextStyle style, double maxWidth,
-      int maxLines) {
-    final textPainter = TextPainter(
-      text: TextSpan(text: text, style: style),
-      textDirection: TextDirection.ltr,
-      maxLines: maxLines,
-    )
-      ..layout(maxWidth: maxWidth);
-
-    final lineHeight = textPainter.preferredLineHeight;
-    final totalLines = (textPainter.size.height / lineHeight).ceil();
-
-    return totalLines == 2 ? 40.0 : 60.0;
-  }
-
   Color _getHealthScoreColor(double healthScore) {
     if (healthScore < 4.5) {
       return Colors.red;
@@ -31,16 +16,6 @@ class AllRecipesPage extends StatelessWidget {
     } else {
       return Colors.green;
     }
-  }
-
-  String _formatTextForLines(String text, int maxCharsPerLine) {
-    if (text.length <= maxCharsPerLine) {
-      return text;
-    }
-
-    // Sisipkan manual baris baru setelah maxCharsPerLine
-    return text.substring(0, maxCharsPerLine) + '\n' +
-        text.substring(maxCharsPerLine);
   }
 
   @override
