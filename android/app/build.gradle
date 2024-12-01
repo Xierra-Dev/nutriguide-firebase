@@ -11,7 +11,7 @@ plugins {
 android {
     namespace = "com.example.nutriguide"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    ndkVersion = "28.0.12674087-rc1"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8

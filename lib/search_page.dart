@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 import 'models/recipe.dart';
 import 'services/themealdb_service.dart';
 import 'recipe_detail_page.dart';
-import 'services/firestore_service.dart';
 
 class SearchPage extends StatefulWidget {
-  const SearchPage({super.key});
+  const SearchPage({Key? key}) : super(key: key);
 
   @override
   _SearchPageState createState() => _SearchPageState();
@@ -13,20 +12,16 @@ class SearchPage extends StatefulWidget {
 
 class _SearchPageState extends State<SearchPage> {
   final TheMealDBService _mealDBService = TheMealDBService();
-  final FirestoreService _firestoreService = FirestoreService();
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   List<Recipe> recipes = [];
   List<Recipe> searchResults = [];
   List<Map<String, String>> popularIngredients = [];
-  List<String> viewedRecipeIds = []; // To track viewed recipe IDs
-  List<Recipe> viewedRecipes = [];
   bool isLoading = false;
   String selectedIngredient = '';
   String sortBy = 'Newest';
   bool _showPopularSection = true;
   bool _isSearching = false;
-  late List<Recipe> _recipes;
 
   @override
   void initState() {
@@ -51,25 +46,6 @@ class _SearchPageState extends State<SearchPage> {
       setState(() {
         isLoading = false;
       });
-    }
-  }
-
-  void _addToViewedRecipes(Recipe recipe) async {
-    // Check if recipe is already in viewed list
-    if (!viewedRecipeIds.contains(recipe.id)) {
-      setState(() {
-        viewedRecipeIds.insert(0, recipe.id);
-        viewedRecipes.insert(0, recipe);
-      });
-
-      // Limit to last 50 viewed recipes
-      if (viewedRecipeIds.length > 50) {
-        viewedRecipeIds = viewedRecipeIds.sublist(0, 50);
-        viewedRecipes = viewedRecipes.sublist(0, 50);
-      }
-
-      // Save viewed recipe IDs to persistent storage
-      await _firestoreService.saveViewedRecipeIds(viewedRecipeIds);
     }
   }
 
@@ -137,213 +113,186 @@ class _SearchPageState extends State<SearchPage> {
 
   @override
   Widget build(BuildContext context) {
-    return RefreshIndicator(
-      onRefresh: _refreshContent, // Menambahkan kemampuan pull-to-refresh
-      color: Colors.deepOrange,
-      backgroundColor: Colors.black,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Text(
-              '',
-              style: TextStyle(
-                color: Colors.deepOrange,
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Text(
+            '',
+            style: TextStyle(
+              color: Colors.deepOrange,
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 5,),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(25),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(25),
+            ),
+            child: TextField(
+              controller: _searchController,
+              style: const TextStyle(color: Colors.white),
+              decoration: InputDecoration(
+                hintText: 'Search...',
+                hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
+                prefixIcon: const Icon(Icons.search, color: Colors.white),
+                border: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               ),
-              child: TextField(
-                controller: _searchController,
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  hintText: 'Search Recipes...',
-                  hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
-                  prefixIcon: const Icon(Icons.search, color: Colors.white),
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                ),
-                onSubmitted: (value) {
-                  if (value.isNotEmpty) {
-                    _searchRecipes(value);
-                  } else {
-                    setState(() {
-                      _isSearching = false;
-                    });
-                  }
-                },
-              ),
+              onSubmitted: (value) {
+                if (value.isNotEmpty) {
+                  _searchRecipes(value);
+                } else {
+                  setState(() {
+                    _isSearching = false;
+                  });
+                }
+              },
             ),
           ),
-          const SizedBox(height: 5,),
-          if (!_isSearching) ...[
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              height: _showPopularSection ? 160 : 0,
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                      child: Text(
-                        'Popular',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
+        ),
+        if (!_isSearching) ...[
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            height: _showPopularSection ? 160 : 0,
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                    child: Text(
+                      'Popular',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                    SizedBox(
-                      height: 120,
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        itemCount: popularIngredients.length,
-                        itemBuilder: (context, index) {
-                          final ingredient = popularIngredients[index];
-                          return GestureDetector(
-                            onTap: () => _searchRecipesByIngredient(ingredient['name']!),
+                  ),
+                  SizedBox(
+                    height: 120,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      itemCount: popularIngredients.length,
+                      itemBuilder: (context, index) {
+                        final ingredient = popularIngredients[index];
+                        return GestureDetector(
+                          onTap: () => _searchRecipesByIngredient(ingredient['name']!),
+                          child: Container(
+                            width: 100,
+                            margin: const EdgeInsets.only(right: 12),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              image: DecorationImage(
+                                image: NetworkImage(ingredient['image']!),
+                                fit: BoxFit.cover,
+                              ),
+                            ),
                             child: Container(
-                              width: 100,
-                              margin: const EdgeInsets.only(right: 12),
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(12),
-                                image: DecorationImage(
-                                  image: NetworkImage(ingredient['image']!),
-                                  fit: BoxFit.cover,
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    Colors.transparent,
+                                    Colors.black.withOpacity(0.7),
+                                  ],
                                 ),
                               ),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(12),
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topCenter,
-                                    end: Alignment.bottomCenter,
-                                    colors: [
-                                      Colors.transparent,
-                                      Colors.black.withOpacity(0.7),
-                                    ],
-                                  ),
-                                ),
-                                alignment: Alignment.bottomCenter,
-                                padding: const EdgeInsets.all(8),
-                                child: Text(
-                                  ingredient['name']!.toUpperCase(),
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 12,
-                                  ),
+                              alignment: Alignment.bottomCenter,
+                              padding: const EdgeInsets.all(8),
+                              child: Text(
+                                ingredient['name']!.toUpperCase(),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
                                 ),
                               ),
                             ),
-                          );
-                        },
-                      ),
+                          ),
+                        );
+                      },
                     ),
-                  ],
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Recipes you may like',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  PopupMenuButton<String>(
-                    initialValue: sortBy,
-                    onSelected: (String value) {
-                      setState(() {
-                        sortBy = value;
-                      });
-                    },
-                    color: Colors.grey[850],
-                    child: Row(
-                      children: [
-                        Text(
-                          sortBy,
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                        const Icon(Icons.arrow_drop_down, color: Colors.white),
-                      ],
-                    ),
-                    itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                      const PopupMenuItem<String>(
-                        value: 'Newest',
-                        child: Text('Newest', style: TextStyle(color: Colors.white)),
-                      ),
-                      const PopupMenuItem<String>(
-                        value: 'Popular',
-                        child: Text('Popular', style: TextStyle(color: Colors.white)),
-                      ),
-                      const PopupMenuItem<String>(
-                        value: 'Rating',
-                        child: Text('Rating', style: TextStyle(color: Colors.white)),
-                      ),
-                    ],
                   ),
                 ],
               ),
             ),
-          ],
-          Expanded(
-            child: isLoading
-                ? const Center(child: CircularProgressIndicator(color: Colors.deepOrange))
-                : _isSearching
-                ? _buildSearchResults()
-                : _buildRecipeGrid(recipes),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Recipes you may like',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                PopupMenuButton<String>(
+                  initialValue: sortBy,
+                  onSelected: (String value) {
+                    setState(() {
+                      sortBy = value;
+                    });
+                  },
+                  color: Colors.grey[850],
+                  child: Row(
+                    children: [
+                      Text(
+                        sortBy,
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                      const Icon(Icons.arrow_drop_down, color: Colors.white),
+                    ],
+                  ),
+                  itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                    const PopupMenuItem<String>(
+                      value: 'Newest',
+                      child: Text('Newest', style: TextStyle(color: Colors.white)),
+                    ),
+                    const PopupMenuItem<String>(
+                      value: 'Popular',
+                      child: Text('Popular', style: TextStyle(color: Colors.white)),
+                    ),
+                    const PopupMenuItem<String>(
+                      value: 'Rating',
+                      child: Text('Rating', style: TextStyle(color: Colors.white)),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ],
-      ),
+        Expanded(
+          child: isLoading
+              ? const Center(child: CircularProgressIndicator(color: Colors.deepOrange))
+              : _isSearching
+                  ? _buildSearchResults()
+                  : _buildRecipeGrid(recipes),
+        ),
+      ],
     );
-  }
-
-
-  Future<void> _refreshContent() async {
-    setState(() {
-      isLoading = true;
-    });
-
-    try {
-      await Future.wait([
-        _loadInitialRecipes(),
-        _loadPopularIngredients(),
-      ]);
-    } catch (e) {
-      print('Error during refresh: $e');
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
-    }
   }
 
   Widget _buildSearchResults() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.all(16.0),
+        Padding(
+          padding: const EdgeInsets.all(16.0),
           child: Text(
             'Search Results',
             style: TextStyle(
@@ -357,8 +306,8 @@ class _SearchPageState extends State<SearchPage> {
           child: _buildRecipeGrid(searchResults),
         ),
         if (searchResults.isNotEmpty)
-          const Padding(
-            padding: EdgeInsets.all(16.0),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
             child: Text(
               'You might also like',
               style: TextStyle(
@@ -393,7 +342,6 @@ class _SearchPageState extends State<SearchPage> {
         final recipe = recipeList[index];
         return GestureDetector(
           onTap: () {
-            _addToViewedRecipes(recipe);
             Navigator.push(
               context,
               MaterialPageRoute(

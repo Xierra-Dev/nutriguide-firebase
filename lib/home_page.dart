@@ -25,9 +25,8 @@ class _HomePageState extends State<HomePage> {
   GlobalKey<RefreshIndicatorState>();
   List<Recipe> recommendedRecipes = [];
   List<Recipe> popularRecipes = [];
+  List<Recipe> recentlyViewedRecipes = [];
   List<Recipe> feedRecipes = [];
-  List<String> viewedRecipeIds = [];
-  List<Recipe> viewedRecipes = [];
   bool isLoading = true;
   bool _isFirstTimeLoading = true;
   String? errorMessage;
@@ -36,58 +35,14 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _loadInitialData();
-  }
-
-  Future<void> _loadInitialData() async {
-    try {
-      setState(() {
-        // Only set isLoading to true for first-time loading
-        if (_isFirstTimeLoading) {
-          isLoading = true;
-        }
-        errorMessage = null;
-      });
-
-      final futures = await Future.wait([
-        _mealDBService.getRandomRecipes(number: 20),
-        _mealDBService.getRecipesByCategory('Seafood'),
-        _mealDBService.getRandomRecipes(number: 10),
-      ]);
-
-      setState(() {
-        recommendedRecipes = futures[0];
-        popularRecipes = futures[1];
-        feedRecipes = futures[2];
-
-        // Reset first-time loading
-        isLoading = false;
-        _isFirstTimeLoading = false;
-      });
-
-      print('Loaded ${recommendedRecipes.length} recommended recipes');
-      print('Loaded ${popularRecipes.length} popular recipes');
-      print('Loaded ${feedRecipes.length} feed recipes');
-    } catch (e) {
-      print('Error in _loadRecipes: $e');
-      setState(() {
-        // Only set isLoading to false for first-time loading
-        if (_isFirstTimeLoading) {
-          isLoading = false;
-        }
-
-        errorMessage = 'Failed to load recipes. Please check your internet connection and try again.';
-        recommendedRecipes = [];
-        popularRecipes = [];
-        feedRecipes = [];
-      });
-    }
+    _loadRecipes();
+    _loadRecentlyViewedRecipes();
   }
 
   Future<void> _loadRecipes() async {
     try {
       setState(() {
-        // Don't set isLoading to true for subsequent loads
+        isLoading = true;
         errorMessage = null;
       });
 
@@ -101,6 +56,7 @@ class _HomePageState extends State<HomePage> {
         recommendedRecipes = futures[0];
         popularRecipes = futures[1];
         feedRecipes = futures[2];
+        isLoading = false;
       });
 
       print('Loaded ${recommendedRecipes.length} recommended recipes');
@@ -109,45 +65,13 @@ class _HomePageState extends State<HomePage> {
     } catch (e) {
       print('Error in _loadRecipes: $e');
       setState(() {
+        isLoading = false;
         errorMessage = 'Failed to load recipes. Please check your internet connection and try again.';
         recommendedRecipes = [];
         popularRecipes = [];
         feedRecipes = [];
       });
     }
-  }
-
-
-  Future<void> _loadViewedRecipes() async {
-    try {
-      List<String> storedViewedRecipeIds = await _firestoreService.getViewedRecipeIds();
-
-      if (storedViewedRecipeIds.isNotEmpty) {
-        List<Recipe> fetchedViewedRecipes = [];
-        for (String recipeId in storedViewedRecipeIds) {
-          try {
-            Recipe recipe = await _mealDBService.getRecipeById(recipeId);
-            fetchedViewedRecipes.add(recipe);
-          } catch (e) {
-            print('Error fetching viewed recipe $recipeId: $e');
-          }
-        }
-
-        if (mounted) {
-          setState(() {
-            viewedRecipeIds = storedViewedRecipeIds;
-            viewedRecipes = fetchedViewedRecipes;
-          });
-        }
-      }
-    } catch (e) {
-      print('Error loading viewed recipes: $e');
-    }
-
-    // if (viewedRecipeIds.length > 50) {
-    //   viewedRecipeIds = viewedRecipeIds.sublist(0, 50);
-    //   viewedRecipes = viewedRecipes.sublist(0, 50);
-    // }
   }
 
   Future<void> _handleRefresh() async {
@@ -158,14 +82,13 @@ class _HomePageState extends State<HomePage> {
 
     await Future.wait([
       _loadRecipes(),
-      _loadViewedRecipes(),
+      _loadRecentlyViewedRecipes(),
     ]);
 
     if (mounted) {
       _refreshIndicatorKey.currentState?.deactivate();
     }
   }
-
 
   Future<void> _handleNavigationTap(int index) async {
     if (_currentIndex == index) {
@@ -200,41 +123,26 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-
-  Future<void> _addToViewedRecipes(Recipe recipe) async {
-    if (!viewedRecipeIds.contains(recipe.id)) {
-      if (mounted) {
-        setState(() {
-          viewedRecipeIds.insert(0, recipe.id);
-          viewedRecipes.insert(0, recipe);
-
-          if (viewedRecipeIds.length > 50) {
-            viewedRecipeIds = viewedRecipeIds.sublist(0, 50);
-            viewedRecipes = viewedRecipes.sublist(0, 50);
-          }
-        });
-      }
-
-      await Future.wait([
-        _firestoreService.saveViewedRecipeIds(viewedRecipeIds),
-        _loadViewedRecipes(),
-      ]);
+  Future<void> _loadRecentlyViewedRecipes() async {
+    try {
+      final recipes = await _firestoreService.getRecentlyViewedRecipes();
+      setState(() {
+        recentlyViewedRecipes = recipes;
+      });
+    } catch (e) {
+      print('Error loading recently viewed recipes: $e');
     }
   }
 
-  void _navigateToRecipeDetail(Recipe recipe) async {
-    await _addToViewedRecipes(recipe);
-
-    if (mounted) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => RecipeDetailPage(recipe: recipe),
-        ),
-      ).then((_) {
-        _loadViewedRecipes();
-      });
-    }
+  void _viewRecipe(Recipe recipe) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => RecipeDetailPage(recipe: recipe),
+      ),
+    );
+    // Reload recently viewed recipes after returning from RecipeDetailPage
+    _loadRecentlyViewedRecipes();
   }
 
   @override
@@ -334,52 +242,55 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Widget _buildSection(String title, List<Recipe> recipes) {
+  Widget _buildRecipeSection(String title, List<Recipe> recipes) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              title,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => AllRecipesPage(title: title, recipes: recipes),
-                  ),
-                ).then((_) {
-                  _loadViewedRecipes();
-                });
-              },
-              child: const Text(
-                'See All',
-                style: TextStyle(color: Colors.deepOrange),
+              TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => AllRecipesPage(
+                        title: title,
+                        recipes: recipes,
+                      ),
+                    ),
+                  );
+                },
+                child: const Text(
+                  'See All',
+                  style: TextStyle(color: Colors.deepOrange),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-        const SizedBox(height: 8),
         SizedBox(
-          height: 200,
+          height: 250,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             itemCount: recipes.length,
             itemBuilder: (context, index) {
               final recipe = recipes[index];
               return GestureDetector(
-                onTap: () => _navigateToRecipeDetail(recipe),
+                onTap: () => _viewRecipe(recipe),
                 child: Container(
-                  width: 150,
-                  margin: const EdgeInsets.only(right: 16),
+                  width: 200,
+                  margin: const EdgeInsets.only(left: 16, bottom: 16),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(12),
                     image: DecorationImage(
@@ -413,6 +324,24 @@ class _HomePageState extends State<HomePage> {
                           ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            const Icon(Icons.timer, color: Colors.white, size: 16),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${recipe.preparationTime} min',
+                              style: const TextStyle(color: Colors.white, fontSize: 12),
+                            ),
+                            const Spacer(),
+                            const Icon(Icons.favorite, color: Colors.deepOrange, size: 16),
+                            const SizedBox(width: 4),
+                            Text(
+                              recipe.healthScore.toStringAsFixed(1),
+                              style: const TextStyle(color: Colors.white, fontSize: 12),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -491,13 +420,13 @@ class _HomePageState extends State<HomePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (viewedRecipes.isNotEmpty) ...[
-                      _buildSection('Recently Viewed', viewedRecipes),
+                    if (recentlyViewedRecipes.isNotEmpty) ...[
+                      _buildRecipeSection('Recently Viewed', recentlyViewedRecipes),
                       const SizedBox(height: 24),
                     ],
-                    _buildSection('Recommended', recommendedRecipes),
+                    _buildRecipeSection('Recommended', recommendedRecipes),
                     const SizedBox(height: 24),
-                    _buildSection('Popular', popularRecipes),
+                    _buildRecipeSection('Popular', popularRecipes),
                   ],
                 ),
               ),
@@ -530,19 +459,14 @@ class _HomePageState extends State<HomePage> {
           itemCount: feedRecipes.length,
           itemBuilder: (context, index) {
             final recipe = feedRecipes[index];
-
-            Color healthScoreColor;
-            if (recipe.healthScore <= 4.5) {
-              healthScoreColor = Colors.red;
-            } else if (recipe.healthScore <= 7.5) {
-              healthScoreColor = Colors.yellow;
-            } else {
-              healthScoreColor = Colors.green;
-            }
-
             return GestureDetector(
               onTap: () {
-                _navigateToRecipeDetail(recipe);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => RecipeDetailPage(recipe: recipe),
+                  ),
+                );
               },
               child: Container(
                 height: 250,
@@ -582,24 +506,12 @@ class _HomePageState extends State<HomePage> {
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          const Text(
-                            'Health Score: ',
-                            style: TextStyle(
-                              color: Colors.white70,
-                              fontSize: 14,
-                            ),
-                          ),
-                          Text(
-                            recipe.healthScore.toStringAsFixed(1),
-                            style: TextStyle(
-                              color: healthScoreColor,
-                              fontSize: 14.75,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
+                      Text(
+                        'Health Score: ${recipe.healthScore.toStringAsFixed(1)}',
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 14,
+                        ),
                       ),
                     ],
                   ),
