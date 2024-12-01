@@ -568,12 +568,34 @@ class _HomePageState extends State<HomePage> {
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 8),
-                      Text(
-                        'Health Score: ${recipe.healthScore.toStringAsFixed(1)}',
-                        style: TextStyle(
-                          color: _getHealthScoreColor(recipe.healthScore),
-                          fontSize: 14,
-                        ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Health Score: ${recipe.healthScore.toStringAsFixed(1)}',
+                            style: TextStyle(
+                              color: _getHealthScoreColor(recipe.healthScore),
+                              fontSize: 14,
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.timer,
+                                color: Colors.white,
+                                size: 16,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '${recipe.preparationTime} min',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ],
                   ),
