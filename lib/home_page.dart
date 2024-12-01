@@ -229,7 +229,7 @@ class _HomePageState extends State<HomePage> {
           onRefresh: _handleRefresh, // Sama seperti pull-to-refresh
           color: Colors.deepOrange,
           child: PlannerPage(),
-        );;
+        );
       case 3:
         return RefreshIndicator(
             key: _refreshIndicatorKey, // Key untuk animasi refresh
