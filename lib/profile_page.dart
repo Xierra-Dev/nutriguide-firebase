@@ -91,11 +91,9 @@ class _ProfilePageState extends State<ProfilePage>
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      leading: Padding(
-        padding: const EdgeInsets.only(left: 15.0), // Geser ke kanan
-        child: IconButton(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
             Navigator.of(context).pushReplacement(
@@ -103,11 +101,8 @@ class _ProfilePageState extends State<ProfilePage>
             );
           },
         ),
-      ),
-      actions: [
-        Padding(
-          padding: const EdgeInsets.only(right: 15.0), // Geser ke kiri
-          child: IconButton(
+        actions: [
+          IconButton(
             icon: const Icon(Icons.settings, color: Colors.white),
             onPressed: () {
               Navigator.of(context).pop();
@@ -116,10 +111,8 @@ class _ProfilePageState extends State<ProfilePage>
               );
             },
           ),
-        ),
-      ],
-    ),
-
+        ],
+      ),
       body: isLoading
           ? const Center(
           child: CircularProgressIndicator(color: Colors.deepOrange))
@@ -292,13 +285,6 @@ class _ProfilePageState extends State<ProfilePage>
               ),
             ),
           ],
-        ),
-      );
-    } else {
-      return const Center(
-        child: Text(
-          'Activity Available',
-          style: TextStyle(color: Colors.white),
         ),
       );
     }

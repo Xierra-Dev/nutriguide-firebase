@@ -23,10 +23,7 @@ class NotificationsPage extends StatelessWidget {
         ),
       ),
       body: Center(
-        child: hasNotifications
-            ? const Text('Notifications will appear here',
-                style: TextStyle(color: Colors.white))
-            : Column(
+        child:  Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(Icons.notifications_off,
