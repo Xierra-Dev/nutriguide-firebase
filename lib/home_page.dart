@@ -22,7 +22,7 @@ class _HomePageState extends State<HomePage> {
   final TheMealDBService _mealDBService = TheMealDBService();
   final FirestoreService _firestoreService = FirestoreService();
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
-  GlobalKey<RefreshIndicatorState>();
+      GlobalKey<RefreshIndicatorState>();
   List<Recipe> recommendedRecipes = [];
   List<Recipe> popularRecipes = [];
   List<Recipe> recentlyViewedRecipes = [];
@@ -76,11 +76,28 @@ class _HomePageState extends State<HomePage> {
       print('Error in _loadRecipes: $e');
       setState(() {
         isLoading = false;
-        errorMessage = 'Failed to load recipes. Please check your internet connection and try again.';
+        errorMessage =
+            'Failed to load recipes. Please check your internet connection and try again.';
         recommendedRecipes = [];
         popularRecipes = [];
         feedRecipes = [];
       });
+    }
+  }
+
+  void _saveRecipe(Recipe recipe) async {
+    try {
+      // Add logic to save the recipe to Firestore or local storage
+      await _firestoreService.saveRecipe(recipe);
+      // Optional: Show a snackbar or toast to confirm saving
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Recipe saved: ${recipe.title}')),
+      );
+    } catch (e) {
+      print('Error saving recipe: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to save recipe: ${recipe.title}')),
+      );
     }
   }
 
@@ -121,7 +138,8 @@ class _HomePageState extends State<HomePage> {
           isLoading = false;
         }
 
-        errorMessage = 'Failed to load recipes. Please check your internet connection and try again.';
+        errorMessage =
+            'Failed to load recipes. Please check your internet connection and try again.';
         recommendedRecipes = [];
         popularRecipes = [];
         feedRecipes = [];
@@ -150,23 +168,27 @@ class _HomePageState extends State<HomePage> {
       // Jika pengguna mengetuk ikon saat ini, lakukan refresh halaman
       switch (index) {
         case 0: // Home
-          if (index == 0) { // Saved
+          if (index == 0) {
+            // Saved
             _refreshIndicatorKey.currentState?.show();
           }
           await _handleRefresh();
           break;
         case 2: // Planner
-          if (index == 2) { // Saved
+          if (index == 2) {
+            // Saved
             _refreshIndicatorKey.currentState?.show();
           }
-        // Tambahkan logika untuk me-refresh halaman Planner
-          print('Planner page refreshed'); // Ganti dengan metode refresh Planner
+          // Tambahkan logika untuk me-refresh halaman Planner
+          print(
+              'Planner page refreshed'); // Ganti dengan metode refresh Planner
           break;
         case 3: // Saved
-          if (index == 3) { // Saved
+          if (index == 3) {
+            // Saved
             _refreshIndicatorKey.currentState?.show();
           }
-        // Tambahkan logika untuk me-refresh halaman Saved
+          // Tambahkan logika untuk me-refresh halaman Saved
           print('Saved page refreshed'); // Ganti dengan metode refresh Saved
           break;
       }
@@ -250,7 +272,8 @@ class _HomePageState extends State<HomePage> {
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const NotificationsPage()),
+              MaterialPageRoute(
+                  builder: (context) => const NotificationsPage()),
             );
           },
         ),
@@ -292,10 +315,10 @@ class _HomePageState extends State<HomePage> {
         );
       case 3:
         return RefreshIndicator(
-            key: _refreshIndicatorKey, // Key untuk animasi refresh
-            onRefresh: _handleRefresh, // Sama seperti pull-to-refresh
-            color: Colors.deepOrange,
-        child:  const SavedPage(),
+          key: _refreshIndicatorKey, // Key untuk animasi refresh
+          onRefresh: _handleRefresh, // Sama seperti pull-to-refresh
+          color: Colors.deepOrange,
+          child: const SavedPage(),
         );
       default:
         return _buildHomeContent();
@@ -358,60 +381,90 @@ class _HomePageState extends State<HomePage> {
                       fit: BoxFit.cover,
                     ),
                   ),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.transparent,
-                          Colors.black.withOpacity(0.7),
-                        ],
-                      ),
-                    ),
-                    padding: const EdgeInsets.all(12),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          recipe.title,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                  child: Stack(
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.transparent,
+                              Colors.black.withOpacity(0.7),
+                            ],
                           ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: 4),
-                        Row(
+                        padding: const EdgeInsets.all(12),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Icon(Icons.timer, color: Colors.white, size: 16),
-                            const SizedBox(width: 4),
                             Text(
-                              '${recipe.preparationTime} min',
-                              style: const TextStyle(color: Colors.white, fontSize: 12),
-                            ),
-                            const Spacer(),
-                            Icon(
-                                Icons.favorite,
-                                color: _getHealthScoreColor(recipe.healthScore),
-                                size: 16
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              recipe.healthScore.toStringAsFixed(1),
-                              style: TextStyle(
-                                  color: _getHealthScoreColor(recipe.healthScore),
-                                  fontSize: 12
+                              recipe.title,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
                               ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                const Icon(Icons.timer,
+                                    color: Colors.white, size: 16),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '${recipe.preparationTime} min',
+                                  style: const TextStyle(
+                                      color: Colors.white, fontSize: 12),
+                                ),
+                                const Spacer(),
+                                Icon(Icons.favorite,
+                                    color: _getHealthScoreColor(
+                                        recipe.healthScore),
+                                    size: 16),
+                                const SizedBox(width: 4),
+                                Text(
+                                  recipe.healthScore.toStringAsFixed(1),
+                                  style: TextStyle(
+                                      color: _getHealthScoreColor(
+                                          recipe.healthScore),
+                                      fontSize: 12),
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                      ],
-                    ),
+                      ),
+                      Positioned(
+                        right: 8,
+                        top: 8,
+                        child: PopupMenuButton<String>(
+                          icon: const Icon(
+                            Icons.more_vert,
+                            color: Colors.white,
+                          ),
+                          onSelected: (String value) {
+                            if (value == 'Save') {
+                              _saveRecipe(recipe);
+                            } else if (value == 'Plan') {}
+                          },
+                          itemBuilder: (BuildContext context) => [
+                            const PopupMenuItem<String>(
+                              value: 'Save',
+                              child: Text('Save'),
+                            ),
+                            const PopupMenuItem<String>(
+                              value: 'Plan',
+                              child: Text('Plan'),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               );
@@ -426,8 +479,7 @@ class _HomePageState extends State<HomePage> {
     // If it's the first-time loading, show the circular progress indicator
     if (_isFirstTimeLoading && isLoading) {
       return const Center(
-          child: CircularProgressIndicator(color: Colors.deepOrange)
-      );
+          child: CircularProgressIndicator(color: Colors.deepOrange));
     }
     // If there's an error message (which can happen anytime after first load)
     else if (errorMessage != null) {
@@ -473,7 +525,7 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
       );
-    }  else {
+    } else {
       return RefreshIndicator(
         onRefresh: _handleRefresh,
         color: Colors.deepOrange,
@@ -488,7 +540,8 @@ class _HomePageState extends State<HomePage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     if (recentlyViewedRecipes.isNotEmpty) ...[
-                      _buildRecipeSection('Recently Viewed', recentlyViewedRecipes),
+                      _buildRecipeSection(
+                          'Recently Viewed', recentlyViewedRecipes),
                       const SizedBox(height: 24),
                     ],
                     _buildRecipeSection('Recommended', recommendedRecipes),
@@ -545,65 +598,95 @@ class _HomePageState extends State<HomePage> {
                     fit: BoxFit.cover,
                   ),
                 ),
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.transparent,
-                        Colors.black.withOpacity(0.7),
-                      ],
-                    ),
-                  ),
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        recipe.title,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                child: Stack(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.transparent,
+                            Colors.black.withOpacity(0.7),
+                          ],
                         ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Health Score: ${recipe.healthScore.toStringAsFixed(1)}',
-                            style: TextStyle(
-                              color: _getHealthScoreColor(recipe.healthScore),
-                              fontSize: 14,
+                            recipe.title,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
                             ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                           ),
+                          const SizedBox(height: 8),
                           Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Icon(
-                                Icons.timer,
-                                color: Colors.white,
-                                size: 16,
-                              ),
-                              const SizedBox(width: 4),
                               Text(
-                                '${recipe.preparationTime} min',
-                                style: const TextStyle(
-                                  color: Colors.white,
+                                'Health Score: ${recipe.healthScore.toStringAsFixed(1)}',
+                                style: TextStyle(
+                                  color:
+                                      _getHealthScoreColor(recipe.healthScore),
                                   fontSize: 14,
                                 ),
+                              ),
+                              Row(
+                                children: [
+                                  const Icon(
+                                    Icons.timer,
+                                    color: Colors.white,
+                                    size: 16,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '${recipe.preparationTime} min',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
                         ],
                       ),
-                    ],
-                  ),
+                    ),
+                    Positioned(
+                      right: 8,
+                      top: 8,
+                      child: PopupMenuButton<String>(
+                        icon: const Icon(
+                          Icons.more_vert,
+                          color: Colors.white,
+                        ),
+                        onSelected: (String value) {
+                          if (value == 'Save') {
+                            _saveRecipe(recipe);
+                          } else if (value == 'Plan') {}
+                        },
+                        itemBuilder: (BuildContext context) => [
+                          const PopupMenuItem<String>(
+                            value: 'Save',
+                            child: Text('Save'),
+                          ),
+                          const PopupMenuItem<String>(
+                            value: 'Plan',
+                            child: Text('Plan'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
             );
@@ -613,14 +696,16 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  BottomNavigationBar _buildBottomNavigationBar() {
+  Widget _buildBottomNavigationBar() {
     return BottomNavigationBar(
-      backgroundColor: Colors.black,
-      selectedItemColor: Colors.deepOrange,
-      unselectedItemColor: Colors.white,
       currentIndex: _currentIndex,
+      onTap: (index) async {
+        await _handleNavigationTap(index);
+      },
+      backgroundColor: Colors.deepOrange,
+      selectedItemColor: Colors.blue,
+      unselectedItemColor: Colors.black,
       type: BottomNavigationBarType.fixed,
-      onTap:  _handleNavigationTap,
       items: const [
         BottomNavigationBarItem(
           icon: Icon(Icons.home),
@@ -635,11 +720,10 @@ class _HomePageState extends State<HomePage> {
           label: 'Planner',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.bookmark_border),
+          icon: Icon(Icons.bookmark),
           label: 'Saved',
         ),
       ],
     );
   }
 }
-
