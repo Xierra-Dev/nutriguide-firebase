@@ -39,6 +39,16 @@ class _HomePageState extends State<HomePage> {
     _loadRecentlyViewedRecipes();
   }
 
+  Color _getHealthScoreColor(double score) {
+    if (score <= 4.5) {
+      return Colors.red;
+    } else if (score <= 7.5) {
+      return Colors.yellow;
+    } else {
+      return Colors.green;
+    }
+  }
+
   Future<void> _loadRecipes() async {
     try {
       setState(() {
@@ -380,11 +390,18 @@ class _HomePageState extends State<HomePage> {
                               style: const TextStyle(color: Colors.white, fontSize: 12),
                             ),
                             const Spacer(),
-                            const Icon(Icons.favorite, color: Colors.deepOrange, size: 16),
+                            Icon(
+                                Icons.favorite,
+                                color: _getHealthScoreColor(recipe.healthScore),
+                                size: 16
+                            ),
                             const SizedBox(width: 4),
                             Text(
                               recipe.healthScore.toStringAsFixed(1),
-                              style: const TextStyle(color: Colors.white, fontSize: 12),
+                              style: TextStyle(
+                                  color: _getHealthScoreColor(recipe.healthScore),
+                                  fontSize: 12
+                              ),
                             ),
                           ],
                         ),
@@ -553,8 +570,8 @@ class _HomePageState extends State<HomePage> {
                       const SizedBox(height: 8),
                       Text(
                         'Health Score: ${recipe.healthScore.toStringAsFixed(1)}',
-                        style: const TextStyle(
-                          color: Colors.white70,
+                        style: TextStyle(
+                          color: _getHealthScoreColor(recipe.healthScore),
                           fontSize: 14,
                         ),
                       ),
