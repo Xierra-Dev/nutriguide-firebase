@@ -70,6 +70,7 @@ flutter:
     - assets/images/register-success.png
     - assets/images/account-not-registered.png
     - assets/images/no-internet.png
+    - assets/image/no-activity.png
 
   fonts:
     - family: Pacifico

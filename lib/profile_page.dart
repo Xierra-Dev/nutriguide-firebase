@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'home_page.dart';
+import 'account_page.dart';
 import 'settings_page.dart';
 import 'services/auth_service.dart';
 import 'services/firestore_service.dart';
-
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -21,7 +20,8 @@ class SlideRightRoute extends PageRouteBuilder {
         BuildContext context,
         Animation<double> primaryAnimation,
         Animation<double> secondaryAnimation,
-        ) => page,
+        ) =>
+    page,
     transitionsBuilder: (
         BuildContext context,
         Animation<double> primaryAnimation,
@@ -34,26 +34,35 @@ class SlideRightRoute extends PageRouteBuilder {
           end: Offset.zero,
         ).animate(CurvedAnimation(
           parent: primaryAnimation,
-          curve: Curves.easeOutQuad, // You can change the curve for different animation feels
-        ),),
+          curve: Curves.easeOutQuad,
+        )),
         child: child,
       );
     },
   );
 }
 
-class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStateMixin {
+class _ProfilePageState extends State<ProfilePage>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final AuthService _authService = AuthService();
   final FirestoreService _firestoreService = FirestoreService();
   Map<String, dynamic>? userData;
   bool isLoading = true;
+  final Color selectedColor = const Color.fromARGB(255, 240, 182, 75);
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     _loadUserData();
+
+    // Add listener to update state when tab changes
+    _tabController.addListener(() {
+      if (_tabController.indexIsChanging) {
+        setState(() {});
+      }
+    });
   }
 
   Future<void> _loadUserData() async {
@@ -87,9 +96,8 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
-            // Use SlideRightRoute for back navigation
-            Navigator.of(context).pop(
-                SlideRightRoute(page: const HomePage())
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => const AccountPage()),
             );
           },
         ),
@@ -106,65 +114,87 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
         ],
       ),
       body: isLoading
-          ? const Center(child: CircularProgressIndicator(color: Colors.deepOrange))
+          ? const Center(
+          child: CircularProgressIndicator(color: Colors.deepOrange))
           : Column(
+        children: [
+          const SizedBox(height: 20),
+          Center(
+            child: Column(
               children: [
-                const SizedBox(height: 20),
-                Center(
-                  child: Column(
-                    children: [
-                      CircleAvatar(
-                        radius: 50,
-                        backgroundColor: Colors.grey[800],
-                        child: const Icon(Icons.person, size: 50, color: Colors.white),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        _authService.currentUser?.displayName ?? 'User',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      ElevatedButton(
-                        onPressed: () {
-                          // TODO: Navigate to edit profile
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.grey[900],
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                        ),
-                        child: const Text('Edit Profile'),
-                      ),
-                    ],
+                CircleAvatar(
+                  radius: 50,
+                  backgroundColor: Colors.grey[800],
+                  child: const Icon(Icons.person,
+                      size: 50, color: Colors.white),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  _authService.currentUser?.displayName ?? 'User',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 32),
-                TabBar(
-                  controller: _tabController,
-                  indicatorColor: Colors.deepOrange,
-                  tabs: const [
-                    Tab(text: 'Insights'),
-                    Tab(text: 'Activity'),
-                  ],
-                ),
-                Expanded(
-                  child: TabBarView(
-                    controller: _tabController,
-                    children: [
-                      _buildInsightsTab(),
-                      _buildActivityTab(),
-                    ],
+                const SizedBox(height: 12),
+                ElevatedButton(
+                  onPressed: () {
+                    // TODO: Navigate to edit profile
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.grey[900],
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 12),
                   ),
+                  child: const Text('Edit Profile'),
                 ),
               ],
             ),
+          ),
+          const SizedBox(height: 32),
+          TabBar(
+            controller: _tabController,
+            indicatorColor: selectedColor,
+            labelColor: selectedColor,
+            unselectedLabelColor: Colors.white,
+            indicatorSize: TabBarIndicatorSize.label, // Add this line
+            indicator: UnderlineTabIndicator( // Add this decoration
+              borderSide: BorderSide(
+                width: 2.5,
+                color: selectedColor,
+              ),
+              insets: EdgeInsets.symmetric(horizontal: 100.0), // Adjust this value to control the length
+            ),
+            labelStyle: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+            unselectedLabelStyle: const TextStyle(
+              fontWeight: FontWeight.normal,
+              fontSize: 16,
+            ),
+            tabs: const [
+              Tab(text: 'Insights'),
+              Tab(text: 'Activity'),
+            ],
+          ),
+          const SizedBox(height: 10,),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildInsightsTab(),
+                _buildActivityTab(),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -271,4 +301,3 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
     );
   }
 }
-

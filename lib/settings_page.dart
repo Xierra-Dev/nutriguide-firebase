@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'account_page.dart';
 import '/profile_page.dart';
-import 'services/auth_service.dart'; // Contoh layanan autentikasi
-import 'services/firestore_service.dart'; // Contoh layanan Firestore
+import 'services/auth_service.dart';
+import 'services/firestore_service.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -32,7 +33,7 @@ class SlideRightRoute extends PageRouteBuilder {
           end: Offset.zero,
         ).animate(CurvedAnimation(
           parent: primaryAnimation,
-          curve: Curves.easeOutQuad, // You can change the curve for different animation feels
+          curve: Curves.easeOutQuad,
         ),),
         child: child,
       );
@@ -75,9 +76,8 @@ class _SettingsPageState extends State<SettingsPage> {
                   IconButton(
                     icon: const Icon(Icons.arrow_back, color: Colors.white, size: 30),
                     onPressed: () {
-                      // Navigate back
-                      Navigator.of(context).pop(
-                          SlideRightRoute(page: const ProfilePage())
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(builder: (context) => const ProfilePage()),
                       );
                     },
                     splashColor: Colors.transparent,
@@ -96,31 +96,50 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
               const SizedBox(height: 32),
               ListTile(
-                leading: const Icon(Icons.account_circle, color: Colors.white, size: 36),
-                title: Text(
-                  email ?? 'Loading...',
-                  style: const TextStyle(color: Colors.white, fontSize: 18),
+                leading: const Text(
+                  'Email',
+                  style: TextStyle(color: Colors.white, fontSize: 18),
                 ),
-                trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 24),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      email ?? 'Loading...',
+                      style: const TextStyle(color: Colors.white, fontSize: 18),
+                    ),
+                    const SizedBox(width: 16),  // Add space between email and arrow
+                    const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 24),
+                  ],
+                ),
                 onTap: () {
-                  // Navigate to Account page
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(builder: (context) => const AccountPage()),
+                  );
                 },
               ),
               const SizedBox(height: 24),
               ListTile(
-                leading: const Icon(Icons.person, color: Colors.white, size: 36),
-                title: Text(
-                  username ?? 'Loading...',
-                  style: const TextStyle(color: Colors.white, fontSize: 18),
+                leading: const Text(
+                  'Profile',
+                  style: TextStyle(color: Colors.white, fontSize: 18),
                 ),
-                trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 24),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      username ?? 'Loading...',
+                      style: const TextStyle(color: Colors.white, fontSize: 18),
+                    ),
+                    const SizedBox(width: 16),  // Add space between username and arrow
+                    const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 24),
+                  ],
+                ),
                 onTap: () {
                   // Navigate to Profile page
                 },
               ),
               const SizedBox(height: 24),
               ListTile(
-                leading: const Icon(Icons.notifications, color: Colors.white, size: 36),
                 title: const Text(
                   'Notifications',
                   style: TextStyle(color: Colors.white, fontSize: 18),
@@ -132,7 +151,6 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
               const SizedBox(height: 24),
               ListTile(
-                leading: const Icon(Icons.settings, color: Colors.white, size: 36),
                 title: const Text(
                   'Preferences',
                   style: TextStyle(color: Colors.white, fontSize: 18),
@@ -144,7 +162,6 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
               const SizedBox(height: 24),
               ListTile(
-                leading: const Icon(Icons.info, color: Colors.white, size: 36),
                 title: const Text(
                   'About NutriGuide',
                   style: TextStyle(color: Colors.white, fontSize: 18),
