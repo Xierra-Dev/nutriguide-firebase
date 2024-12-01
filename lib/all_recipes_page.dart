@@ -40,7 +40,7 @@ class AllRecipesPage extends StatelessWidget {
         padding: const EdgeInsets.all(15),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
-          childAspectRatio: 0.825,
+          childAspectRatio: 1.0, // Mengubah rasio aspek agar lebih sesuai
           crossAxisSpacing: 16,
           mainAxisSpacing: 16,
         ),
@@ -59,76 +59,73 @@ class AllRecipesPage extends StatelessWidget {
             child: Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
-                color: Colors.white.withOpacity(0.1),
-              ),
-              child: Column(
-                children: [
-                  // Image Section
-                  ClipRRect(
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(10),
-                    ),
-                    child: Image.network(
-                      recipe.image,
-                      height: 120,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          height: 120,
-                          width: double.infinity,
-                          color: Colors.grey,
-                          child: const Icon(Icons.error, color: Colors.white),
-                        );
-                      },
-                    ),
+                color: Colors.black,
+                image: DecorationImage(
+                  image: NetworkImage(recipe.image),
+                  fit: BoxFit.cover,
+                  colorFilter: ColorFilter.mode(
+                    Colors.black.withOpacity(0.3),
+                    BlendMode.darken,
                   ),
-                  // Title Section with left alignment
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.fromLTRB(8, 10, 8, 4),
-                    child: Text(
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Cooking Time
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.access_time,
+                          color: Colors.white,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${recipe.preparationTime} min',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Spacer(),
+                    // Recipe Title
+                    Text(
                       recipe.title,
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 15,
+                        fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.start,
                     ),
-                  ),
-                  // Spacer to push health score to bottom
-                  const Spacer(),
-                  // Health Score Section
-                  Container(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    alignment: Alignment.center,
-                    child: RichText(
-                      text: TextSpan(
-                        children: [
-                          const TextSpan(
-                            text: 'Health Score: ',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 13.5,
-                              fontWeight: FontWeight.w600,
-                            ),
+                    const SizedBox(height: 8),
+                    // Health Score with Heart Icon
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.favorite,
+                          color: _getHealthScoreColor(recipe.healthScore),
+                          size: 16,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          recipe.healthScore.toStringAsFixed(1),
+                          style: TextStyle(
+                            color: _getHealthScoreColor(recipe.healthScore),
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
                           ),
-                          TextSpan(
-                            text: recipe.healthScore.toStringAsFixed(1),
-                            style: TextStyle(
-                              color: _getHealthScoreColor(recipe.healthScore),
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           );
