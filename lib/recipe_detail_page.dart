@@ -11,6 +11,36 @@ class RecipeDetailPage extends StatefulWidget {
   _RecipeDetailPageState createState() => _RecipeDetailPageState();
 }
 
+class SlideRightRoute extends PageRouteBuilder {
+  final Widget page;
+
+  SlideRightRoute({required this.page})
+      : super(
+    pageBuilder: (
+        BuildContext context,
+        Animation<double> primaryAnimation,
+        Animation<double> secondaryAnimation,
+        ) => page,
+    transitionsBuilder: (
+        BuildContext context,
+        Animation<double> primaryAnimation,
+        Animation<double> secondaryAnimation,
+        Widget child,
+        ) {
+      return SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(-1.0, 0.0),
+          end: Offset.zero,
+        ).animate(CurvedAnimation(
+          parent: primaryAnimation,
+          curve: Curves.easeOutQuad, // You can change the curve for different animation feels
+        ),),
+        child: child,
+      );
+    },
+  );
+}
+
 class _RecipeDetailPageState extends State<RecipeDetailPage> {
   final FirestoreService _firestoreService = FirestoreService();
   bool isSaved = false;
