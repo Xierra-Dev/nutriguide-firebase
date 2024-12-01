@@ -39,6 +39,39 @@ class _HomePageState extends State<HomePage> {
     _loadRecentlyViewedRecipes();
   }
 
+  Future<void> _loadRecipes() async {
+    try {
+      setState(() {
+        // Don't set isLoading to true for subsequent loads
+        errorMessage = null;
+      });
+
+      final futures = await Future.wait([
+        _mealDBService.getRandomRecipes(number: 20),
+        _mealDBService.getRecipesByCategory('Seafood'),
+        _mealDBService.getRandomRecipes(number: 10),
+      ]);
+
+      setState(() {
+        recommendedRecipes = futures[0];
+        popularRecipes = futures[1];
+        feedRecipes = futures[2];
+      });
+
+      print('Loaded ${recommendedRecipes.length} recommended recipes');
+      print('Loaded ${popularRecipes.length} popular recipes');
+      print('Loaded ${feedRecipes.length} feed recipes');
+    } catch (e) {
+      print('Error in _loadRecipes: $e');
+      setState(() {
+        errorMessage = 'Failed to load recipes. Please check your internet connection and try again.';
+        recommendedRecipes = [];
+        popularRecipes = [];
+        feedRecipes = [];
+      });
+    }
+  }
+
   Future<void> _loadInitialData() async {
     try {
       setState(() {
@@ -76,39 +109,6 @@ class _HomePageState extends State<HomePage> {
           isLoading = false;
         }
 
-        errorMessage = 'Failed to load recipes. Please check your internet connection and try again.';
-        recommendedRecipes = [];
-        popularRecipes = [];
-        feedRecipes = [];
-      });
-    }
-  }
-
-  Future<void> _loadRecipes() async {
-    try {
-      setState(() {
-        // Don't set isLoading to true for subsequent loads
-        errorMessage = null;
-      });
-
-      final futures = await Future.wait([
-        _mealDBService.getRandomRecipes(number: 20),
-        _mealDBService.getRecipesByCategory('Seafood'),
-        _mealDBService.getRandomRecipes(number: 10),
-      ]);
-
-      setState(() {
-        recommendedRecipes = futures[0];
-        popularRecipes = futures[1];
-        feedRecipes = futures[2];
-      });
-
-      print('Loaded ${recommendedRecipes.length} recommended recipes');
-      print('Loaded ${popularRecipes.length} popular recipes');
-      print('Loaded ${feedRecipes.length} feed recipes');
-    } catch (e) {
-      print('Error in _loadRecipes: $e');
-      setState(() {
         errorMessage = 'Failed to load recipes. Please check your internet connection and try again.';
         recommendedRecipes = [];
         popularRecipes = [];
