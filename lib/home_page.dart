@@ -42,7 +42,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> _loadRecipes() async {
     try {
       setState(() {
-        // Don't set isLoading to true for subsequent loads
+        isLoading = true;
         errorMessage = null;
       });
 
@@ -56,6 +56,7 @@ class _HomePageState extends State<HomePage> {
         recommendedRecipes = futures[0];
         popularRecipes = futures[1];
         feedRecipes = futures[2];
+        isLoading = false;
       });
 
       print('Loaded ${recommendedRecipes.length} recommended recipes');
@@ -64,6 +65,7 @@ class _HomePageState extends State<HomePage> {
     } catch (e) {
       print('Error in _loadRecipes: $e');
       setState(() {
+        isLoading = false;
         errorMessage = 'Failed to load recipes. Please check your internet connection and try again.';
         recommendedRecipes = [];
         popularRecipes = [];
