@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 import 'services/firestore_service.dart';
 import 'models/recipe.dart';
-
 
 class AddRecipePage extends StatefulWidget {
   const AddRecipePage({Key? key}) : super(key: key);
@@ -13,19 +14,27 @@ class AddRecipePage extends StatefulWidget {
 class _AddRecipePageState extends State<AddRecipePage> {
   final _formKey = GlobalKey<FormState>();
   final FirestoreService _firestoreService = FirestoreService();
+  final ImagePicker _picker = ImagePicker();
 
   String title = '';
   String description = '';
   List<String> ingredients = [''];
   List<String> instructions = [''];
   int cookTimeMinutes = 30;
-  String imageUrl = '';
+  File? recipeImage;
   bool isLoading = false;
 
-  void _updateImageUrl(String url) {
-    setState(() {
-      imageUrl = url;
-    });
+  Future<void> _pickImage() async {
+    try {
+      final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+      if (image != null) {
+        setState(() {
+          recipeImage = File(image.path);
+        });
+      }
+    } catch (e) {
+      print('Error picking image: $e');
+    }
   }
 
   void _addIngredient() {
@@ -71,7 +80,7 @@ class _AddRecipePageState extends State<AddRecipePage> {
       });
 
       try {
-        // TODO: Implement recipe saving
+        // TODO: Implement recipe saving with image upload
         // For now, we'll just show a success message
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Recipe saved successfully')),
@@ -155,47 +164,42 @@ class _AddRecipePageState extends State<AddRecipePage> {
             const SizedBox(height: 24),
 
             // Photo Section
-            TextFormField(
-              decoration: InputDecoration(
-                hintText: 'Enter image URL',
-                hintStyle: TextStyle(color: Colors.grey[600]),
-                filled: true,
-                fillColor: Colors.grey[900],
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-              style: const TextStyle(color: Colors.white),
-              onChanged: _updateImageUrl,
-            ),
-            const SizedBox(height: 16),
-            if (imageUrl.isNotEmpty)
-              Container(
-                height: 200,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  image: DecorationImage(
-                    image: NetworkImage(imageUrl),
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              )
-            else
-              Container(
+            GestureDetector(
+              onTap: _pickImage,
+              child: Container(
                 height: 200,
                 decoration: BoxDecoration(
                   color: Colors.grey[900],
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Center(
-                  child: Icon(
-                    Icons.image,
-                    color: Colors.deepOrange,
-                    size: 48,
-                  ),
-                ),
+                child: recipeImage != null
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.file(
+                          recipeImage!,
+                          fit: BoxFit.cover,
+                        ),
+                      )
+                    : Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.camera_alt,
+                            color: Colors.deepOrange,
+                            size: 48,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Add photo',
+                            style: TextStyle(
+                              color: Colors.deepOrange,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ],
+                      ),
               ),
+            ),
             const SizedBox(height: 24),
 
             // Description Section

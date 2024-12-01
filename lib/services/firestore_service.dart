@@ -168,89 +168,42 @@ class FirestoreService {
     }
   }
 
-  Future<void> saveViewedRecipeIds(List<String> recipeIds) async {
-    try {
-      String? userId = _auth.currentUser?.uid;
-      if (userId != null) {
-        await _firestore.collection('users').doc(userId).update({
-          'viewedRecipeIds': recipeIds,
-          'lastViewedAt': FieldValue.serverTimestamp(),
-        });
-      } else {
-        throw Exception('No authenticated user found');
-      }
-    } catch (e) {
-      print('Error saving viewed recipe IDs: $e');
-      rethrow;
-    }
-  }
-
-  // New method to get viewed recipe IDs
-  Future<List<String>> getViewedRecipeIds() async {
-    try {
-      String? userId = _auth.currentUser?.uid;
-      if (userId != null) {
-        DocumentSnapshot doc = await _firestore.collection('users').doc(userId).get();
-
-        // Check if the document exists and has viewedRecipeIds
-        Map<String, dynamic>? data = doc.data() as Map<String, dynamic>?;
-        if (data != null && data.containsKey('viewedRecipeIds')) {
-          return List<String>.from(data['viewedRecipeIds'] ?? []);
-        }
-
-        return [];
-      } else {
-        throw Exception('No authenticated user found');
-      }
-    } catch (e) {
-      print('Error getting viewed recipe IDs: $e');
-      return [];
-    }
-  }
-
-  // Method to save details of viewed recipes
-  Future<void> saveViewedRecipeDetails(Recipe recipe) async {
+  Future<void> addToRecentlyViewed(Recipe recipe) async {
     try {
       String? userId = _auth.currentUser?.uid;
       if (userId != null) {
         await _firestore
             .collection('users')
             .doc(userId)
-            .collection('viewed_recipes')
+            .collection('recently_viewed')
             .doc(recipe.id)
             .set({
           'id': recipe.id,
           'title': recipe.title,
           'image': recipe.image,
-          'category': recipe.category,
-          'area': recipe.area,
-          'instructions': recipe.instructions,
-          'ingredients': recipe.ingredients,
-          'measurements': recipe.measurements,
           'preparationTime': recipe.preparationTime,
           'healthScore': recipe.healthScore,
           'viewedAt': FieldValue.serverTimestamp(),
-        }, SetOptions(merge: true));
+        });
       } else {
         throw Exception('No authenticated user found');
       }
     } catch (e) {
-      print('Error saving viewed recipe details: $e');
+      print('Error adding to recently viewed: $e');
       rethrow;
     }
   }
 
-  // Method to retrieve viewed recipe details
-  Future<List<Recipe>> getViewedRecipes() async {
+  Future<List<Recipe>> getRecentlyViewedRecipes({int limit = 10}) async {
     try {
       String? userId = _auth.currentUser?.uid;
       if (userId != null) {
         final snapshot = await _firestore
             .collection('users')
             .doc(userId)
-            .collection('viewed_recipes')
+            .collection('recently_viewed')
             .orderBy('viewedAt', descending: true)
-            .limit(50) // Limit to 50 most recent viewed recipes
+            .limit(limit)
             .get();
 
         return snapshot.docs.map((doc) {
@@ -259,22 +212,24 @@ class FirestoreService {
             id: data['id'],
             title: data['title'],
             image: data['image'],
-            category: data['category'],
-            area: data['area'],
-            ingredients: List<String>.from(data['ingredients']),
-            measurements: List<String>.from(data['measurements']),
-            instructions: data['instructions'],
-            instructionSteps: data['instructions'].split('\n'),
             preparationTime: data['preparationTime'],
             healthScore: data['healthScore'].toDouble(),
-            nutritionInfo: NutritionInfo.generateRandom(), // Regenerate nutrition info
+            ingredients: [], // These fields are not stored in recently viewed
+            measurements: [], // for simplicity, but you can add them if needed
+            instructions: '',
+            instructionSteps: [],
+            nutritionInfo: NutritionInfo.generateRandom(),
           );
         }).toList();
       } else {
-        throw Exception('No authenticated user found');
+        print('No authenticated user found');
+        return [];
       }
     } catch (e) {
-      print('Error getting viewed recipes: $e');
+      print('Error getting recently viewed recipes: $e');
+      if (e is FirebaseException && e.code == 'permission-denied') {
+        print('Permission denied. Please check Firebase security rules.');
+      }
       return [];
     }
   }

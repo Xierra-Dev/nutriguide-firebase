@@ -5,40 +5,10 @@ import 'services/firestore_service.dart';
 class RecipeDetailPage extends StatefulWidget {
   final Recipe recipe;
 
-  const RecipeDetailPage({super.key, required this.recipe});
+  const RecipeDetailPage({Key? key, required this.recipe}) : super(key: key);
 
   @override
   _RecipeDetailPageState createState() => _RecipeDetailPageState();
-}
-
-class SlideRightRoute extends PageRouteBuilder {
-  final Widget page;
-
-  SlideRightRoute({required this.page})
-      : super(
-    pageBuilder: (
-        BuildContext context,
-        Animation<double> primaryAnimation,
-        Animation<double> secondaryAnimation,
-        ) => page,
-    transitionsBuilder: (
-        BuildContext context,
-        Animation<double> primaryAnimation,
-        Animation<double> secondaryAnimation,
-        Widget child,
-        ) {
-      return SlideTransition(
-        position: Tween<Offset>(
-          begin: const Offset(-1.0, 0.0),
-          end: Offset.zero,
-        ).animate(CurvedAnimation(
-          parent: primaryAnimation,
-          curve: Curves.easeOutQuad, // You can change the curve for different animation feels
-        ),),
-        child: child,
-      );
-    },
-  );
 }
 
 class _RecipeDetailPageState extends State<RecipeDetailPage> {
@@ -50,6 +20,7 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
   void initState() {
     super.initState();
     _checkIfSaved();
+    _addToRecentlyViewed();
   }
 
   Future<void> _checkIfSaved() async {
@@ -57,6 +28,14 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
     setState(() {
       isSaved = saved;
     });
+  }
+
+  Future<void> _addToRecentlyViewed() async {
+    try {
+      await _firestoreService.addToRecentlyViewed(widget.recipe);
+    } catch (e) {
+      print('Error adding to recently viewed: $e');
+    }
   }
 
   Future<void> _toggleSave() async {
