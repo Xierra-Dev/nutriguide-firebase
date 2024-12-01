@@ -91,9 +91,11 @@ class _ProfilePageState extends State<ProfilePage>
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      leading: Padding(
+        padding: const EdgeInsets.only(left: 15.0), // Geser ke kanan
+        child: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
             Navigator.of(context).pushReplacement(
@@ -101,8 +103,11 @@ class _ProfilePageState extends State<ProfilePage>
             );
           },
         ),
-        actions: [
-          IconButton(
+      ),
+      actions: [
+        Padding(
+          padding: const EdgeInsets.only(right: 15.0), // Geser ke kiri
+          child: IconButton(
             icon: const Icon(Icons.settings, color: Colors.white),
             onPressed: () {
               Navigator.of(context).pop();
@@ -111,8 +116,10 @@ class _ProfilePageState extends State<ProfilePage>
               );
             },
           ),
-        ],
-      ),
+        ),
+      ],
+    ),
+
       body: isLoading
           ? const Center(
           child: CircularProgressIndicator(color: Colors.deepOrange))
@@ -262,13 +269,41 @@ class _ProfilePageState extends State<ProfilePage>
   }
 
   Widget _buildActivityTab() {
-    return const Center(
-      child: Text(
-        'No activity yet',
-        style: TextStyle(color: Colors.white),
-      ),
-    );
+    bool hasActivity = false; // Ubah kondisi ini sesuai dengan logika aktivitas
+
+    if (!hasActivity) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset(
+              'assets/images/no-activity.png',
+              width: 125, // Ukuran gambar
+              height: 125,
+              fit: BoxFit.contain,
+            ),
+            const SizedBox(height: 16), // Jarak antara gambar dan teks
+            const Text(
+              'No activity yet',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 17,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      );
+    } else {
+      return const Center(
+        child: Text(
+          'Activity Available',
+          style: TextStyle(color: Colors.white),
+        ),
+      );
+    }
   }
+
 
   Widget _buildNutritionItem(String label, String value, Color color) {
     return Column(
