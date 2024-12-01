@@ -33,7 +33,7 @@ class AllRecipesPage extends StatelessWidget {
         backgroundColor: Colors.black,
         elevation: 0,
         iconTheme: const IconThemeData(
-          color: Colors.white, // Warna tombol kembali
+          color: Colors.white,
         ),
       ),
       body: GridView.builder(
@@ -62,8 +62,8 @@ class AllRecipesPage extends StatelessWidget {
                 color: Colors.white.withOpacity(0.1),
               ),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Image Section
                   ClipRRect(
                     borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(10),
@@ -83,40 +83,48 @@ class AllRecipesPage extends StatelessWidget {
                       },
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 10,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          recipe.title,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 8),
-                      ],
+                  // Title Section with left alignment
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.fromLTRB(8, 10, 8, 4),
+                    child: Text(
+                      recipe.title,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.start,
                     ),
                   ),
-                  // Kotak untuk Health Score di tengah
-                  Expanded(
-                    child: Container(
-                      alignment: Alignment.center, // Posisikan teks di tengah
-                      child: Text(
-                        'Health Score: ${recipe.healthScore.toStringAsFixed(
-                            1)}',
-                        style: TextStyle(
-                          color: _getHealthScoreColor(recipe.healthScore),
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                        ),
+                  // Spacer to push health score to bottom
+                  const Spacer(),
+                  // Health Score Section
+                  Container(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    alignment: Alignment.center,
+                    child: RichText(
+                      text: TextSpan(
+                        children: [
+                          const TextSpan(
+                            text: 'Health Score: ',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          TextSpan(
+                            text: recipe.healthScore.toStringAsFixed(1),
+                            style: TextStyle(
+                              color: _getHealthScoreColor(recipe.healthScore),
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
