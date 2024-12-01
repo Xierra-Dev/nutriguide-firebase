@@ -277,7 +277,12 @@ class _HomePageState extends State<HomePage> {
           child: _buildHomeContent(),
         );
       case 1:
-        return const SearchPage();
+        return RefreshIndicator(
+          key: _refreshIndicatorKey, // Key untuk animasi refresh
+          onRefresh: _handleRefresh, // Sama seperti pull-to-refresh
+          color: Colors.deepOrange,
+          child: SearchPage(),
+        );
       case 2:
         return RefreshIndicator(
           key: _refreshIndicatorKey, // Key untuk animasi refresh

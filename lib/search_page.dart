@@ -31,6 +31,16 @@ class _SearchPageState extends State<SearchPage> {
     _scrollController.addListener(_onScroll);
   }
 
+  Color _getHealthScoreColor(double healthScore) {
+    if (healthScore < 4.5) {
+      return Colors.red;
+    } else if (healthScore <= 7.5) {
+      return Colors.yellow;
+    } else {
+      return Colors.green;
+    }
+  }
+
   Future<void> _loadInitialRecipes() async {
     setState(() {
       isLoading = true;
@@ -291,7 +301,7 @@ class _SearchPageState extends State<SearchPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
+        const Padding(
           padding: const EdgeInsets.all(16.0),
           child: Text(
             'Search Results',
@@ -369,45 +379,114 @@ class _SearchPageState extends State<SearchPage> {
                   ],
                 ),
               ),
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(10),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.5),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      recipe.area ?? 'International',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                  const Spacer(),
+                  // Top Row with Area Tag and Bookmark
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Expanded(
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.5),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                         child: Text(
-                          recipe.title,
+                          recipe.area ?? 'International',
                           style: const TextStyle(
                             color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
                           ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      const Icon(
-                        Icons.bookmark_border,
-                        color: Colors.white,
+                      Padding(
+                        padding: const EdgeInsets.only(
+                          right: 3,
+                        ),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.5),
+                            shape: BoxShape.circle,
+                          ),
+                          padding: const EdgeInsets.all(6),
+                          child: const Icon(
+                            Icons.bookmark_border,
+                            color: Colors.white,
+                            size: 18,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Recipe Title
+                      Text(
+                        recipe.title,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+
+                      const SizedBox(height: 8),
+
+                      // Preparation Time and Health Score
+                      Row(
+                        children: [
+                          // Preparation Time
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.access_time,
+                                color: Colors.white,
+                                size: 12,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '${recipe.preparationTime} min',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          const SizedBox(width: 10),
+
+                          // Health Score
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.favorite,
+                                color: _getHealthScoreColor(recipe.healthScore),
+                                size: 12,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                recipe.healthScore.toStringAsFixed(1),
+                                style: TextStyle(
+                                  color: _getHealthScoreColor(recipe.healthScore),
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ],
                   ),
