@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nutriguide/home_page.dart';
 import 'account_page.dart';
 import 'settings_page.dart';
 import 'services/auth_service.dart';
@@ -97,7 +98,7 @@ class _ProfilePageState extends State<ProfilePage>
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
             Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (context) => const AccountPage()),
+              MaterialPageRoute(builder: (context) => const HomePage()),
             );
           },
         ),
