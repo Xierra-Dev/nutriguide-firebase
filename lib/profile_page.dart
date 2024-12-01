@@ -1,12 +1,45 @@
 import 'package:flutter/material.dart';
+import 'home_page.dart';
+import 'settings_page.dart';
 import 'services/auth_service.dart';
 import 'services/firestore_service.dart';
+
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({Key? key}) : super(key: key);
 
   @override
   _ProfilePageState createState() => _ProfilePageState();
+}
+
+class SlideRightRoute extends PageRouteBuilder {
+  final Widget page;
+
+  SlideRightRoute({required this.page})
+      : super(
+    pageBuilder: (
+        BuildContext context,
+        Animation<double> primaryAnimation,
+        Animation<double> secondaryAnimation,
+        ) => page,
+    transitionsBuilder: (
+        BuildContext context,
+        Animation<double> primaryAnimation,
+        Animation<double> secondaryAnimation,
+        Widget child,
+        ) {
+      return SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(-1.0, 0.0),
+          end: Offset.zero,
+        ).animate(CurvedAnimation(
+          parent: primaryAnimation,
+          curve: Curves.easeOutQuad, // You can change the curve for different animation feels
+        ),),
+        child: child,
+      );
+    },
+  );
 }
 
 class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStateMixin {
@@ -53,13 +86,21 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            // Use SlideRightRoute for back navigation
+            Navigator.of(context).pop(
+                SlideRightRoute(page: const HomePage())
+            );
+          },
         ),
         actions: [
           IconButton(
             icon: const Icon(Icons.settings, color: Colors.white),
             onPressed: () {
-              // TODO: Navigate to settings
+              Navigator.of(context).pop();
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => const SettingsPage()),
+              );
             },
           ),
         ],

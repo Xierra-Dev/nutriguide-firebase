@@ -29,6 +29,7 @@ class _HomePageState extends State<HomePage> {
   List<String> viewedRecipeIds = [];
   List<Recipe> viewedRecipes = [];
   bool isLoading = true;
+  bool _isFirstTimeLoading = true;
   String? errorMessage;
   int _currentIndex = 0;
 
@@ -39,16 +40,12 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _loadInitialData() async {
-    await Future.wait([
-      _loadRecipes(),
-      _loadViewedRecipes(),
-    ]);
-  }
-
-  Future<void> _loadRecipes() async {
     try {
       setState(() {
-        isLoading = true;
+        // Only set isLoading to true for first-time loading
+        if (_isFirstTimeLoading) {
+          isLoading = true;
+        }
         errorMessage = null;
       });
 
@@ -62,7 +59,10 @@ class _HomePageState extends State<HomePage> {
         recommendedRecipes = futures[0];
         popularRecipes = futures[1];
         feedRecipes = futures[2];
+
+        // Reset first-time loading
         isLoading = false;
+        _isFirstTimeLoading = false;
       });
 
       print('Loaded ${recommendedRecipes.length} recommended recipes');
@@ -71,7 +71,11 @@ class _HomePageState extends State<HomePage> {
     } catch (e) {
       print('Error in _loadRecipes: $e');
       setState(() {
-        isLoading = false;
+        // Only set isLoading to false for first-time loading
+        if (_isFirstTimeLoading) {
+          isLoading = false;
+        }
+
         errorMessage = 'Failed to load recipes. Please check your internet connection and try again.';
         recommendedRecipes = [];
         popularRecipes = [];
@@ -79,6 +83,40 @@ class _HomePageState extends State<HomePage> {
       });
     }
   }
+
+  Future<void> _loadRecipes() async {
+    try {
+      setState(() {
+        // Don't set isLoading to true for subsequent loads
+        errorMessage = null;
+      });
+
+      final futures = await Future.wait([
+        _mealDBService.getRandomRecipes(number: 20),
+        _mealDBService.getRecipesByCategory('Seafood'),
+        _mealDBService.getRandomRecipes(number: 10),
+      ]);
+
+      setState(() {
+        recommendedRecipes = futures[0];
+        popularRecipes = futures[1];
+        feedRecipes = futures[2];
+      });
+
+      print('Loaded ${recommendedRecipes.length} recommended recipes');
+      print('Loaded ${popularRecipes.length} popular recipes');
+      print('Loaded ${feedRecipes.length} feed recipes');
+    } catch (e) {
+      print('Error in _loadRecipes: $e');
+      setState(() {
+        errorMessage = 'Failed to load recipes. Please check your internet connection and try again.';
+        recommendedRecipes = [];
+        popularRecipes = [];
+        feedRecipes = [];
+      });
+    }
+  }
+
 
   Future<void> _loadViewedRecipes() async {
     try {
@@ -113,12 +151,16 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _handleRefresh() async {
+    // Reset error message during refresh
+    setState(() {
+      errorMessage = null;
+    });
+
     await Future.wait([
       _loadRecipes(),
       _loadViewedRecipes(),
     ]);
 
-    // Menginformasikan bahwa proses refresh telah selesai
     if (mounted) {
       _refreshIndicatorKey.currentState?.deactivate();
     }
@@ -292,84 +334,6 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Widget _buildHomeContent() {
-    if (isLoading) {
-      return const Center(child: CircularProgressIndicator(color: Colors.deepOrange));
-    } else if (errorMessage != null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.error_outline,
-              color: Colors.red,
-              size: 80,
-            ),
-            SizedBox(height: 16),
-            Text(
-              'Oops! Something Went Wrong',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            SizedBox(height: 8),
-            Text(
-              errorMessage!,
-              style: TextStyle(
-                color: Colors.white70,
-                fontSize: 16,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _loadRecipes,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.deepOrange,
-              ),
-              child: Text(
-                'Try Again',
-                style: TextStyle(color: Colors.white),
-              ),
-            ),
-          ],
-        ),
-      );
-    } else {
-      return RefreshIndicator(
-        onRefresh: _handleRefresh,
-        color: Colors.deepOrange,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (viewedRecipes.isNotEmpty) ...[
-                      _buildSection('Recently Viewed', viewedRecipes),
-                      const SizedBox(height: 24),
-                    ],
-                    _buildSection('Recommended', recommendedRecipes),
-                    const SizedBox(height: 24),
-                    _buildSection('Popular', popularRecipes),
-                  ],
-                ),
-              ),
-              _buildRecipeFeed(),
-            ],
-          ),
-        ),
-      );
-    }
-  }
-
   Widget _buildSection(String title, List<Recipe> recipes) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -460,6 +424,89 @@ class _HomePageState extends State<HomePage> {
         ),
       ],
     );
+  }
+
+  Widget _buildHomeContent() {
+    // If it's the first-time loading, show the circular progress indicator
+    if (_isFirstTimeLoading && isLoading) {
+      return const Center(
+          child: CircularProgressIndicator(color: Colors.deepOrange)
+      );
+    }
+    // If there's an error message (which can happen anytime after first load)
+    else if (errorMessage != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.error_outline,
+              color: Colors.red,
+              size: 80,
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Oops! Something Went Wrong',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              errorMessage!,
+              style: const TextStyle(
+                color: Colors.white70,
+                fontSize: 16,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _loadRecipes,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.deepOrange,
+              ),
+              child: const Text(
+                'Try Again',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        ),
+      );
+    }  else {
+      return RefreshIndicator(
+        onRefresh: _handleRefresh,
+        color: Colors.deepOrange,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (viewedRecipes.isNotEmpty) ...[
+                      _buildSection('Recently Viewed', viewedRecipes),
+                      const SizedBox(height: 24),
+                    ],
+                    _buildSection('Recommended', recommendedRecipes),
+                    const SizedBox(height: 24),
+                    _buildSection('Popular', popularRecipes),
+                  ],
+                ),
+              ),
+              _buildRecipeFeed(),
+            ],
+          ),
+        ),
+      );
+    }
   }
 
   Widget _buildRecipeFeed() {
