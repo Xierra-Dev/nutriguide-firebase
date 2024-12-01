@@ -5,7 +5,7 @@ import 'services/firestore_service.dart';
 class RecipeDetailPage extends StatefulWidget {
   final Recipe recipe;
 
-  const RecipeDetailPage({Key? key, required this.recipe}) : super(key: key);
+  const RecipeDetailPage({super.key, required this.recipe});
 
   @override
   _RecipeDetailPageState createState() => _RecipeDetailPageState();

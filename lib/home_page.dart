@@ -315,6 +315,17 @@ class _HomePageState extends State<HomePage> {
           itemCount: feedRecipes.length,
           itemBuilder: (context, index) {
             final recipe = feedRecipes[index];
+
+            // Determine health score color based on thresholds
+            Color healthScoreColor;
+            if (recipe.healthScore <= 4.5) {
+              healthScoreColor = Colors.red;
+            } else if (recipe.healthScore <= 7.5) {
+              healthScoreColor = Colors.yellow;
+            } else {
+              healthScoreColor = Colors.green;
+            }
+
             return GestureDetector(
               onTap: () {
                 Navigator.push(
@@ -362,12 +373,24 @@ class _HomePageState extends State<HomePage> {
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 8),
-                      Text(
-                        'Health Score: ${recipe.healthScore.toStringAsFixed(1)}',
-                        style: const TextStyle(
-                          color: Colors.white70,
-                          fontSize: 14,
-                        ),
+                      Row(
+                        children: [
+                          const Text(
+                            'Health Score: ',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 14,
+                            ),
+                          ),
+                          Text(
+                            recipe.healthScore.toStringAsFixed(1),
+                            style: TextStyle(
+                              color: healthScoreColor,
+                              fontSize: 14.75,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
