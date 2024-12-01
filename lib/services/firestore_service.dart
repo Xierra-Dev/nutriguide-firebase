@@ -233,5 +233,29 @@ class FirestoreService {
       return [];
     }
   }
+  // Tambahkan metode ini di dalam kelas FirestoreService
+
+  Future<String?> getCurrentUserUsername() async {
+    try {
+      String? userId = _auth.currentUser?.uid;
+      if (userId != null) {
+        DocumentSnapshot userDoc = await _firestore.collection('users').doc(userId).get();
+
+        // Periksa apakah dokumen ada dan memiliki field username
+        Map<String, dynamic>? userData = userDoc.data() as Map<String, dynamic>?;
+
+        if (userData != null && userData.containsKey('username')) {
+          return userData['username'];
+        }
+
+        return null;
+      } else {
+        throw Exception('No authenticated user found');
+      }
+    } catch (e) {
+      print('Error getting username: $e');
+      return null;
+    }
+  }
 }
 
