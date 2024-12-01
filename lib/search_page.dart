@@ -369,6 +369,9 @@ class _SearchPageState extends State<SearchPage> {
         final recipe = recipeList[index];
         return GestureDetector(
           onTap: () {
+
+            
+
             Navigator.push(
               context,
               MaterialPageRoute(

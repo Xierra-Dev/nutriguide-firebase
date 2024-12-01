@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'models/recipe.dart';
 import 'recipe_detail_page.dart';
+import 'services/firestore_service.dart';
+
 
 class AllRecipesPage extends StatefulWidget {
   final String title;
@@ -19,6 +21,7 @@ class AllRecipesPage extends StatefulWidget {
 }
 
 class _AllRecipesPageState extends State<AllRecipesPage> {
+  final FirestoreService _firestoreService = FirestoreService();
   late List<Recipe> _recipes;
 
   @override
@@ -43,6 +46,23 @@ class _AllRecipesPageState extends State<AllRecipesPage> {
       setState(() {
         _recipes = updatedRecipes;
       });
+    }
+  }
+
+  void _addToViewedRecipes(Recipe recipe) async {
+    // Implementasi serupa dengan yang ada di HomePage
+    List<String> viewedRecipeIds = await _firestoreService.getViewedRecipeIds();
+
+    if (!viewedRecipeIds.contains(recipe.id)) {
+      viewedRecipeIds.insert(0, recipe.id);
+
+      // Batasi hingga 50 resep terakhir yang dilihat
+      if (viewedRecipeIds.length > 50) {
+        viewedRecipeIds = viewedRecipeIds.sublist(0, 50);
+      }
+
+      // Simpan ID resep yang dilihat ke penyimpanan persisten
+      await _firestoreService.saveViewedRecipeIds(viewedRecipeIds);
     }
   }
 
@@ -81,6 +101,9 @@ class _AllRecipesPageState extends State<AllRecipesPage> {
             final recipe = _recipes[index];
             return GestureDetector(
               onTap: () {
+
+                _addToViewedRecipes(recipe);
+
                 Navigator.push(
                   context,
                   MaterialPageRoute(

@@ -23,6 +23,8 @@ class _HomePageState extends State<HomePage> {
   List<Recipe> recommendedRecipes = [];
   List<Recipe> popularRecipes = [];
   List<Recipe> feedRecipes = [];
+  List<String> viewedRecipeIds = []; // To track viewed recipe IDs
+  List<Recipe> viewedRecipes = [];
   bool isLoading = true;
   String? errorMessage;
   int _currentIndex = 0;
@@ -31,6 +33,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _loadRecipes();
+    _loadViewedRecipes();
   }
 
   Future<void> _loadRecipes() async {
@@ -68,6 +71,58 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Future<void> _loadViewedRecipes() async {
+    try {
+      // Retrieve viewed recipe IDs from local storage or database
+      // For this example, I'm using a simple method. You might want to use SharedPreferences or a local database
+      List<String> storedViewedRecipeIds = await _firestoreService.getViewedRecipeIds();
+
+      // If there are viewed recipe IDs, fetch their full details
+      if (storedViewedRecipeIds.isNotEmpty) {
+        List<Recipe> fetchedViewedRecipes = [];
+        for (String recipeId in storedViewedRecipeIds) {
+          try {
+            Recipe recipe = await _mealDBService.getRecipeById(recipeId);
+            fetchedViewedRecipes.add(recipe);
+          } catch (e) {
+            print('Error fetching viewed recipe $recipeId: $e');
+          }
+        }
+
+        setState(() {
+          viewedRecipeIds = storedViewedRecipeIds;
+          viewedRecipes = fetchedViewedRecipes;
+        });
+      }
+    } catch (e) {
+      print('Error loading viewed recipes: $e');
+    }
+
+    if (viewedRecipeIds.length > 50) {
+      viewedRecipeIds = viewedRecipeIds.sublist(0, 50);
+      viewedRecipes = viewedRecipes.sublist(0, 50);
+    }
+  }
+
+  void _addToViewedRecipes(Recipe recipe) async {
+    // Check if recipe is already in viewed list
+    if (!viewedRecipeIds.contains(recipe.id)) {
+      setState(() {
+        viewedRecipeIds.insert(0, recipe.id);
+        viewedRecipes.insert(0, recipe);
+      });
+
+      // Limit to last 50 viewed recipes
+      if (viewedRecipeIds.length > 50) {
+        viewedRecipeIds = viewedRecipeIds.sublist(0, 50);
+        viewedRecipes = viewedRecipes.sublist(0, 50);
+      }
+
+      // Save viewed recipe IDs to persistent storage
+      await _firestoreService.saveViewedRecipeIds(viewedRecipeIds);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -81,8 +136,8 @@ class _HomePageState extends State<HomePage> {
             MaterialPageRoute(builder: (context) => const AddRecipePage()),
           );
         },
-      backgroundColor: Colors.deepOrange,
-      child: const Icon(Icons.add),
+        backgroundColor: Colors.deepOrange,
+        child: const Icon(Icons.add),
       ),
       bottomNavigationBar: _buildBottomNavigationBar(),
     );
@@ -117,9 +172,9 @@ class _HomePageState extends State<HomePage> {
           icon: const Icon(Icons.notifications_outlined, color: Colors.white),
           onPressed: () {
             Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const NotificationsPage()),
-              );
+              context,
+              MaterialPageRoute(builder: (context) => const NotificationsPage()),
+            );
           },
         ),
         IconButton(
@@ -158,18 +213,40 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            Icon(
+              Icons.error_outline,
+              color: Colors.red,
+              size: 80,
+            ),
+            SizedBox(height: 16),
             Text(
-              errorMessage!,
-              style: const TextStyle(color: Colors.white),
+              'Oops! Something Went Wrong',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 8),
+            Text(
+              errorMessage!,
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: 16,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 16),
             ElevatedButton(
               onPressed: _loadRecipes,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.deepOrange,
               ),
-              child: const Text('Retry'),
+              child: Text(
+                'Try Again',
+                style: TextStyle(color: Colors.white),
+              ),
             ),
           ],
         ),
@@ -184,6 +261,11 @@ class _HomePageState extends State<HomePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Add Recently Viewed section
+                  if (viewedRecipes.isNotEmpty) ...[
+                    _buildSection('Recently Viewed', viewedRecipes),
+                    const SizedBox(height: 24),
+                  ],
                   _buildSection('Recommended', recommendedRecipes),
                   const SizedBox(height: 24),
                   _buildSection('Popular', popularRecipes),
@@ -238,6 +320,9 @@ class _HomePageState extends State<HomePage> {
               final recipe = recipes[index];
               return GestureDetector(
                 onTap: () {
+                  // Add the viewed recipe to viewed recipes
+                  _addToViewedRecipes(recipe);
+
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -328,6 +413,9 @@ class _HomePageState extends State<HomePage> {
 
             return GestureDetector(
               onTap: () {
+
+                _addToViewedRecipes(recipe);
+
                 Navigator.push(
                   context,
                   MaterialPageRoute(
