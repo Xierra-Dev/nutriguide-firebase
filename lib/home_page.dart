@@ -9,6 +9,7 @@ import 'saved_page.dart';
 import 'profile_page.dart';
 import 'notifications_page.dart';
 import 'add_recipe_page.dart';
+import 'planner_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -20,10 +21,12 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final TheMealDBService _mealDBService = TheMealDBService();
   final FirestoreService _firestoreService = FirestoreService();
+  final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
+  GlobalKey<RefreshIndicatorState>();
   List<Recipe> recommendedRecipes = [];
   List<Recipe> popularRecipes = [];
   List<Recipe> feedRecipes = [];
-  List<String> viewedRecipeIds = []; // To track viewed recipe IDs
+  List<String> viewedRecipeIds = [];
   List<Recipe> viewedRecipes = [];
   bool isLoading = true;
   String? errorMessage;
@@ -32,8 +35,14 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _loadRecipes();
-    _loadViewedRecipes();
+    _loadInitialData();
+  }
+
+  Future<void> _loadInitialData() async {
+    await Future.wait([
+      _loadRecipes(),
+      _loadViewedRecipes(),
+    ]);
   }
 
   Future<void> _loadRecipes() async {
@@ -73,11 +82,8 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _loadViewedRecipes() async {
     try {
-      // Retrieve viewed recipe IDs from local storage or database
-      // For this example, I'm using a simple method. You might want to use SharedPreferences or a local database
       List<String> storedViewedRecipeIds = await _firestoreService.getViewedRecipeIds();
 
-      // If there are viewed recipe IDs, fetch their full details
       if (storedViewedRecipeIds.isNotEmpty) {
         List<Recipe> fetchedViewedRecipes = [];
         for (String recipeId in storedViewedRecipeIds) {
@@ -89,37 +95,103 @@ class _HomePageState extends State<HomePage> {
           }
         }
 
-        setState(() {
-          viewedRecipeIds = storedViewedRecipeIds;
-          viewedRecipes = fetchedViewedRecipes;
-        });
+        if (mounted) {
+          setState(() {
+            viewedRecipeIds = storedViewedRecipeIds;
+            viewedRecipes = fetchedViewedRecipes;
+          });
+        }
       }
     } catch (e) {
       print('Error loading viewed recipes: $e');
     }
 
-    if (viewedRecipeIds.length > 50) {
-      viewedRecipeIds = viewedRecipeIds.sublist(0, 50);
-      viewedRecipes = viewedRecipes.sublist(0, 50);
+    // if (viewedRecipeIds.length > 50) {
+    //   viewedRecipeIds = viewedRecipeIds.sublist(0, 50);
+    //   viewedRecipes = viewedRecipes.sublist(0, 50);
+    // }
+  }
+
+  Future<void> _handleRefresh() async {
+    await Future.wait([
+      _loadRecipes(),
+      _loadViewedRecipes(),
+    ]);
+
+    // Menginformasikan bahwa proses refresh telah selesai
+    if (mounted) {
+      _refreshIndicatorKey.currentState?.deactivate();
     }
   }
 
-  void _addToViewedRecipes(Recipe recipe) async {
-    // Check if recipe is already in viewed list
-    if (!viewedRecipeIds.contains(recipe.id)) {
-      setState(() {
-        viewedRecipeIds.insert(0, recipe.id);
-        viewedRecipes.insert(0, recipe);
-      });
 
-      // Limit to last 50 viewed recipes
-      if (viewedRecipeIds.length > 50) {
-        viewedRecipeIds = viewedRecipeIds.sublist(0, 50);
-        viewedRecipes = viewedRecipes.sublist(0, 50);
+  Future<void> _handleNavigationTap(int index) async {
+    if (_currentIndex == index) {
+      // Jika pengguna mengetuk ikon saat ini, lakukan refresh halaman
+      switch (index) {
+        case 0: // Home
+          if (index == 0) { // Saved
+            _refreshIndicatorKey.currentState?.show();
+          }
+          await _handleRefresh();
+          break;
+        case 2: // Planner
+          if (index == 2) { // Saved
+            _refreshIndicatorKey.currentState?.show();
+          }
+        // Tambahkan logika untuk me-refresh halaman Planner
+          print('Planner page refreshed'); // Ganti dengan metode refresh Planner
+          break;
+        case 3: // Saved
+          if (index == 3) { // Saved
+            _refreshIndicatorKey.currentState?.show();
+          }
+        // Tambahkan logika untuk me-refresh halaman Saved
+          print('Saved page refreshed'); // Ganti dengan metode refresh Saved
+          break;
+      }
+    } else {
+      // Jika pengguna mengetuk ikon berbeda, navigasikan ke indeks baru
+      setState(() {
+        _currentIndex = index;
+      });
+    }
+  }
+
+
+  Future<void> _addToViewedRecipes(Recipe recipe) async {
+    if (!viewedRecipeIds.contains(recipe.id)) {
+      if (mounted) {
+        setState(() {
+          viewedRecipeIds.insert(0, recipe.id);
+          viewedRecipes.insert(0, recipe);
+
+          if (viewedRecipeIds.length > 50) {
+            viewedRecipeIds = viewedRecipeIds.sublist(0, 50);
+            viewedRecipes = viewedRecipes.sublist(0, 50);
+          }
+        });
       }
 
-      // Save viewed recipe IDs to persistent storage
-      await _firestoreService.saveViewedRecipeIds(viewedRecipeIds);
+      await Future.wait([
+        _firestoreService.saveViewedRecipeIds(viewedRecipeIds),
+        _loadViewedRecipes(),
+      ]);
+    }
+  }
+
+  void _navigateToRecipeDetail(Recipe recipe) async {
+    await _addToViewedRecipes(recipe);
+
+    if (mounted) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => RecipeDetailPage(recipe: recipe),
+        ),
+      ).then((_) {
+        _loadViewedRecipes();
+      });
     }
   }
 
@@ -147,7 +219,7 @@ class _HomePageState extends State<HomePage> {
     return AppBar(
       backgroundColor: Colors.transparent,
       elevation: 0,
-      automaticallyImplyLeading: false, // This removes the back button
+      automaticallyImplyLeading: false,
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -193,13 +265,28 @@ class _HomePageState extends State<HomePage> {
   Widget _buildBody() {
     switch (_currentIndex) {
       case 0:
-        return _buildHomeContent();
+        return RefreshIndicator(
+          key: _refreshIndicatorKey, // Key untuk animasi refresh
+          onRefresh: _handleRefresh, // Sama seperti pull-to-refresh
+          color: Colors.deepOrange,
+          child: _buildHomeContent(),
+        );
       case 1:
         return const SearchPage();
       case 2:
-        return const Center(child: Text('Planner Page', style: TextStyle(color: Colors.white)));
+        return RefreshIndicator(
+          key: _refreshIndicatorKey, // Key untuk animasi refresh
+          onRefresh: _handleRefresh, // Sama seperti pull-to-refresh
+          color: Colors.deepOrange,
+          child: PlannerPage(),
+        );;
       case 3:
-        return const SavedPage();
+        return RefreshIndicator(
+            key: _refreshIndicatorKey, // Key untuk animasi refresh
+            onRefresh: _handleRefresh, // Sama seperti pull-to-refresh
+            color: Colors.deepOrange,
+        child:  const SavedPage(),
+        );
       default:
         return _buildHomeContent();
     }
@@ -252,28 +339,32 @@ class _HomePageState extends State<HomePage> {
         ),
       );
     } else {
-      return SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Add Recently Viewed section
-                  if (viewedRecipes.isNotEmpty) ...[
-                    _buildSection('Recently Viewed', viewedRecipes),
+      return RefreshIndicator(
+        onRefresh: _handleRefresh,
+        color: Colors.deepOrange,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (viewedRecipes.isNotEmpty) ...[
+                      _buildSection('Recently Viewed', viewedRecipes),
+                      const SizedBox(height: 24),
+                    ],
+                    _buildSection('Recommended', recommendedRecipes),
                     const SizedBox(height: 24),
+                    _buildSection('Popular', popularRecipes),
                   ],
-                  _buildSection('Recommended', recommendedRecipes),
-                  const SizedBox(height: 24),
-                  _buildSection('Popular', popularRecipes),
-                ],
+                ),
               ),
-            ),
-            _buildRecipeFeed(),
-          ],
+              _buildRecipeFeed(),
+            ],
+          ),
         ),
       );
     }
@@ -301,7 +392,9 @@ class _HomePageState extends State<HomePage> {
                   MaterialPageRoute(
                     builder: (context) => AllRecipesPage(title: title, recipes: recipes),
                   ),
-                );
+                ).then((_) {
+                  _loadViewedRecipes();
+                });
               },
               child: const Text(
                 'See All',
@@ -319,17 +412,7 @@ class _HomePageState extends State<HomePage> {
             itemBuilder: (context, index) {
               final recipe = recipes[index];
               return GestureDetector(
-                onTap: () {
-                  // Add the viewed recipe to viewed recipes
-                  _addToViewedRecipes(recipe);
-
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => RecipeDetailPage(recipe: recipe),
-                    ),
-                  );
-                },
+                onTap: () => _navigateToRecipeDetail(recipe),
                 child: Container(
                   width: 150,
                   margin: const EdgeInsets.only(right: 16),
@@ -401,7 +484,6 @@ class _HomePageState extends State<HomePage> {
           itemBuilder: (context, index) {
             final recipe = feedRecipes[index];
 
-            // Determine health score color based on thresholds
             Color healthScoreColor;
             if (recipe.healthScore <= 4.5) {
               healthScoreColor = Colors.red;
@@ -413,15 +495,7 @@ class _HomePageState extends State<HomePage> {
 
             return GestureDetector(
               onTap: () {
-
-                _addToViewedRecipes(recipe);
-
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => RecipeDetailPage(recipe: recipe),
-                  ),
-                );
+                _navigateToRecipeDetail(recipe);
               },
               child: Container(
                 height: 250,
@@ -498,11 +572,7 @@ class _HomePageState extends State<HomePage> {
       unselectedItemColor: Colors.white,
       currentIndex: _currentIndex,
       type: BottomNavigationBarType.fixed,
-      onTap: (index) {
-        setState(() {
-          _currentIndex = index;
-        });
-      },
+      onTap:  _handleNavigationTap,
       items: const [
         BottomNavigationBarItem(
           icon: Icon(Icons.home),

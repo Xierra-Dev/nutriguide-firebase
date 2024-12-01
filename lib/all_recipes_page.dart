@@ -23,6 +23,8 @@ class AllRecipesPage extends StatefulWidget {
 class _AllRecipesPageState extends State<AllRecipesPage> {
   final FirestoreService _firestoreService = FirestoreService();
   late List<Recipe> _recipes;
+  List<String> viewedRecipeIds = []; // To track viewed recipe IDs
+  List<Recipe> viewedRecipes = [];
 
   @override
   void initState() {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'models/recipe.dart';
 import 'services/themealdb_service.dart';
 import 'recipe_detail_page.dart';
+import 'services/firestore_service.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -12,16 +13,20 @@ class SearchPage extends StatefulWidget {
 
 class _SearchPageState extends State<SearchPage> {
   final TheMealDBService _mealDBService = TheMealDBService();
+  final FirestoreService _firestoreService = FirestoreService();
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   List<Recipe> recipes = [];
   List<Recipe> searchResults = [];
   List<Map<String, String>> popularIngredients = [];
+  List<String> viewedRecipeIds = []; // To track viewed recipe IDs
+  List<Recipe> viewedRecipes = [];
   bool isLoading = false;
   String selectedIngredient = '';
   String sortBy = 'Newest';
   bool _showPopularSection = true;
   bool _isSearching = false;
+  late List<Recipe> _recipes;
 
   @override
   void initState() {
@@ -46,6 +51,25 @@ class _SearchPageState extends State<SearchPage> {
       setState(() {
         isLoading = false;
       });
+    }
+  }
+
+  void _addToViewedRecipes(Recipe recipe) async {
+    // Check if recipe is already in viewed list
+    if (!viewedRecipeIds.contains(recipe.id)) {
+      setState(() {
+        viewedRecipeIds.insert(0, recipe.id);
+        viewedRecipes.insert(0, recipe);
+      });
+
+      // Limit to last 50 viewed recipes
+      if (viewedRecipeIds.length > 50) {
+        viewedRecipeIds = viewedRecipeIds.sublist(0, 50);
+        viewedRecipes = viewedRecipes.sublist(0, 50);
+      }
+
+      // Save viewed recipe IDs to persistent storage
+      await _firestoreService.saveViewedRecipeIds(viewedRecipeIds);
     }
   }
 
@@ -131,6 +155,7 @@ class _SearchPageState extends State<SearchPage> {
               ),
             ),
           ),
+          const SizedBox(height: 5,),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Container(
@@ -142,7 +167,7 @@ class _SearchPageState extends State<SearchPage> {
                 controller: _searchController,
                 style: const TextStyle(color: Colors.white),
                 decoration: InputDecoration(
-                  hintText: 'Search...',
+                  hintText: 'Search Recipes...',
                   hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
                   prefixIcon: const Icon(Icons.search, color: Colors.white),
                   border: InputBorder.none,
@@ -160,6 +185,7 @@ class _SearchPageState extends State<SearchPage> {
               ),
             ),
           ),
+          const SizedBox(height: 5,),
           if (!_isSearching) ...[
             AnimatedContainer(
               duration: const Duration(milliseconds: 300),
@@ -312,8 +338,6 @@ class _SearchPageState extends State<SearchPage> {
     }
   }
 
-
-
   Widget _buildSearchResults() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -369,9 +393,7 @@ class _SearchPageState extends State<SearchPage> {
         final recipe = recipeList[index];
         return GestureDetector(
           onTap: () {
-
-            
-
+            _addToViewedRecipes(recipe);
             Navigator.push(
               context,
               MaterialPageRoute(
