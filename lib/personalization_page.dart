@@ -15,8 +15,6 @@ class PersonalizationPage extends StatefulWidget {
   _PersonalizationPageState createState() => _PersonalizationPageState();
 }
 
-
-
 class _PersonalizationPageState extends State<PersonalizationPage> {
   final FirestoreService _firestoreService = FirestoreService();
   String? gender;
@@ -35,8 +33,6 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
     super.initState();
     _loadUserData();
   }
-
-
 
   Future<void> _loadUserData() async {
     setState(() => _isLoading = true);
