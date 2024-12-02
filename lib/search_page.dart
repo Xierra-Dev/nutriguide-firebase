@@ -24,6 +24,7 @@ class _SearchPageState extends State<SearchPage> {
   String sortBy = 'Newest';
   bool _showPopularSection = true;
   bool _isSearching = false;
+  bool _isYouMightAlsoLikeSectionExpanded = true;
 
   @override
   void initState() {
@@ -45,9 +46,7 @@ class _SearchPageState extends State<SearchPage> {
 
   void _saveRecipe(Recipe recipe) async {
     try {
-      // Add logic to save the recipe to Firestore or local storage
       await _firestoreService.saveRecipe(recipe);
-      // Optional: Show a snackbar or toast to confirm saving
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Recipe saved: ${recipe.title}')),
       );
@@ -125,7 +124,6 @@ class _SearchPageState extends State<SearchPage> {
       selectedIngredient = ingredient;
     });
     try {
-      // In a real app, you would filter by ingredient
       final recipes = await _mealDBService.getRandomRecipes(number: 10);
       setState(() {
         this.recipes = recipes;
@@ -155,35 +153,37 @@ class _SearchPageState extends State<SearchPage> {
             ),
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(25),
-            ),
-            child: TextField(
-              controller: _searchController,
-              style: const TextStyle(color: Colors.white),
-              decoration: InputDecoration(
-                hintText: 'Search...',
-                hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
-                prefixIcon: const Icon(Icons.search, color: Colors.white),
-                border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        // Only show the main search bar when not searching
+        if (!_isSearching)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(25),
               ),
-              onSubmitted: (value) {
-                if (value.isNotEmpty) {
-                  _searchRecipes(value);
-                } else {
-                  setState(() {
-                    _isSearching = false;
-                  });
-                }
-              },
+              child: TextField(
+                controller: _searchController,
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  hintText: 'Search...',
+                  hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
+                  prefixIcon: const Icon(Icons.search, color: Colors.white),
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                ),
+                onSubmitted: (value) {
+                  if (value.isNotEmpty) {
+                    _searchRecipes(value);
+                  } else {
+                    setState(() {
+                      _isSearching = false;
+                    });
+                  }
+                },
+              ),
             ),
           ),
-        ),
         if (!_isSearching) ...[
           AnimatedContainer(
             duration: const Duration(milliseconds: 300),
@@ -308,48 +308,121 @@ class _SearchPageState extends State<SearchPage> {
           child: isLoading
               ? const Center(child: CircularProgressIndicator(color: Colors.deepOrange))
               : _isSearching
-                  ? _buildSearchResults()
-                  : _buildRecipeGrid(recipes),
+              ? _buildSearchResults()
+              : _buildRecipeGrid(recipes),
         ),
       ],
     );
   }
-
   Widget _buildSearchResults() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Text(
-            'Search Results',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
+        // Move the back button and title row closer to the top
+        Padding(
+          padding: const EdgeInsets.only(top: 8.0, left: 16.0, right: 16.0, bottom: 8.0),
+          child: Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.white),
+                onPressed: () {
+                  setState(() {
+                    _isSearching = false;
+                    _searchController.clear();
+                  });
+                },
+                padding: EdgeInsets.zero,
+              ),
+              const SizedBox(width: 5),
+              const Text(
+                'Search Results',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        ),
+        // Reduce padding and spacing around the search bar
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 17.5),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(25),
+            ),
+            child: TextField(
+              controller: _searchController,
+              style: const TextStyle(color: Colors.white),
+              decoration: InputDecoration(
+                hintText: 'Search Recipes...',
+                hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
+                prefixIcon: const Icon(Icons.search, color: Colors.white),
+                border: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              ),
+              onSubmitted: (value) {
+                if (value.isNotEmpty) {
+                  _searchRecipes(value);
+                }
+              },
             ),
           ),
         ),
+        // Remove or reduce the SizedBox height
+        const SizedBox(height: 10),
+        // Expand the search results to take up more space
         Expanded(
           child: _buildRecipeGrid(searchResults),
         ),
-        if (searchResults.isNotEmpty)
+        // Conditionally render the "You might also like" section
+        if (searchResults.isNotEmpty) ...[
           Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Text(
-              'You might also like',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+            padding: const EdgeInsets.only(
+              top: 15,
+              bottom: 0,
+              left: 15,
+              right: 15,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'You might also like',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                // Add an IconButton to toggle the section
+                IconButton(
+                  icon: Icon(
+                    _isYouMightAlsoLikeSectionExpanded
+                        ? Icons.arrow_drop_up
+                        : Icons.arrow_drop_down,
+                    color: Colors.white,
+                    size: 30,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _isYouMightAlsoLikeSectionExpanded =
+                      !_isYouMightAlsoLikeSectionExpanded;
+                    });
+                  },
+                ),
+              ],
             ),
           ),
-        if (searchResults.isNotEmpty)
-          SizedBox(
-            height: 200,
-            child: _buildRecipeGrid(recipes.take(4).toList(), scrollDirection: Axis.horizontal),
-          ),
+          // Only show the grid when section is expanded
+          if (_isYouMightAlsoLikeSectionExpanded)
+            SizedBox(
+              height: MediaQuery.of(context).size.height * 0.21, // Reduced height
+              child: _buildRecipeGrid(recipes.take(10).toList(), scrollDirection: Axis.horizontal),
+            ),
+        ],
       ],
     );
   }
@@ -448,7 +521,7 @@ class _SearchPageState extends State<SearchPage> {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(15),
                             ),
-                            offset: const Offset(-142.5,45),
+                            offset: const Offset(0,45),
                             constraints: const BoxConstraints(
                               minWidth: 175, // Makes popup menu wider
                               maxWidth: 175,

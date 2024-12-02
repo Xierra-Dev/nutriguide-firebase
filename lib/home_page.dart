@@ -226,7 +226,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      appBar: _currentIndex == 1 ? null : _buildAppBar(),
+      appBar : _buildAppBar(),
       body: _buildBody(),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -243,6 +243,11 @@ class _HomePageState extends State<HomePage> {
   }
 
   AppBar? _buildAppBar() {
+    // Only show AppBar for Home page (index 0)
+    if (_currentIndex != 0) {
+      return null;
+    }
+
     return AppBar(
       backgroundColor: Colors.transparent,
       elevation: 0,
