@@ -228,7 +228,7 @@ class _HomePageState extends State<HomePage> {
       backgroundColor: Colors.black,
       appBar : _buildAppBar(),
       body: _buildBody(),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: _currentIndex == 1 ? null : FloatingActionButton(
         onPressed: () {
           Navigator.push(
             context,
