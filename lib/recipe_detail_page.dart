@@ -13,14 +13,37 @@ class RecipeDetailPage extends StatefulWidget {
 
 class _RecipeDetailPageState extends State<RecipeDetailPage> {
   final FirestoreService _firestoreService = FirestoreService();
+  final ScrollController _scrollController = ScrollController();
   bool isSaved = false;
   bool isLoading = false;
+  bool showTitle = false;
 
   @override
   void initState() {
     super.initState();
     _checkIfSaved();
     _addToRecentlyViewed();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    // You can adjust this value (100) to control when the title appears
+    if (_scrollController.offset > 100 && !showTitle) {
+      setState(() {
+        showTitle = true;
+      });
+    } else if (_scrollController.offset <= 100 && showTitle) {
+      setState(() {
+        showTitle = false;
+      });
+    }
   }
 
   Future<void> _checkIfSaved() async {
@@ -80,43 +103,62 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
-            expandedHeight: 300,
+            backgroundColor: Colors.black,
+            surfaceTintColor: Colors.transparent,
+            expandedHeight: MediaQuery.of(context).size.height * 0.375,
             pinned: true,
             flexibleSpace: FlexibleSpaceBar(
+              centerTitle: true,
+              title: Text(
+                widget.recipe.title,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
               background: Image.network(
                 widget.recipe.image,
                 fit: BoxFit.cover,
               ),
             ),
             leading: IconButton(
-              icon: const Icon(Icons.arrow_back),
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
               onPressed: () => Navigator.pop(context),
             ),
             actions: [
-              IconButton(
-                icon: Icon(
-                  isSaved ? Icons.bookmark : Icons.bookmark_border,
-                  color: Colors.white,
+              Transform.translate(
+                offset: const Offset(-7, 4.75), // Geser lingkaran hitam beserta ikon ke bawah
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 10),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.7),
+                    shape: BoxShape.circle,
+                  ),
+                  child: IconButton(
+                    icon: Icon(
+                      isSaved ? Icons.bookmark : Icons.bookmark_border,
+                      color: Colors.deepOrange,
+                    ),
+                    onPressed: isLoading ? null : _toggleSave,
+                  ),
                 ),
-                onPressed: isLoading ? null : _toggleSave,
               ),
             ],
+
           ),
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.symmetric(
+                vertical: 24,
+                horizontal: 20,
+              ),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    widget.recipe.title,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
+                  // Removed the Text widget that displayed the recipe title
+                  const SizedBox(height: 8),
                   _buildInfoSection(),
                   const SizedBox(height: 24),
                   _buildIngredientsList(),
@@ -132,48 +174,51 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
           ),
         ],
       ),
-      bottomNavigationBar: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.black,
-          border: Border(
-            top: BorderSide(
-              color: Colors.white.withOpacity(0.1),
-            ),
-          ),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: ElevatedButton(
-                onPressed: isLoading ? null : _toggleSave,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: Colors.black,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: isLoading
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor:
-                              AlwaysStoppedAnimation<Color>(Colors.black),
-                        ),
-                      )
-                    : Text(isSaved ? 'Saved' : 'Save'),
+        bottomNavigationBar: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.black,
+            border: Border(
+              top: BorderSide(
+                color: Colors.white.withOpacity(0.1),
               ),
             ),
-          ],
-        ),
-      ),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: isLoading ? null : _toggleSave,
+                  style: ElevatedButton.styleFrom(
+                    // Change background color based on save state
+                    backgroundColor: isSaved ? Colors.deepOrange : Colors.white,
+                    // Change text color based on save state
+                    foregroundColor: isSaved ? Colors.white : Colors.black,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(50),
+                    ),
+                  ),
+                  child: isLoading
+                      ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor:
+                      AlwaysStoppedAnimation<Color>(Colors.deepOrange),
+                    ),
+                  )
+                      : Text(isSaved ? 'Saved' : 'Save'),
+                ),
+              ),
+            ],
+          ),
+        )
     );
   }
 
+  // Rest of the widget methods remain the same...
   Widget _buildInfoButton(String label, String value, IconData icon) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
@@ -217,7 +262,6 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
 
   Widget _buildIngredientsList() {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
           'Ingredients',
@@ -229,6 +273,7 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
         ),
         const SizedBox(height: 16),
         ListView.builder(
+          padding: EdgeInsets.zero,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: widget.recipe.ingredients.length,
@@ -256,7 +301,6 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
 
   Widget _buildInstructions() {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
           'Instructions',
@@ -268,6 +312,7 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
         ),
         const SizedBox(height: 16),
         ListView.builder(
+          padding: EdgeInsets.zero,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: widget.recipe.instructionSteps.length,
@@ -370,4 +415,3 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
     );
   }
 }
-
