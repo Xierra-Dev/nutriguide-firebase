@@ -4,8 +4,7 @@ import 'services/firestore_service.dart';
 
 class RecipeDetailPage extends StatefulWidget {
   final Recipe recipe;
-
-  const RecipeDetailPage({Key? key, required this.recipe}) : super(key: key);
+  const RecipeDetailPage({super.key, required this.recipe});
 
   @override
   _RecipeDetailPageState createState() => _RecipeDetailPageState();
@@ -61,7 +60,7 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
     }
   }
 
-  Future<void> _toggleSave() async {
+  Future<void> _toggleSave(Recipe recipe) async {
     setState(() {
       isLoading = true;
     });
@@ -77,7 +76,7 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            isSaved ? 'Recipe saved' : 'Recipe removed from saved',
+            isSaved ? 'Recipe saved: ${recipe.title}' : 'Recipe: "${recipe.title}" removed from saved',
           ),
           duration: const Duration(seconds: 2),
         ),
@@ -119,9 +118,30 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
-              background: Image.network(
-                widget.recipe.image,
-                fit: BoxFit.cover,
+              background: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Image.network(
+                    widget.recipe.image,
+                    fit: BoxFit.cover,
+                  ),
+                  Positioned.fill(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.bottomCenter,
+                          end: Alignment.topCenter,
+                          colors: [
+                            Colors.black.withOpacity(0.7),
+                            Colors.black.withOpacity(0.3),
+                            Colors.transparent,
+                          ],
+                          stops: const [0.0, 0.35, 1.0],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
             leading: IconButton(
@@ -142,7 +162,7 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
                       isSaved ? Icons.bookmark : Icons.bookmark_border,
                       color: Colors.deepOrange,
                     ),
-                    onPressed: isLoading ? null : _toggleSave,
+                    onPressed: isLoading ? null : () => _toggleSave(widget.recipe),
                   ),
                 ),
               ),
@@ -188,7 +208,7 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
             children: [
               Expanded(
                 child: ElevatedButton(
-                  onPressed: isLoading ? null : _toggleSave,
+                  onPressed: isLoading ? null : () => _toggleSave(widget.recipe),
                   style: ElevatedButton.styleFrom(
                     // Change background color based on save state
                     backgroundColor: isSaved ? Colors.deepOrange : Colors.white,

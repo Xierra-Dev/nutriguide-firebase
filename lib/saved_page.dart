@@ -21,6 +21,16 @@ class _SavedPageState extends State<SavedPage> {
     _loadSavedRecipes();
   }
 
+  Color _getHealthScoreColor(double healthScore) {
+    if (healthScore < 6) {
+      return Colors.red;
+    } else if (healthScore <= 7.5) {
+      return Colors.yellow;
+    } else {
+      return Colors.green;
+    }
+  }
+
   Future<void> _loadSavedRecipes() async {
     setState(() {
       isLoading = true;
@@ -190,11 +200,11 @@ class _SavedPageState extends State<SavedPage> {
                     style: const TextStyle(color: Colors.white, fontSize: 12),
                   ),
                   const Spacer(),
-                  const Icon(Icons.favorite, color: Colors.deepOrange, size: 16),
+                  Icon(Icons.favorite, color: _getHealthScoreColor(recipe.healthScore), size: 16),
                   const SizedBox(width: 4),
                   Text(
                     recipe.healthScore.toStringAsFixed(1),
-                    style: const TextStyle(color: Colors.white, fontSize: 12),
+                    style: TextStyle(color: _getHealthScoreColor(recipe.healthScore), fontSize: 12),
                   ),
                 ],
               ),

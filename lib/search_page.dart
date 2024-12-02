@@ -16,6 +16,8 @@ class _SearchPageState extends State<SearchPage> {
   final TheMealDBService _mealDBService = TheMealDBService();
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  final Map<String, bool> savedStatus = {};
+  final Map<String, bool> plannedStatus = {};
   List<Recipe> recipes = [];
   List<Recipe> searchResults = [];
   List<Map<String, String>> popularIngredients = [];
@@ -32,10 +34,11 @@ class _SearchPageState extends State<SearchPage> {
     _loadInitialRecipes();
     _loadPopularIngredients();
     _scrollController.addListener(_onScroll);
+    // _checkIfSaved(recipe);
   }
 
   Color _getHealthScoreColor(double healthScore) {
-    if (healthScore < 4.5) {
+    if (healthScore < 6) {
       return Colors.red;
     } else if (healthScore <= 7.5) {
       return Colors.yellow;
@@ -44,16 +47,76 @@ class _SearchPageState extends State<SearchPage> {
     }
   }
 
-  void _saveRecipe(Recipe recipe) async {
+  Future<void> _checkIfSaved(Recipe recipe) async {
+    final saved = await _firestoreService.isRecipeSaved(recipe.id);
+    setState(() {
+      savedStatus[recipe.id] = saved;
+    });
+  }
+
+  Future<void> _toggleSave(Recipe recipe) async {
+    setState(() {
+      isLoading = true;
+    });
     try {
-      await _firestoreService.saveRecipe(recipe);
+      if (savedStatus[recipe.id] == true) {
+        await _firestoreService.unsaveRecipe(recipe.id);
+      } else {
+        await _firestoreService.saveRecipe(recipe);
+      }
+      setState(() {
+        savedStatus[recipe.id] = !(savedStatus[recipe.id] ?? false);
+      });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Recipe saved: ${recipe.title}')),
+        SnackBar(
+          content: Text(
+            savedStatus[recipe.id] == true
+                ? 'Recipe saved: ${recipe.title}'
+                : 'Recipe: "${recipe.title}" removed from saved',
+          ),
+          duration: const Duration(seconds: 1),
+        ),
       );
     } catch (e) {
-      print('Error saving recipe: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to save recipe: ${recipe.title}')),
+        const SnackBar(
+          content: Text('Error saving recipe'),
+          duration: Duration(seconds: 1),
+        ),
+      );
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+
+  void _planMeal(Recipe recipe) async {
+    try {
+      if (plannedStatus[recipe.id] == true) {
+        // Remove recipe from PlannerPage
+        await _firestoreService.removePlannedRecipe(recipe.id);
+        setState(() {
+          plannedStatus[recipe.id] = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Meal unplanned: ${recipe.title}')),
+        );
+      } else {
+        // Add recipe to PlannerPage
+        await _firestoreService.addPlannedRecipe(recipe);
+        setState(() {
+          plannedStatus[recipe.id] = true;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Meal planned: ${recipe.title}')),
+        );
+      }
+    } catch (e) {
+      print('Error toggling meal plan: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to update meal plan: ${recipe.title}')),
       );
     }
   }
@@ -513,35 +576,47 @@ class _SearchPageState extends State<SearchPage> {
                             ),
                             onSelected: (String value) {
                               if (value == 'Save Recipe') {
-                                _saveRecipe(recipe);
-                              } else if (value == 'Plan Meal') {}
+                                _toggleSave(recipe);
+                              } else if (value == 'Plan Meal') {
+                              }
                             },
                             color: Colors.white,
                             elevation: 4,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(15),
                             ),
-                            offset: const Offset(0,45),
+                            offset: const Offset(0, 45),
                             constraints: const BoxConstraints(
-                              minWidth: 175, // Makes popup menu wider
+                              minWidth: 175,
                               maxWidth: 175,
                             ),
                             itemBuilder: (BuildContext context) => [
                               PopupMenuItem<String>(
-                                height: 60, // Makes item taller
+                                height: 60,
                                 value: 'Save Recipe',
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                                  padding:
+                                  const EdgeInsets.symmetric(horizontal: 10),
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.start,
                                     children: [
-                                      const Icon(Icons.bookmark_border_rounded, size: 22, color: Colors.black87),
+                                      Icon(
+                                        Icons.bookmark_border_rounded,
+                                        size: 22,
+                                        color: savedStatus[recipe.id] == true
+                                            ? Colors.deepOrange
+                                            : Colors.black87,
+                                      ),
                                       const SizedBox(width: 10),
                                       Text(
-                                        'Save Recipe',
+                                        savedStatus[recipe.id] == true
+                                            ? 'Saved'
+                                            : 'Save Recipe',
                                         style: TextStyle(
                                           fontSize: 16,
-                                          color: Colors.black87,
+                                          color: savedStatus[recipe.id] == true
+                                              ? Colors.deepOrange
+                                              : Colors.black87,
                                           fontWeight: FontWeight.w500,
                                         ),
                                       ),
@@ -550,20 +625,31 @@ class _SearchPageState extends State<SearchPage> {
                                 ),
                               ),
                               PopupMenuItem<String>(
-                                height: 60, // Makes item taller
+                                height: 60,
                                 value: 'Plan Meal',
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                                  padding:
+                                  const EdgeInsets.symmetric(horizontal: 10),
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.start,
                                     children: [
-                                      const Icon(Icons.calendar_today_rounded, size: 22, color: Colors.black87),
+                                      Icon(
+                                        Icons.calendar_today_rounded,
+                                        size: 22,
+                                        color: plannedStatus[recipe.id] == true
+                                            ? Colors.deepOrange
+                                            : Colors.black87,
+                                      ),
                                       const SizedBox(width: 10),
                                       Text(
-                                        'Plan Meal',
+                                        plannedStatus[recipe.id] == true
+                                            ? 'Planned'
+                                            : 'Plan Meal',
                                         style: TextStyle(
                                           fontSize: 16,
-                                          color: Colors.black87,
+                                          color: plannedStatus[recipe.id] == true
+                                              ? Colors.deepOrange
+                                              : Colors.black87,
                                           fontWeight: FontWeight.w500,
                                         ),
                                       ),

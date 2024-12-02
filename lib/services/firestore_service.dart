@@ -257,5 +257,62 @@ class FirestoreService {
       return null;
     }
   }
+
+  Future<void> removePlannedRecipe(String recipeId) async {
+    try {
+      String? userId = _auth.currentUser?.uid;
+      if (userId != null) {
+        // Menghapus dokumen dengan ID tertentu dari koleksi planned_recipes
+        await _firestore
+            .collection('users')
+            .doc(userId)
+            .collection('planned_recipes')
+            .doc(recipeId)
+            .delete();
+        print('Planned recipe removed: $recipeId');
+      } else {
+        throw Exception('No authenticated user found');
+      }
+    } catch (e) {
+      print('Error removing planned recipe: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> addPlannedRecipe(Recipe recipe) async {
+    try {
+      String? userId = _auth.currentUser?.uid;
+      if (userId != null) {
+        // Menambahkan dokumen baru ke koleksi planned_recipes
+        await _firestore
+            .collection('users')
+            .doc(userId)
+            .collection('planned_recipes')
+            .doc(recipe.id)
+            .set({
+          'id': recipe.id,
+          'title': recipe.title,
+          'image': recipe.image,
+          'category': recipe.category,
+          'area': recipe.area,
+          'instructions': recipe.instructions,
+          'ingredients': recipe.ingredients,
+          'measurements': recipe.measurements,
+          'preparationTime': recipe.preparationTime,
+          'healthScore': recipe.healthScore,
+          'plannedAt': FieldValue.serverTimestamp(),
+        });
+        print('Planned recipe added: ${recipe.title}');
+      } else {
+        throw Exception('No authenticated user found');
+      }
+    } catch (e) {
+      print('Error adding planned recipe: $e');
+      rethrow;
+    }
+  }
+
 }
+
+
 

@@ -4,6 +4,7 @@ import 'home_page.dart';
 import 'services/themealdb_service.dart';
 import 'package:linear_progress_bar/linear_progress_bar.dart';
 import 'goals_page.dart';
+
 class AllergiesPage extends StatefulWidget {
   const AllergiesPage({Key? key}) : super(key: key);
 
