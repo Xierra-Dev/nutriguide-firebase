@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'models/recipe.dart';
 import 'services/themealdb_service.dart';
 import 'recipe_detail_page.dart';
+import 'services/firestore_service.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({Key? key}) : super(key: key);
@@ -11,6 +12,7 @@ class SearchPage extends StatefulWidget {
 }
 
 class _SearchPageState extends State<SearchPage> {
+  final FirestoreService _firestoreService = FirestoreService();
   final TheMealDBService _mealDBService = TheMealDBService();
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
@@ -38,6 +40,22 @@ class _SearchPageState extends State<SearchPage> {
       return Colors.yellow;
     } else {
       return Colors.green;
+    }
+  }
+
+  void _saveRecipe(Recipe recipe) async {
+    try {
+      // Add logic to save the recipe to Firestore or local storage
+      await _firestoreService.saveRecipe(recipe);
+      // Optional: Show a snackbar or toast to confirm saving
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Recipe saved: ${recipe.title}')),
+      );
+    } catch (e) {
+      print('Error saving recipe: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to save recipe: ${recipe.title}')),
+      );
     }
   }
 
@@ -405,26 +423,87 @@ class _SearchPageState extends State<SearchPage> {
                           ),
                         ),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.only(
-                          right: 3,
-                        ),
+                      Positioned(
                         child: Container(
+                          width: 32.5,
+                          height: 32.5,
                           decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.5),
                             shape: BoxShape.circle,
+                            color: Colors.black.withOpacity(0.5),
                           ),
-                          padding: const EdgeInsets.all(6),
-                          child: const Icon(
-                            Icons.bookmark_border,
+                          child: PopupMenuButton<String>(
+                            padding: EdgeInsets.zero,
+                            iconSize: 24,
+                            icon: const Icon(
+                              Icons.more_vert,
+                              color: Colors.white,
+                            ),
+                            onSelected: (String value) {
+                              if (value == 'Save Recipe') {
+                                _saveRecipe(recipe);
+                              } else if (value == 'Plan Meal') {}
+                            },
                             color: Colors.white,
-                            size: 18,
+                            elevation: 4,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            offset: const Offset(-142.5,45),
+                            constraints: const BoxConstraints(
+                              minWidth: 175, // Makes popup menu wider
+                              maxWidth: 175,
+                            ),
+                            itemBuilder: (BuildContext context) => [
+                              PopupMenuItem<String>(
+                                height: 60, // Makes item taller
+                                value: 'Save Recipe',
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: [
+                                      const Icon(Icons.bookmark_border_rounded, size: 22, color: Colors.black87),
+                                      const SizedBox(width: 10),
+                                      Text(
+                                        'Save Recipe',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.black87,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              PopupMenuItem<String>(
+                                height: 60, // Makes item taller
+                                value: 'Plan Meal',
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: [
+                                      const Icon(Icons.calendar_today_rounded, size: 22, color: Colors.black87),
+                                      const SizedBox(width: 10),
+                                      Text(
+                                        'Plan Meal',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.black87,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
                     ],
                   ),
-
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -439,9 +518,7 @@ class _SearchPageState extends State<SearchPage> {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
-
                       const SizedBox(height: 8),
-
                       // Preparation Time and Health Score
                       Row(
                         children: [
@@ -449,7 +526,7 @@ class _SearchPageState extends State<SearchPage> {
                           Row(
                             children: [
                               const Icon(
-                                Icons.access_time,
+                                Icons.timer_rounded,
                                 color: Colors.white,
                                 size: 12,
                               ),

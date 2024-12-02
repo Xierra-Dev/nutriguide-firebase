@@ -436,30 +436,111 @@ class _HomePageState extends State<HomePage> {
                                 ),
                               ],
                             ),
-                          ],
+                          ],//children
                         ),
                       ),
-                      Positioned(
-                        right: 8,
-                        top: 8,
-                        child: PopupMenuButton<String>(
-                          icon: const Icon(
-                            Icons.more_vert,
-                            color: Colors.white,
-                          ),
-                          onSelected: (String value) {
-                            if (value == 'Save') {
-                              _saveRecipe(recipe);
-                            } else if (value == 'Plan') {}
-                          },
-                          itemBuilder: (BuildContext context) => [
-                            const PopupMenuItem<String>(
-                              value: 'Save',
-                              child: Text('Save'),
+                      Padding(
+                        padding: const EdgeInsets.all(7.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(0.5),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Text(
+                                recipe.area ?? 'International',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                ),
+                              ),
                             ),
-                            const PopupMenuItem<String>(
-                              value: 'Plan',
-                              child: Text('Plan'),
+                            Positioned(
+                              right: 14,
+                              top: 13,
+                              child: Container(
+                                width: 32.5,
+                                height: 32.5,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.black.withOpacity(0.5),
+                                ),
+                                child: PopupMenuButton<String>(
+                                  padding: EdgeInsets.zero,
+                                  iconSize: 24,
+                                  icon: const Icon(
+                                    Icons.more_vert,
+                                    color: Colors.white,
+                                  ),
+                                  onSelected: (String value) {
+                                    if (value == 'Save Recipe') {
+                                      _saveRecipe(recipe);
+                                    } else if (value == 'Plan Meal') {}
+                                  },
+                                  color: Colors.white,
+                                  elevation: 4,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(15),
+                                  ),
+                                  offset: const Offset(-142.5,45),
+                                  constraints: const BoxConstraints(
+                                    minWidth: 175, // Makes popup menu wider
+                                    maxWidth: 175,
+                                  ),
+                                  itemBuilder: (BuildContext context) => [
+                                    PopupMenuItem<String>(
+                                      height: 60, // Makes item taller
+                                      value: 'Save Recipe',
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.start,
+                                          children: [
+                                            const Icon(Icons.bookmark_border_rounded, size: 22, color: Colors.black87),
+                                            const SizedBox(width: 10),
+                                            Text(
+                                              'Save Recipe',
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                color: Colors.black87,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    PopupMenuItem<String>(
+                                      height: 60, // Makes item taller
+                                      value: 'Plan Meal',
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.start,
+                                          children: [
+                                            const Icon(Icons.calendar_today_rounded, size: 22, color: Colors.black87),
+                                            const SizedBox(width: 10),
+                                            Text(
+                                              'Plan Meal',
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                color: Colors.black87,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
                           ],
                         ),
@@ -661,27 +742,106 @@ class _HomePageState extends State<HomePage> {
                         ],
                       ),
                     ),
-                    Positioned(
-                      right: 8,
-                      top: 8,
-                      child: PopupMenuButton<String>(
-                        icon: const Icon(
-                          Icons.more_vert,
-                          color: Colors.white,
-                        ),
-                        onSelected: (String value) {
-                          if (value == 'Save') {
-                            _saveRecipe(recipe);
-                          } else if (value == 'Plan') {}
-                        },
-                        itemBuilder: (BuildContext context) => [
-                          const PopupMenuItem<String>(
-                            value: 'Save',
-                            child: Text('Save'),
+                    Padding(
+                      padding: const EdgeInsets.all(9.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.5),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Text(
+                              recipe.area ?? 'International',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                              ),
+                            ),
                           ),
-                          const PopupMenuItem<String>(
-                            value: 'Plan',
-                            child: Text('Plan'),
+                          Positioned(
+                            child: Container(
+                              width: 32.5,
+                              height: 32.5,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.black.withOpacity(0.5),
+                              ),
+                              child: PopupMenuButton<String>(
+                                padding: EdgeInsets.zero,
+                                iconSize: 24,
+                                icon: const Icon(
+                                  Icons.more_vert,
+                                  color: Colors.white,
+                                ),
+                                onSelected: (String value) {
+                                  if (value == 'Save Recipe') {
+                                    _saveRecipe(recipe);
+                                  } else if (value == 'Plan Meal') {}
+                                },
+                                color: Colors.white,
+                                elevation: 4,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                                offset: const Offset(-142.5,45),
+                                constraints: const BoxConstraints(
+                                  minWidth: 175, // Makes popup menu wider
+                                  maxWidth: 175,
+                                ),
+                                itemBuilder: (BuildContext context) => [
+                                  PopupMenuItem<String>(
+                                    height: 60, // Makes item taller
+                                    value: 'Save Recipe',
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.start,
+                                        children: [
+                                          const Icon(Icons.bookmark_border_rounded, size: 22, color: Colors.black87),
+                                          const SizedBox(width: 10),
+                                          Text(
+                                            'Save Recipe',
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              color: Colors.black87,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  PopupMenuItem<String>(
+                                    height: 60, // Makes item taller
+                                    value: 'Plan Meal',
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.start,
+                                        children: [
+                                          const Icon(Icons.calendar_today_rounded, size: 22, color: Colors.black87),
+                                          const SizedBox(width: 10),
+                                          Text(
+                                            'Plan Meal',
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              color: Colors.black87,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                         ],
                       ),
@@ -716,11 +876,11 @@ class _HomePageState extends State<HomePage> {
           label: 'Search',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.calendar_today),
+          icon: Icon(Icons.calendar_today_rounded),
           label: 'Planner',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.bookmark),
+          icon: Icon(Icons.bookmark_border_rounded),
           label: 'Saved',
         ),
       ],
