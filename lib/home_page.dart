@@ -673,22 +673,17 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
+              Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     if (recentlyViewedRecipes.isNotEmpty) ...[
                       _buildRecipeSection(
                           'Recently Viewed', recentlyViewedRecipes),
-                      const SizedBox(height: 24),
                     ],
                     _buildRecipeSection('Recommended', recommendedRecipes),
-                    const SizedBox(height: 24),
                     _buildRecipeSection('Popular', popularRecipes),
                   ],
                 ),
-              ),
               _buildRecipeFeed(),
             ],
           ),
