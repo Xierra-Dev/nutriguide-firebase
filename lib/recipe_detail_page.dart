@@ -158,7 +158,7 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
             ),
             leading: IconButton(
               icon: const Icon(Icons.arrow_back, color: Colors.white),
-              onPressed: () => Navigator.pop(context),
+                onPressed: () => Navigator.pop(context),
             ),
             actions: [
                 Row(
@@ -248,7 +248,7 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
                     backgroundColor: isSaved ? Colors.deepOrange : Colors.white,
                     // Change text color based on save state
                     foregroundColor: isSaved ? Colors.white : Colors.black,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    padding: const EdgeInsets.symmetric(vertical: 13),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(50),
                     ),
@@ -278,7 +278,7 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
                     backgroundColor: isSaved ? Colors.deepOrange : Colors.white,
                     // Change text color based on save state
                     foregroundColor: isSaved ? Colors.white : Colors.black,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    padding: const EdgeInsets.symmetric(vertical: 13),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(50),
                     ),

@@ -10,6 +10,37 @@ class SavedPage extends StatefulWidget {
   _SavedPageState createState() => _SavedPageState();
 }
 
+class SlideUpRoute extends PageRouteBuilder {
+  final Widget page;
+
+  SlideUpRoute({required this.page})
+      : super(
+    pageBuilder: (
+        BuildContext context,
+        Animation<double> primaryAnimation,
+        Animation<double> secondaryAnimation,
+        ) =>
+    page,
+    transitionsBuilder: (
+        BuildContext context,
+        Animation<double> primaryAnimation,
+        Animation<double> secondaryAnimation,
+        Widget child,
+        ) {
+      return SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0.0, 1.0),  // Start from bottom
+          end: Offset.zero,  // End at the center
+        ).animate(CurvedAnimation(
+          parent: primaryAnimation,
+          curve: Curves.easeOutQuad,
+        )),
+        child: child,
+      );
+    },
+  );
+}
+
 class _SavedPageState extends State<SavedPage> {
   final FirestoreService _firestoreService = FirestoreService();
   List<Recipe> savedRecipes = [];
@@ -171,8 +202,8 @@ class _SavedPageState extends State<SavedPage> {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(
-            builder: (context) => RecipeDetailPage(recipe: recipe),
+          SlideUpRoute(
+            page: RecipeDetailPage(recipe: recipe),
           ),
         ).then((_) => _loadSavedRecipes());
       },

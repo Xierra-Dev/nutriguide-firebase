@@ -49,6 +49,37 @@ class SlideLeftRoute extends PageRouteBuilder {
   );
 }
 
+class SlideUpRoute extends PageRouteBuilder {
+  final Widget page;
+
+  SlideUpRoute({required this.page})
+      : super(
+    pageBuilder: (
+        BuildContext context,
+        Animation<double> primaryAnimation,
+        Animation<double> secondaryAnimation,
+        ) =>
+    page,
+    transitionsBuilder: (
+        BuildContext context,
+        Animation<double> primaryAnimation,
+        Animation<double> secondaryAnimation,
+        Widget child,
+        ) {
+      return SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0.0, 1.0),  // Start from bottom
+          end: Offset.zero,  // End at the center
+        ).animate(CurvedAnimation(
+          parent: primaryAnimation,
+          curve: Curves.easeOutQuad,
+        )),
+        child: child,
+      );
+    },
+  );
+}
+
 class _HomePageState extends State<HomePage> {
   final TheMealDBService _mealDBService = TheMealDBService();
   final FirestoreService _firestoreService = FirestoreService();
@@ -279,8 +310,8 @@ class _HomePageState extends State<HomePage> {
   void _viewRecipe(Recipe recipe) async {
     await Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => RecipeDetailPage(recipe: recipe),
+      SlideUpRoute(
+        page: RecipeDetailPage(recipe: recipe),
       ),
     );
     // Reload recently viewed recipes after returning from RecipeDetailPage
@@ -415,11 +446,8 @@ class _HomePageState extends State<HomePage> {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
-                      builder: (context) => AllRecipesPage(
-                        title: title,
-                        recipes: recipes,
-                      ),
+                    SlideLeftRoute(
+                      page: AllRecipesPage(title: title, recipes: recipes)
                     ),
                   );
                 },
@@ -751,8 +779,8 @@ class _HomePageState extends State<HomePage> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => RecipeDetailPage(recipe: recipe),
+                  SlideUpRoute(
+                    page:  RecipeDetailPage(recipe: recipe),
                   ),
                 );
               },

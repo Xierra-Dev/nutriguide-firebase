@@ -7,11 +7,103 @@ class AllRecipesPage extends StatefulWidget {
   final String title;
   final List<Recipe> recipes;
 
-
   const AllRecipesPage({super.key, required this.title, required this.recipes});
 
   @override
   _AllRecipesPageState createState() => _AllRecipesPageState();
+}
+
+class SlideLeftRoute extends PageRouteBuilder {
+  final Widget page;
+
+  SlideLeftRoute({required this.page})
+      : super(
+    pageBuilder: (
+        BuildContext context,
+        Animation<double> primaryAnimation,
+        Animation<double> secondaryAnimation,
+        ) =>
+    page,
+    transitionsBuilder: (
+        BuildContext context,
+        Animation<double> primaryAnimation,
+        Animation<double> secondaryAnimation,
+        Widget child,
+        ) {
+      return SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(1.0, 0.0),
+          end: Offset.zero,
+        ).animate(CurvedAnimation(
+          parent: primaryAnimation,
+          curve: Curves.easeOutQuad,
+        )),
+        child: child,
+      );
+    },
+  );
+}
+
+class SlideRightRoute extends PageRouteBuilder {
+  final Widget page;
+
+  SlideRightRoute({required this.page})
+      : super(
+    pageBuilder: (
+        BuildContext context,
+        Animation<double> primaryAnimation,
+        Animation<double> secondaryAnimation,
+        ) =>
+    page,
+    transitionsBuilder: (
+        BuildContext context,
+        Animation<double> primaryAnimation,
+        Animation<double> secondaryAnimation,
+        Widget child,
+        ) {
+      return SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(-1.0, 0.0),
+          end: Offset.zero,
+        ).animate(CurvedAnimation(
+          parent: primaryAnimation,
+          curve: Curves.easeOutQuad,
+        )),
+        child: child,
+      );
+    },
+  );
+}
+
+class SlideUpRoute extends PageRouteBuilder {
+  final Widget page;
+
+  SlideUpRoute({required this.page})
+      : super(
+    pageBuilder: (
+        BuildContext context,
+        Animation<double> primaryAnimation,
+        Animation<double> secondaryAnimation,
+        ) =>
+    page,
+    transitionsBuilder: (
+        BuildContext context,
+        Animation<double> primaryAnimation,
+        Animation<double> secondaryAnimation,
+        Widget child,
+        ) {
+      return SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0.0, 1.0),  // Start from bottom
+          end: Offset.zero,  // End at the center
+        ).animate(CurvedAnimation(
+          parent: primaryAnimation,
+          curve: Curves.easeOutQuad,
+        )),
+        child: child,
+      );
+    },
+  );
 }
 
 class _AllRecipesPageState extends State<AllRecipesPage> {
@@ -21,6 +113,7 @@ class _AllRecipesPageState extends State<AllRecipesPage> {
   Map<String, bool> savedStatus = {};
   Map<String, bool> plannedStatus = {};
 
+  @override
   void initState() {
     super.initState();
     // Inisialisasi status untuk setiap resep
@@ -100,6 +193,13 @@ class _AllRecipesPageState extends State<AllRecipesPage> {
         iconTheme: const IconThemeData(
           color: Colors.white,
         ),
+        // Add automatic back navigation with SlideRightRoute
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.of(context).pop(SlideRightRoute);
+          },
+        ),
       ),
       body: GridView.builder(
         padding: const EdgeInsets.all(15),
@@ -116,8 +216,8 @@ class _AllRecipesPageState extends State<AllRecipesPage> {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => RecipeDetailPage(recipe: recipe),
+                SlideUpRoute(
+                  page: RecipeDetailPage(recipe: recipe),
                 ),
               );
             },

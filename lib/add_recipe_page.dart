@@ -432,63 +432,199 @@ class _CookTimeDialog extends StatefulWidget {
 
 class _CookTimeDialogState extends State<_CookTimeDialog> {
   late int _minutes;
+  final TextEditingController _minutesController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
     super.initState();
     _minutes = widget.initialTime;
+    _minutesController.text = _minutes.toString();
+  }
+
+  @override
+  void dispose() {
+    _minutesController.dispose();
+    super.dispose();
+  }
+
+  void _updateMinutes(int value) {
+    setState(() {
+      _minutes = value;
+      _minutesController.text = _minutes.toString();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
       backgroundColor: Colors.grey[900],
-      title: const Text(
-        'Set cook time',
-        style: TextStyle(color: Colors.white),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
       ),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+      title: Text(
+        'Set Cook Time',
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 22,
+          fontWeight: FontWeight.bold,
+        ),
+        textAlign: TextAlign.center,
+      ),
+      content: SizedBox(
+        width: 300,
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              IconButton(
-                icon: const Icon(Icons.remove, color: Colors.white),
-                onPressed: () {
-                  setState(() {
-                    if (_minutes > 5) _minutes -= 5;
-                  });
-                },
-              ),
-              Text(
-                '$_minutes minutes',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+                decoration: BoxDecoration(
+                  color: Colors.grey[800],
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    IconButton(
+                      icon: const Icon(
+                        Icons.remove_circle,
+                        color: Colors.deepOrange,
+                        size: 35,
+                      ),
+                      onPressed: () {
+                        if (_minutes > 0) _updateMinutes(_minutes - 1);
+                      },
+                    ),
+                    Expanded(
+                      child: Stack(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                width: 10,
+                                child: TextFormField(
+                                  controller: _minutesController,
+                                  keyboardType: TextInputType.number,
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 19,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  decoration: InputDecoration(
+                                    border: InputBorder.none,
+                                    errorStyle: const TextStyle(
+                                      color: Colors.redAccent,
+                                      fontSize: 12,
+                                    ),
+                                    contentPadding: EdgeInsets.zero,
+                                  ),
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Please enter minutes';
+                                    }
+                                    final number = int.tryParse(value);
+                                    if (number == null || number < 0) {
+                                      return 'Please enter a valid number';
+                                    }
+                                    return null;
+                                  },
+                                  onChanged: (value) {
+                                    final number = int.tryParse(value);
+                                    if (number != null && number >= 0) {
+                                      _minutes = number;
+                                    }
+                                  },
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                  left: 10,
+                                ),
+                                child: Positioned(// Center vertically
+                                  child: Text(
+                                    'minutes',
+                                    style: TextStyle(
+                                      color: Colors.grey[400],
+                                      fontSize: 17,
+                                    ),
+                                  ),
+                                ),
+                              ),
+
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(
+                        Icons.add_circle,
+                        color: Colors.deepOrange,
+                        size: 35,
+                      ),
+                      onPressed: () {
+                        _updateMinutes(_minutes + 1);
+                      },
+                    ),
+                  ],
                 ),
               ),
-              IconButton(
-                icon: const Icon(Icons.add, color: Colors.white),
-                onPressed: () {
-                  setState(() {
-                    _minutes += 5;
-                  });
-                },
-              ),
+              const SizedBox(height: 24),
             ],
           ),
-        ],
+        ),
       ),
       actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.grey[700],
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(50),
+                ),
+              ),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (_formKey.currentState!.validate()) {
+                  Navigator.pop(context, _minutes);
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.deepOrange,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(50),
+                ),
+              ),
+              child: const Text(
+                'Set',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
         ),
-        TextButton(
-          onPressed: () => Navigator.pop(context, _minutes),
-          child: const Text('Set', style: TextStyle(color: Colors.deepOrange)),
-        ),
+        const SizedBox(height: 8),
       ],
     );
   }
