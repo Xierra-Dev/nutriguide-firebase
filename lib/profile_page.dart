@@ -98,7 +98,7 @@ class _ProfilePageState extends State<ProfilePage>
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
             Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (context) => const HomePage()),
+              SlideRightRoute(page: const HomePage()),
             );
           },
         ),
