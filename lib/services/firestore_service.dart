@@ -180,6 +180,8 @@ class FirestoreService {
             .set({
           'id': recipe.id,
           'title': recipe.title,
+          'category': recipe.category,
+          'area': recipe.area,
           'image': recipe.image,
           'preparationTime': recipe.preparationTime,
           'healthScore': recipe.healthScore,
@@ -212,6 +214,8 @@ class FirestoreService {
             id: data['id'],
             title: data['title'],
             image: data['image'],
+            category: data['category'],
+            area: data['area'],
             preparationTime: data['preparationTime'],
             healthScore: data['healthScore'].toDouble(),
             ingredients: [], // These fields are not stored in recently viewed
