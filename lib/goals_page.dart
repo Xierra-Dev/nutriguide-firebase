@@ -80,22 +80,32 @@ class _GoalsPageState extends State<GoalsPage> {
     {
       'title': 'Weight Less',
       'icon': Icons.scale,
+      'size': 20.0,  // Memastikan nilai double bukan null
+      'titleSize': 20.0,  // Memastikan nilai double bukan null
     },
     {
       'title': 'Get Healthier',
       'icon': Icons.restaurant,
+      'size': 20.0,
+      'titleSize': 20.0,
     },
     {
       'title': 'Look Better',
       'icon': Icons.fitness_center,
+      'size': 20.0,
+      'titleSize': 20.0,
     },
     {
       'title': 'Reduce Stress',
       'icon': Icons.favorite,
+      'size': 20.0,
+      'titleSize': 20.0,
     },
     {
       'title': 'Sleep Better',
       'icon': Icons.nightlight_round,
+      'size': 20.0,
+      'titleSize': 20.0,
     },
   ];
 
@@ -170,7 +180,7 @@ class _GoalsPageState extends State<GoalsPage> {
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          Colors.white.withOpacity(0.8),
+                          Colors.white.withOpacity(0.85),
                           const Color.fromARGB(255, 66, 66, 66)
                         ],
                         begin: Alignment.topCenter,
@@ -187,7 +197,7 @@ class _GoalsPageState extends State<GoalsPage> {
         
                 // Progress bar
                 Positioned(
-                  bottom: 280, // Adjust this value as needed
+                  bottom: 255, // Adjust this value as needed
                   left: 0,
                   right: 0,
                   child: LinearProgressBar(
@@ -197,7 +207,7 @@ class _GoalsPageState extends State<GoalsPage> {
                     progressColor: kPrimaryColor,
                     backgroundColor: kColorsGrey400,
                     dotsAxis: Axis.horizontal,
-                    dotsActiveSize: 13.5,
+                    dotsActiveSize: 12.5,
                     dotsInactiveSize: 10,
                     dotsSpacing: const EdgeInsets.only(right: 10),
                     valueColor: const AlwaysStoppedAnimation<Color>(Colors.red),
@@ -267,6 +277,9 @@ class _GoalsPageState extends State<GoalsPage> {
 
   Widget _buildGoalOption(Map<String, dynamic> goal) {
     final bool isSelected = selectedGoals.contains(goal['title']);
+    // Memberikan nilai default jika null
+    final double iconSize = (goal['size'] as double?) ?? 35.0;
+    final double textSize = (goal['titleSize'] as double?) ?? 35.0;
 
     return Padding(
       padding: const EdgeInsets.all(12),
@@ -287,39 +300,22 @@ class _GoalsPageState extends State<GoalsPage> {
               Icon(
                 goal['icon'] as IconData,
                 color: Colors.black,
-                size: 24,
+                size: iconSize,  // Menggunakan nilai yang sudah di-handle null safety
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 20),
               Text(
                 goal['title'] as String,
-                style: const TextStyle(
+                style: TextStyle(
                   color: Colors.black,
-                  fontSize: 16,
+                  fontSize: textSize,  // Menggunakan nilai yang sudah di-handle null safety
+                  fontWeight: FontWeight.w500,
                 ),
               ),
               const Spacer(),
-              Container(
-                width: 24,
-                height: 24,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: isSelected ? Colors.deepOrange : Colors.black,
-                    width: 2,
-                  ),
-                ),
-                child: isSelected
-                    ? Center(
-                  child: Container(
-                    width: 12,
-                    height: 12,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.deepOrange,
-                    ),
-                  ),
-                )
-                    : null,
+              Icon(
+                isSelected ? Icons.check_circle : Icons.circle,
+                color: isSelected ? Colors.green : const Color.fromARGB(255, 124, 93, 93),
+                size: 27.5,
               ),
             ],
           ),

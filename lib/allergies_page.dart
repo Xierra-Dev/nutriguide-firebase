@@ -295,28 +295,10 @@ class _AllergiesPageState extends State<AllergiesPage> {
                 ),
               ),
             ),
-            Container(
-              width: 24,
-              height: 24,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: isSelected ? Colors.deepOrange : Colors.black,
-                  width: 2,
-                ),
-              ),
-              child: isSelected
-                  ? Center(
-                child: Container(
-                  width: 12,
-                  height: 12,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.deepOrange,
-                  ),
-                ),
-              )
-                  : null,
+            Icon(
+              isSelected ? Icons.check_circle : Icons.circle,
+              color: isSelected ? Colors.green : const Color.fromARGB(255, 124, 93, 93),
+              size: 27.5,
             ),
           ],
         ),
