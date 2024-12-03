@@ -351,7 +351,8 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(50),
-                                borderSide: const BorderSide(color: Colors.red, width: 2),
+                                borderSide: const BorderSide(color: Colors.deepOrange,
+                                ),
                               ),
                               contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 25,
@@ -377,6 +378,11 @@ class _LoginPageState extends State<LoginPage> {
                                 borderRadius: BorderRadius.circular(50),
                                 borderSide: BorderSide.none,
                               ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(50),
+                                borderSide: const BorderSide(color: Colors.deepOrange,
+                                ),
+                              ),
                               suffixIcon: Padding(
                                 padding: const EdgeInsets.only(right: 12.5),
                                 child: IconButton(
@@ -390,10 +396,6 @@ class _LoginPageState extends State<LoginPage> {
                                     });
                                   },
                                 ),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(50),
-                                borderSide: const BorderSide(color: Colors.red, width: 2),
                               ),
                               contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 25,

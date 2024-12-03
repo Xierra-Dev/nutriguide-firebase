@@ -449,7 +449,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                   ),
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(25.0),
-                                    borderSide: const BorderSide(color: Colors.purple, width: 1.75,),
+                                    borderSide: const BorderSide(color: Colors.deepOrange, width: 1.75,),
                                   ),
                                   contentPadding: const EdgeInsets.symmetric(
                                     horizontal: 25,
@@ -481,7 +481,7 @@ class _RegisterPageState extends State<RegisterPage> {
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(25.0),
-                              borderSide: const BorderSide(color: Colors.purple, width: 1.75,),
+                              borderSide: const BorderSide(color: Colors.deepOrange, width: 1.75,),
                             ),
                             contentPadding: const EdgeInsets.symmetric(
                               horizontal: 25,
@@ -528,7 +528,7 @@ class _RegisterPageState extends State<RegisterPage> {
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(25.0),
-                              borderSide: const BorderSide(color: Colors.purple, width: 1.75,),
+                              borderSide: const BorderSide(color: Colors.deepOrange, width: 1.75,),
                             ),
                             contentPadding: const EdgeInsets.symmetric(
                               horizontal: 25,
@@ -575,7 +575,7 @@ class _RegisterPageState extends State<RegisterPage> {
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(25.0),
-                              borderSide: const BorderSide(color: Colors.purple, width: 1.75,),
+                              borderSide: const BorderSide(color: Colors.deepOrange, width: 1.75,),
                             ),
                             contentPadding: const EdgeInsets.symmetric(
                               horizontal: 25,

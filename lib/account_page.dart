@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'settings_page.dart';
 import 'login_page.dart';
@@ -81,6 +82,7 @@ class _AccountPageState extends State<AccountPage> {
   final TextEditingController _newEmailController = TextEditingController();
   final TextEditingController _currentPasswordController = TextEditingController();
   final TextEditingController _newPasswordController = TextEditingController();
+  bool _isPasswordVisible = false;
 
   @override
   void initState() {
@@ -165,7 +167,7 @@ class _AccountPageState extends State<AccountPage> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      barrierColor: Colors.black.withOpacity(0.25),
+      barrierColor: Colors.black.withOpacity(0.5),
       builder: (context) => Dialog(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15.0),
@@ -189,7 +191,7 @@ class _AccountPageState extends State<AccountPage> {
                     color: Colors.white
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 17),
               TextField(
                 controller: _newEmailController,
                 keyboardType: TextInputType.emailAddress,
@@ -197,40 +199,54 @@ class _AccountPageState extends State<AccountPage> {
                   labelText: 'New Email',
                   labelStyle: const TextStyle(color: Colors.white),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Colors.white),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(50),
                     borderSide: const BorderSide(color: Colors.white),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Colors.white),
+                    borderRadius: BorderRadius.circular(50),
+                    borderSide: const BorderSide(color: Colors.deepOrange),
                   ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 25,
+                      vertical: 12,
+                    )
                 ),
-                style: const TextStyle(color: Colors.white),
+                style: const TextStyle(color: Colors.red),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 17),
               TextField(
                 controller: _currentPasswordController,
-                obscureText: true,
                 decoration: InputDecoration(
                   labelText: 'Current Password',
                   labelStyle: const TextStyle(color: Colors.white),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Colors.white),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(50),
                     borderSide: const BorderSide(color: Colors.white),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Colors.white),
+                    borderRadius: BorderRadius.circular(50),
+                    borderSide: const BorderSide(color: Colors.deepOrange),
                   ),
+                  suffixIcon: Padding(
+                    padding: const EdgeInsets.only(right: 12.5),
+                    child: IconButton(
+                      icon: Icon(
+                        _isPasswordVisible ? MdiIcons.eyeOff : MdiIcons.eye,
+                        color: Colors.grey,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _isPasswordVisible = !_isPasswordVisible;
+                        });
+                      },
+                    ),
+                  ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 25,
+                      vertical: 12,
+                    )
                 ),
+                obscureText: !_isPasswordVisible,
                 style: const TextStyle(color: Colors.white),
               ),
               const SizedBox(height: 32),
@@ -340,7 +356,7 @@ class _AccountPageState extends State<AccountPage> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      barrierColor: Colors.black.withOpacity(0.25),
+      barrierColor: Colors.black.withOpacity(0.5),
       builder: (context) => Dialog(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15.0),
@@ -367,45 +383,73 @@ class _AccountPageState extends State<AccountPage> {
               const SizedBox(height: 17),
               TextField(
                 controller: _currentPasswordController,
-                obscureText: true,
                 decoration: InputDecoration(
                   labelText: 'Current Password',
                   labelStyle: const TextStyle(color: Colors.white),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Colors.white),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(50),
                     borderSide: const BorderSide(color: Colors.white),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Colors.white),
+                    borderRadius: BorderRadius.circular(50),
+                    borderSide: const BorderSide(color: Colors.deepOrange),
                   ),
+                  suffixIcon: Padding(
+                    padding: const EdgeInsets.only(right: 12.5),
+                    child: IconButton(
+                      icon: Icon(
+                        _isPasswordVisible ? MdiIcons.eyeOff : MdiIcons.eye,
+                        color: Colors.grey,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _isPasswordVisible = !_isPasswordVisible;
+                        });
+                      },
+                    ),
+                  ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 25,
+                      vertical: 12,
+                    )
                 ),
+                obscureText: !_isPasswordVisible,
                 style: const TextStyle(color: Colors.white),
               ),
               const SizedBox(height: 17),
               TextField(
                 controller: _newPasswordController,
-                obscureText: true,
                 decoration: InputDecoration(
                   labelText: 'New Password',
                   labelStyle: const TextStyle(color: Colors.white),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Colors.white),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(50),
                     borderSide: const BorderSide(color: Colors.white),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Colors.white),
+                    borderRadius: BorderRadius.circular(50),
+                    borderSide: const BorderSide(color: Colors.deepOrange),
                   ),
+                  suffixIcon: Padding(
+                    padding: const EdgeInsets.only(right: 12.5),
+                    child: IconButton(
+                      icon: Icon(
+                        _isPasswordVisible ? MdiIcons.eyeOff : MdiIcons.eye,
+                        color: Colors.grey,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _isPasswordVisible = !_isPasswordVisible;
+                        });
+                      },
+                    ),
+                  ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 25,
+                      vertical: 12,
+                    )
                 ),
+                obscureText: !_isPasswordVisible,
                 style: const TextStyle(color: Colors.white),
               ),
               const SizedBox(height: 32),
@@ -462,7 +506,7 @@ class _AccountPageState extends State<AccountPage> {
     bool? loggedOut = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
-      barrierColor: Colors.black.withOpacity(0.25),
+      barrierColor: Colors.black.withOpacity(0.5),
       builder: (context) =>
           Dialog(
             shape: RoundedRectangleBorder(
