@@ -22,11 +22,10 @@ class AuthService {
   // Sign in with email and password
   Future<UserCredential> signInWithEmailAndPassword(String email, String password) async {
     try {
-      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+      return await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
-      return userCredential;
     } on FirebaseAuthException catch (e) {
       throw _handleAuthException(e);
     }
@@ -35,11 +34,10 @@ class AuthService {
   // Register with email and password
   Future<UserCredential> registerWithEmailAndPassword(String email, String password) async {
     try {
-      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+      return await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
-      return userCredential;
     } on FirebaseAuthException catch (e) {
       throw _handleAuthException(e);
     }
@@ -56,18 +54,7 @@ class AuthService {
   }
 
   // Handle Firebase Auth exceptions
-  Exception _handleAuthException(FirebaseAuthException e) {
-    switch (e.code) {
-      case 'weak-password':
-        return Exception('The password is too weak. It must be at least 8 characters long and include a number and a symbol.');
-      case 'email-already-in-use':
-        return Exception('The account already exists for that email.');
-      case 'user-not-found':
-        return Exception('No user found for that email.');
-      case 'wrong-password':
-        return Exception('Wrong password provided for that user.');
-      default:
-        return Exception(e.message ?? 'An unknown error occurred.');
-    }
+  FirebaseAuthException _handleAuthException(FirebaseAuthException e) {
+    return e;
   }
 }

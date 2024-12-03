@@ -129,7 +129,7 @@ class _SettingsPageState extends State<SettingsPage> {
               const SizedBox(height: 32),
               ListTile(
                 leading: const Text(
-                  'Email',
+                  'Account',
                   style: TextStyle(color: Colors.white, fontSize: 18),
                 ),
                 trailing: Row(
