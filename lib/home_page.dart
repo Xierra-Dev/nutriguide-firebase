@@ -18,6 +18,37 @@ class HomePage extends StatefulWidget {
   _HomePageState createState() => _HomePageState();
 }
 
+class SlideLeftRoute extends PageRouteBuilder {
+  final Widget page;
+
+  SlideLeftRoute({required this.page})
+      : super(
+    pageBuilder: (
+        BuildContext context,
+        Animation<double> primaryAnimation,
+        Animation<double> secondaryAnimation,
+        ) =>
+    page,
+    transitionsBuilder: (
+        BuildContext context,
+        Animation<double> primaryAnimation,
+        Animation<double> secondaryAnimation,
+        Widget child,
+        ) {
+      return SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(1.0, 0.0),
+          end: Offset.zero,
+        ).animate(CurvedAnimation(
+          parent: primaryAnimation,
+          curve: Curves.easeOutQuad,
+        )),
+        child: child,
+      );
+    },
+  );
+}
+
 class _HomePageState extends State<HomePage> {
   final TheMealDBService _mealDBService = TheMealDBService();
   final FirestoreService _firestoreService = FirestoreService();
@@ -320,7 +351,7 @@ class _HomePageState extends State<HomePage> {
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const ProfilePage()),
+              SlideLeftRoute(page: const ProfilePage()),
             );
           },
         ),
@@ -919,16 +950,19 @@ class _HomePageState extends State<HomePage> {
         await _handleNavigationTap(index);
       },
       backgroundColor: Colors.deepOrange,
-      selectedItemColor: Colors.blue,
+      selectedItemColor: const Color.fromARGB(255, 255, 201, 32),
       unselectedItemColor: Colors.black,
       type: BottomNavigationBarType.fixed,
+      selectedFontSize: 15, // Ukuran font label yang dipilih
+      unselectedFontSize: 14, // Ukuran font label yang tidak dipilih
+      iconSize: 25, // Ukuran ikon
       items: const [
         BottomNavigationBarItem(
-          icon: Icon(Icons.home),
+          icon: Icon(Icons.home_rounded),
           label: 'Home',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.search),
+          icon: Icon(Icons.search_rounded),
           label: 'Search',
         ),
         BottomNavigationBarItem(

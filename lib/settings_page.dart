@@ -20,7 +20,8 @@ class SlideRightRoute extends PageRouteBuilder {
         BuildContext context,
         Animation<double> primaryAnimation,
         Animation<double> secondaryAnimation,
-        ) => page,
+        ) =>
+    page,
     transitionsBuilder: (
         BuildContext context,
         Animation<double> primaryAnimation,
@@ -34,7 +35,38 @@ class SlideRightRoute extends PageRouteBuilder {
         ).animate(CurvedAnimation(
           parent: primaryAnimation,
           curve: Curves.easeOutQuad,
-        ),),
+        )),
+        child: child,
+      );
+    },
+  );
+}
+
+class SlideLeftRoute extends PageRouteBuilder {
+  final Widget page;
+
+  SlideLeftRoute({required this.page})
+      : super(
+    pageBuilder: (
+        BuildContext context,
+        Animation<double> primaryAnimation,
+        Animation<double> secondaryAnimation,
+        ) =>
+    page,
+    transitionsBuilder: (
+        BuildContext context,
+        Animation<double> primaryAnimation,
+        Animation<double> secondaryAnimation,
+        Widget child,
+        ) {
+      return SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(1.0, 0.0),
+          end: Offset.zero,
+        ).animate(CurvedAnimation(
+          parent: primaryAnimation,
+          curve: Curves.easeOutQuad,
+        )),
         child: child,
       );
     },
@@ -77,7 +109,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     icon: const Icon(Icons.arrow_back, color: Colors.white, size: 30),
                     onPressed: () {
                       Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(builder: (context) => const ProfilePage()),
+                        SlideRightRoute(page: const ProfilePage()),
                       );
                     },
                     splashColor: Colors.transparent,
@@ -113,7 +145,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
                 onTap: () {
                   Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (context) => const AccountPage()),
+                    SlideLeftRoute(page: const AccountPage()),
                   );
                 },
               ),
