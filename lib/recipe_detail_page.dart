@@ -32,6 +32,18 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
     super.dispose();
   }
 
+  Color _getHealthScoreColor(double? healthScore) {
+    if (healthScore == null) return Colors.grey;
+
+    if (healthScore < 6) {
+      return Colors.red;
+    } else if (healthScore <= 7.5) {
+      return Colors.yellow;
+    } else {
+      return Colors.green;
+    }
+  }
+  
   void _onScroll() {
     // You can adjust this value (100) to control when the title appears
     if (_scrollController.offset > 100 && !showTitle) {
@@ -132,9 +144,9 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
                           begin: Alignment.bottomCenter,
                           end: Alignment.topCenter,
                           colors: [
-                            Colors.black.withOpacity(0.7),
-                            Colors.black.withOpacity(0.3),
+                            Colors.black.withOpacity(0.45),
                             Colors.transparent,
+                            Colors.black.withOpacity(0.45),
                           ],
                           stops: const [0.0, 0.35, 1.0],
                         ),
@@ -149,23 +161,40 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
               onPressed: () => Navigator.pop(context),
             ),
             actions: [
-              Transform.translate(
-                offset: const Offset(-7, 4.75), // Geser lingkaran hitam beserta ikon ke bawah
-                child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 10),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.7),
-                    shape: BoxShape.circle,
-                  ),
-                  child: IconButton(
-                    icon: Icon(
-                      isSaved ? Icons.bookmark : Icons.bookmark_border,
-                      color: Colors.deepOrange,
+                Row(
+                  children: [
+                    Container(
+                      margin: EdgeInsets.only(
+                        top: 5,
+                      ),
+                      padding: EdgeInsets.only(
+                        bottom: 2,
+                      ),
+                      child: IconButton(
+                        icon: Icon(
+                          isSaved ? Icons.calendar_today : Icons.calendar_today,
+                          color: isSaved ? Colors.deepOrange : Colors.white,
+                          size: 20, // Reduced icon size
+                        ), // Reduced padding
+                        onPressed: isLoading ? null : () => _toggleSave(widget.recipe),
+                      ),
                     ),
-                    onPressed: isLoading ? null : () => _toggleSave(widget.recipe),
-                  ),
+                    Container(
+                      margin: EdgeInsets.only(
+                        top: 5,
+                        right: 10,
+                      ),
+                      child: IconButton(
+                        icon: Icon(
+                          isSaved ? Icons.bookmark : Icons.bookmark_border,
+                          color: isSaved ? Colors.deepOrange : Colors.white,
+                          size: 22.5, // Reduced icon size
+                        ), // Reduced padding
+                        onPressed: isLoading ? null : () => _toggleSave(widget.recipe),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
             ],
 
           ),
@@ -195,7 +224,12 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
         ],
       ),
         bottomNavigationBar: Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.only(
+            top: 18,
+            bottom: 15,
+            right: 18,
+            left: 18,
+          ),
           decoration: BoxDecoration(
             color: Colors.black,
             border: Border(
@@ -229,7 +263,40 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
                       AlwaysStoppedAnimation<Color>(Colors.deepOrange),
                     ),
                   )
-                      : Text(isSaved ? 'Saved' : 'Save'),
+                      : Text(isSaved ? 'Saved' : 'Save', style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700
+                  ),),
+                ),
+              ),
+              SizedBox(width: 18,),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: isLoading ? null : () => _toggleSave(widget.recipe),
+                  style: ElevatedButton.styleFrom(
+                    // Change background color based on save state
+                    backgroundColor: isSaved ? Colors.deepOrange : Colors.white,
+                    // Change text color based on save state
+                    foregroundColor: isSaved ? Colors.white : Colors.black,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(50),
+                    ),
+                  ),
+                  child: isLoading
+                      ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor:
+                      AlwaysStoppedAnimation<Color>(Colors.deepOrange),
+                    ),
+                  )
+                      : Text(isSaved ? 'Planned' : 'Plan', style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700
+                  ),),
                 ),
               ),
             ],
@@ -380,12 +447,15 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
         LinearProgressIndicator(
           value: widget.recipe.healthScore / 10,
           backgroundColor: Colors.grey[800],
-          valueColor: const AlwaysStoppedAnimation<Color>(Colors.green),
+          valueColor: AlwaysStoppedAnimation<Color>(_getHealthScoreColor(widget.recipe.healthScore)),
         ),
-        const SizedBox(height: 8),
-        Text(
-          '${widget.recipe.healthScore.toStringAsFixed(1)} / 10',
-          style: const TextStyle(color: Colors.white),
+        SizedBox(height: 8,),
+        Align(
+          alignment: Alignment.centerRight,
+          child: Text(
+            '${widget.recipe.healthScore.toStringAsFixed(1)} / 10',
+            style: const TextStyle(color: Colors.white),
+          ),
         ),
       ],
     );
@@ -393,7 +463,6 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
 
   Widget _buildNutritionInfo(NutritionInfo nutritionInfo) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
           'Nutrition Information',

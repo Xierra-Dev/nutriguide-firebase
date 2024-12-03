@@ -31,10 +31,15 @@ class _SearchPageState extends State<SearchPage> {
   @override
   void initState() {
     super.initState();
-    _loadInitialRecipes();
+    _loadInitialRecipes().then((_) {
+      // Check saved status for each recipe after loading
+      for (var recipe in recipes) {
+        _checkIfSaved(recipe);
+      }
+    });
     _loadPopularIngredients();
     _scrollController.addListener(_onScroll);
-    // _checkIfSaved(recipe);
+
   }
 
   Color _getHealthScoreColor(double healthScore) {
@@ -55,9 +60,6 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Future<void> _toggleSave(Recipe recipe) async {
-    setState(() {
-      isLoading = true;
-    });
     try {
       if (savedStatus[recipe.id] == true) {
         await _firestoreService.unsaveRecipe(recipe.id);
@@ -84,13 +86,8 @@ class _SearchPageState extends State<SearchPage> {
           duration: Duration(seconds: 1),
         ),
       );
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
     }
   }
-
 
   void _planMeal(Recipe recipe) async {
     try {

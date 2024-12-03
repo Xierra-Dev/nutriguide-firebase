@@ -312,6 +312,28 @@ class FirestoreService {
     }
   }
 
+  Future<void> removeFromSavedRecipes(Recipe recipe) async {
+    try {
+      // Assuming you're using Firebase Authentication and have the current user
+      User? currentUser = FirebaseAuth.instance.currentUser;
+
+      if (currentUser == null) {
+        throw Exception('User not logged in');
+      }
+
+      // Reference to the Firestore collection of saved recipes for this user
+      await _firestore
+          .collection('users')
+          .doc(currentUser.uid)
+          .collection('saved_recipes')
+          .doc(recipe.id) // Assuming the recipe has a unique ID
+          .delete();
+    } catch (e) {
+      print('Error removing recipe from saved: $e');
+      rethrow;
+    }
+  }
+
 }
 
 

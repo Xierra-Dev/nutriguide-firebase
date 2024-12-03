@@ -37,7 +37,18 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _loadRecipes();
+    _loadRecipes().then((_) {
+      // After recipes are loaded, check saved status for each recipe
+      for (var recipe in recommendedRecipes) {
+        _checkIfSaved(recipe);
+      }
+      for (var recipe in popularRecipes) {
+        _checkIfSaved(recipe);
+      }
+      for (var recipe in feedRecipes) {
+        _checkIfSaved(recipe);
+      }
+    });
     _loadRecentlyViewedRecipes();
   }
 
@@ -59,9 +70,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _toggleSave(Recipe recipe) async {
-    setState(() {
-      isLoading = true;
-    });
     try {
       if (savedStatus[recipe.id] == true) {
         await _firestoreService.unsaveRecipe(recipe.id);
@@ -88,10 +96,6 @@ class _HomePageState extends State<HomePage> {
           duration: Duration(seconds: 1),
         ),
       );
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
     }
   }
 
@@ -282,22 +286,21 @@ class _HomePageState extends State<HomePage> {
       backgroundColor: Colors.transparent,
       elevation: 0,
       automaticallyImplyLeading: false,
-      title: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      title: Row(
         children: [
+          Image.asset(
+            'assets/images/logo_NutriGuide.png',
+            width: 33.5,
+            height: 33.5,
+          ),
+          const SizedBox(width: 10), // Add some spacing between logo and text
           const Text(
-            'For you',
+            'NutriGuide',
             style: TextStyle(
-              color: Colors.deepOrange,
+              color: Colors.white,
               fontSize: 24,
               fontWeight: FontWeight.bold,
             ),
-          ),
-          Container(
-            height: 2,
-            width: 60,
-            color: Colors.deepOrange,
-            margin: const EdgeInsets.only(top: 4),
           ),
         ],
       ),
