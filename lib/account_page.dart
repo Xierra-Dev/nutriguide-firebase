@@ -364,7 +364,7 @@ class _AccountPageState extends State<AccountPage> {
                     color: Colors.white
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 17),
               TextField(
                 controller: _currentPasswordController,
                 obscureText: true,
@@ -386,7 +386,7 @@ class _AccountPageState extends State<AccountPage> {
                 ),
                 style: const TextStyle(color: Colors.white),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 17),
               TextField(
                 controller: _newPasswordController,
                 obscureText: true,
