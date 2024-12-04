@@ -3,6 +3,7 @@ import 'account_page.dart';
 import '/profile_page.dart';
 import 'services/auth_service.dart';
 import 'services/firestore_service.dart';
+import 'profile_edit_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -168,6 +169,10 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
                 onTap: () {
                   // Navigate to Profile page
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const ProfileEditPage()),
+                    );
                 },
               ),
               const SizedBox(height: 24),
