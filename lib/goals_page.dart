@@ -77,6 +77,122 @@ class _GoalsPageState extends State<GoalsPage> {
     }
   }
 
+  void _showSetUpLaterDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          insetPadding: EdgeInsets.symmetric(horizontal: 10.0),
+          backgroundColor: Color.fromARGB(255, 91, 91, 91),
+          child: Container(
+            width: double.infinity,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center, // Center content vertically
+              children: [
+                Padding(
+                  padding: EdgeInsets.all(24.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center, // Center text horizontally
+                    children: [
+                      Text(
+                        "Don't Want Our Health\nFeatures?",
+                        textAlign: TextAlign.center, // Ensure text is centered
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 22.5,
+                        ),
+                      ),
+                      SizedBox(height: 16.0),
+                      Text(
+                        "To receive personalized meal and recipe recommendations, you need to complete the questionnaire to use Health Features.",
+                        textAlign: TextAlign.center, // Ensure text is centered
+                        style: TextStyle(
+                            fontSize: 16.0,
+                            color: Colors.white
+                        ),
+                      ),
+                      SizedBox(height: 16.0),
+                      Text(
+                        "You can set up later in Settings > Preferences.",
+                        textAlign: TextAlign.center, // Ensure text is centered
+                        style: TextStyle(
+                          fontSize: 16.0,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.only(
+                    bottom: 30,
+                    left: 30,
+                    right: 30,
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,// Center buttons horizontally
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          // Navigate to HomePage
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => const HomePage()),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 16,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(50.0),
+                          ),
+                        ),
+                        child: Text("Skip Questionnaire",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 17.5,),
+                      OutlinedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 16,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(50.0),
+                          ),
+                        ),
+                        child: Text(
+                          "Return to Questionnaire",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   final List<Map<String, dynamic>> goals = [
     {
       'title': 'Weight Less',
@@ -226,6 +342,7 @@ class _GoalsPageState extends State<GoalsPage> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      if(selectedGoals.isNotEmpty)
                       ElevatedButton(
                         onPressed: selectedGoals.isNotEmpty ? _saveGoals : null,
                         style: ElevatedButton.styleFrom(
@@ -236,7 +353,7 @@ class _GoalsPageState extends State<GoalsPage> {
                           ),
                         ),
                         child: _isLoading
-                            ? const CircularProgressIndicator(color: Colors.white)
+                            ? const CircularProgressIndicator(color: Colors.deepOrange)
                             : const Text('SAVE', style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w800,
@@ -245,12 +362,7 @@ class _GoalsPageState extends State<GoalsPage> {
                       ),
                       const SizedBox(height: 16),
                       OutlinedButton(
-                        onPressed: () {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(builder: (context) => const HomePage()),
-                          );
-                        },
+                        onPressed: _showSetUpLaterDialog,
                         style: OutlinedButton.styleFrom(
                           minimumSize: const Size(double.infinity, 50),
                           shape: RoundedRectangleBorder(

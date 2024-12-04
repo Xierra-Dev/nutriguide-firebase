@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:nutriguide/home_page.dart';
-import 'account_page.dart';
 import 'settings_page.dart';
 import 'services/auth_service.dart';
 import 'services/firestore_service.dart';
@@ -122,6 +121,8 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
       });
     }
   }
+
+
 
   @override
   void dispose() {

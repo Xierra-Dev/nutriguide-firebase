@@ -78,6 +78,7 @@ class _CustomActivityLevelPickerState extends State<CustomActivityLevelPicker> {
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.deepOrange,
+                            foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(50)
@@ -85,7 +86,10 @@ class _CustomActivityLevelPickerState extends State<CustomActivityLevelPicker> {
                           ),
                           child: const Text(
                               'SAVE',
-                              style: TextStyle(fontSize: 16)
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                            ),
                           ),
                         ),
                       ),

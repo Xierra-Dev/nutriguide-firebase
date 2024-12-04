@@ -73,6 +73,7 @@ class _CustomGenderPickerState extends State<CustomGenderPicker> {
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.deepOrange,
+                            foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(50)
@@ -80,7 +81,10 @@ class _CustomGenderPickerState extends State<CustomGenderPicker> {
                           ),
                           child: const Text(
                               'SAVE',
-                              style: TextStyle(fontSize: 16)
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                            ),
                           ),
                         ),
                       ),

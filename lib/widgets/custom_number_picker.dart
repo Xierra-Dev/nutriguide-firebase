@@ -176,12 +176,18 @@ class _CustomNumberPickerState extends State<CustomNumberPicker> {
                 onPressed: () => Navigator.pop(context),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.deepOrange,
+                  foregroundColor: Colors.white,
                   minimumSize: const Size(double.infinity, 50),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(25),
                   ),
                 ),
-                child: const Text('Next'),
+                child: const Text('SAVE',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
               ),
             ),
           ],

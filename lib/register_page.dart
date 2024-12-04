@@ -98,6 +98,7 @@ class _RegisterPageState extends State<RegisterPage> {
           specificImage = 'assets/images/account-already-registered.png';
         } else if (e.toString().contains('network-request-failed')) {
           errorMessage = 'Network error. Please check your internet connection.';
+          specificImage = 'assets/image/no-internet.png';
         }
 
         // Show error dialog
@@ -240,7 +241,6 @@ class _RegisterPageState extends State<RegisterPage> {
                         setState(() {
                           _isDialogShowing = false;
                         });
-                        Navigator.of(context).pop();
                         Navigator.of(context).pushReplacement(
                           MaterialPageRoute(builder: (context) => const EmailVerificationPage()),
                         );
