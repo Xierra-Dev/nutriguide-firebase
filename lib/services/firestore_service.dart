@@ -1,10 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/recipe.dart';
+import 'dart:io' show File;
+import 'storage_service.dart';
 
 class FirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final StorageService _storageService = StorageService();
 
   // Existing methods...
 
@@ -335,6 +338,23 @@ class FirestoreService {
     } catch (e) {
       print('Error removing recipe from saved: $e');
       rethrow;
+    }
+  }
+
+  Future<void> uploadProfilePicture(File imageFile) async {
+    String? userId = _auth.currentUser?.uid;
+    if (userId != null) {
+      final imageUrl = await _storageService.uploadProfilePicture(imageFile, userId);
+      await _firestore.collection('users').doc(userId).update({
+        'profilePictureUrl': imageUrl,
+      });
+    }
+  }
+
+  Future<void> updateUserProfile(Map<String, dynamic> data) async {
+    String? userId = _auth.currentUser?.uid;
+    if (userId != null) {
+      await _firestore.collection('users').doc(userId).update(data);
     }
   }
 

@@ -57,4 +57,18 @@ class AuthService {
   FirebaseAuthException _handleAuthException(FirebaseAuthException e) {
     return e;
   }
+
+  Future<void> updateDisplayName(String displayName) async {
+    try {
+      User? user = _auth.currentUser;
+      if (user != null) {
+        await user.updateDisplayName(displayName);
+      } else {
+        throw 'No authenticated user found';
+      }
+    } catch (e) {
+      print('Error updating display name: $e');
+      throw e;
+    }
+  }
 }

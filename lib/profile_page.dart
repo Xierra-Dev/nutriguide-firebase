@@ -4,6 +4,7 @@ import 'account_page.dart';
 import 'settings_page.dart';
 import 'services/auth_service.dart';
 import 'services/firestore_service.dart';
+import 'profile_edit_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -99,13 +100,24 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
   Future<void> _loadUserData() async {
     try {
       final data = await _firestoreService.getUserPersonalization();
-      setState(() {
-        userData = data;
-        isLoading = false;
-      });
+      print('Loaded userData: $data'); // Debug print
+      if (data != null) {
+        print('Profile Picture URL: ${data['profilePictureUrl']}'); // Debug print
+        setState(() {
+          userData = data;
+          isLoading = false;
+        });
+      } else {
+        print('No user data found');
+        setState(() {
+          userData = {};
+          isLoading = false;
+        });
+      }
     } catch (e) {
       print('Error loading user data: $e');
       setState(() {
+        userData = {};
         isLoading = false;
       });
     }
@@ -119,6 +131,9 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
 
   @override
   Widget build(BuildContext context) {
+    // Add debug print
+    print('Building profile page with userData: $userData');
+    
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -153,11 +168,45 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
           Center(
             child: Column(
               children: [
-                CircleAvatar(
-                  radius: 50,
-                  backgroundColor: Colors.grey[800],
-                  child: const Icon(Icons.person,
-                      size: 50, color: Colors.white),
+                Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.grey[800],
+                  ),
+                  child: ClipOval(
+                    child: userData != null && 
+                          userData!['profilePictureUrl'] != null && 
+                          userData!['profilePictureUrl'].toString().isNotEmpty
+                        ? Image.network(
+                            userData!['profilePictureUrl'],
+                            fit: BoxFit.cover,
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) {
+                                print('Image loaded successfully');
+                                return child;
+                              }
+                              print('Loading image...');
+                              return Center(
+                                child: CircularProgressIndicator(
+                                  value: loadingProgress.expectedTotalBytes != null
+                                      ? loadingProgress.cumulativeBytesLoaded /
+                                          loadingProgress.expectedTotalBytes!
+                                      : null,
+                                  color: Colors.deepOrange,
+                                ),
+                              );
+                            },
+                            errorBuilder: (context, error, stackTrace) {
+                              print('Error loading image: $error');
+                              print('Stack trace: $stackTrace');
+                              return const Icon(Icons.person,
+                                  size: 50, color: Colors.white);
+                            },
+                          )
+                        : const Icon(Icons.person, size: 50, color: Colors.white),
+                  ),
                 ),
                 const SizedBox(height: 16),
                 Text(
@@ -172,6 +221,10 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                 ElevatedButton(
                   onPressed: () {
                     // TODO: Navigate to edit profile
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const ProfileEditPage()),
+                    );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.grey[900],

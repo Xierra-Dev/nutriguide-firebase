@@ -38,6 +38,7 @@ dependencies:
   linear_progress_bar: ^1.1.2
   numberpicker: ^2.1.2
   image_picker: ^1.0.4
+  cloudinary_public: ^0.21.0
 
 
   # The following adds the Cupertino Icons font to your application.
