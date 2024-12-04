@@ -139,5 +139,32 @@ class TheMealDBService {
     }
   }
 
+    Future<List<Recipe>> searchRecipesByIngredient(String ingredient) async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/filter.php?i=$ingredient'));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['meals'] != null) {
+          List<Recipe> recipes = [];
+          for (var meal in data['meals']) {
+            final detailedRecipe = await getRecipeById(meal['idMeal']);
+            if (_isRecipeComplete(detailedRecipe)) {
+              recipes.add(detailedRecipe);
+              print('Added category recipe: ${detailedRecipe.title} with health score: ${detailedRecipe.healthScore}');
+            } else {
+              print('Skipped incomplete category recipe: ${detailedRecipe.title}');
+            }
+          }
+          return recipes;
+        }
+      }
+      print('Failed to load recipes for category $ingredient. Status code: ${response.statusCode}');
+      return [];
+    } catch (e) {
+      print('Error fetching recipes by category: $e');
+      return [];
+    }
+  }
+
 }
 

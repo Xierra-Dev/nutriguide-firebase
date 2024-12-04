@@ -184,13 +184,17 @@ class _SearchPageState extends State<SearchPage> {
       selectedIngredient = ingredient;
     });
     try {
-      final recipes = await _mealDBService.getRandomRecipes(number: 10);
+      final recipes = await _mealDBService.searchRecipesByIngredient(ingredient);
       setState(() {
         this.recipes = recipes;
         isLoading = false;
       });
+      
+      for (var recipe in recipes) {
+        _checkIfSaved(recipe);
+      }
     } catch (e) {
-      print('Error searching recipes: $e');
+      print('Error searching recipes by ingredient: $e');
       setState(() {
         isLoading = false;
       });
@@ -255,7 +259,7 @@ class _SearchPageState extends State<SearchPage> {
                   const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                     child: Text(
-                      'Popular',
+                      'Popular Ingredients',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 20,
