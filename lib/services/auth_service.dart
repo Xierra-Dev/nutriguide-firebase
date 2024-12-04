@@ -34,10 +34,15 @@ class AuthService {
   // Register with email and password
   Future<UserCredential> registerWithEmailAndPassword(String email, String password) async {
     try {
-      return await _auth.createUserWithEmailAndPassword(
+      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
+      
+      // Send email verification
+      await userCredential.user?.sendEmailVerification();
+      
+      return userCredential;
     } on FirebaseAuthException catch (e) {
       throw _handleAuthException(e);
     }
@@ -69,6 +74,20 @@ class AuthService {
     } catch (e) {
       print('Error updating display name: $e');
       throw e;
+    }
+  }
+
+  // Check if email is verified
+  bool isEmailVerified() {
+    return _auth.currentUser?.emailVerified ?? false;
+  }
+
+  // Resend verification email
+  Future<void> resendVerificationEmail() async {
+    try {
+      await _auth.currentUser?.sendEmailVerification();
+    } catch (e) {
+      throw Exception('Error sending verification email: $e');
     }
   }
 }
