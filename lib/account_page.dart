@@ -3,7 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'settings_page.dart';
 import 'login_page.dart';
 import 'services/auth_service.dart';
-import 'services/firestore_service.dart';
 
 class AccountPage extends StatefulWidget {
   const AccountPage({super.key});
@@ -97,7 +96,8 @@ class _AccountPageState extends State<AccountPage> {
     } catch (e) {
       print('Error fetching user data: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to load user data: $e')),
+        SnackBar(content: Text('Failed to load user data: $e'),
+          backgroundColor: Colors.red,),
       );
     }
   }
@@ -131,7 +131,7 @@ class _AccountPageState extends State<AccountPage> {
         await currentUser.reauthenticateWithCredential(credential);
 
         // Update email
-        await currentUser.updateEmail(_newEmailController.text);
+        await currentUser.verifyBeforeUpdateEmail(_newEmailController.text);
 
         // Reset controllers
         _currentPasswordController.clear();
@@ -144,7 +144,8 @@ class _AccountPageState extends State<AccountPage> {
 
         // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Email successfully changed')),
+          const SnackBar(content: Text('Email successfully changed'),
+            backgroundColor: Colors.green,),
         );
 
         // Optional: Close email change dialog
@@ -152,11 +153,13 @@ class _AccountPageState extends State<AccountPage> {
       }
     } on FirebaseAuthException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to change email: ${e.message}')),
+        SnackBar(content: Text('Failed to change email: ${e.message}'),
+          backgroundColor: Colors.red,),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('An error occurred: $e')),
+        SnackBar(content: Text('An error occurred: $e'),
+          backgroundColor: Colors.red,),
       );
     }
   }
@@ -319,7 +322,8 @@ class _AccountPageState extends State<AccountPage> {
 
         // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Password successfully changed')),
+          const SnackBar(content: Text('Password successfully changed'),
+            backgroundColor: Colors.green,),
         );
 
         // Optional: Close password change dialog
@@ -327,11 +331,16 @@ class _AccountPageState extends State<AccountPage> {
       }
     } on FirebaseAuthException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to change password: ${e.message}')),
+        SnackBar(content: Text('Failed to change password: ${e.message}'),
+          backgroundColor: Colors.red,),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('An error occurred: $e')),
+        SnackBar(content: Text(
+            'An error occurred: $e',
+        ),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }
@@ -558,7 +567,11 @@ class _AccountPageState extends State<AccountPage> {
         );
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Logout Failed: $e')),
+          SnackBar(content: Text(
+              'Logout Failed: $e',
+          ),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }

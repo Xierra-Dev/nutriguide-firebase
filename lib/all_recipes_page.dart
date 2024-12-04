@@ -160,14 +160,14 @@ class _AllRecipesPageState extends State<AllRecipesPage> {
                 ? 'Recipe saved: ${recipe.title}'
                 : 'Recipe: "${recipe.title}" removed from saved',
           ),
-          duration: const Duration(seconds: 1),
+          backgroundColor: Colors.green,
         ),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Error saving recipe'),
-          duration: Duration(seconds: 1),
+          backgroundColor: Colors.red,
         ),
       );
     } finally {

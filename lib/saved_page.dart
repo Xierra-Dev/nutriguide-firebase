@@ -95,7 +95,7 @@ class _SavedPageState extends State<SavedPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Recipe: "${recipe.title}" removed from saved'),
-            duration: const Duration(seconds: 2),
+            backgroundColor: Colors.green,
           ),
         );
       }
@@ -105,7 +105,7 @@ class _SavedPageState extends State<SavedPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to remove ${recipe.title} from saved recipes.\nError: ${e.toString()}'),
-            duration: const Duration(seconds: 2),
+            backgroundColor: Colors.green,
           ),
         );
       }
