@@ -358,6 +358,42 @@ class FirestoreService {
     }
   }
 
+  Future<List<String>> getUserGoals() async {
+    try {
+      String? userId = _auth.currentUser?.uid;
+      if (userId != null) {
+        DocumentSnapshot doc = await _firestore.collection('users').doc(userId).get();
+        if (doc.exists && doc.data() != null) {
+          final data = doc.data() as Map<String, dynamic>;
+          return List<String>.from(data['goals'] ?? []);
+        }
+      }
+      return [];
+    } catch (e) {
+      print('Error getting user goals: $e');
+      return [];
+    }
+  }
+
+  Future<List<String>> getUserAllergies() async {
+    try {
+      String? userId = _auth.currentUser?.uid;
+      if (userId != null) {
+        DocumentSnapshot doc = await _firestore.collection('users').doc(userId).get();
+        if (doc.exists && doc.data() != null) {
+          final data = doc.data() as Map<String, dynamic>;
+          return List<String>.from(data['allergies'] ?? []);
+        }
+      }
+      return [];
+    } catch (e) {
+      print('Error getting user allergies: $e');
+      return [];
+    }
+  }
+
+  
+
 }
 
 

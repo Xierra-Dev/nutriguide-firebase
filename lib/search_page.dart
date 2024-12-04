@@ -201,6 +201,29 @@ class _SearchPageState extends State<SearchPage> {
     }
   }
 
+  void _openRecipeDetail(Recipe recipe) async {
+    try {
+      // Tambahkan ke recently viewed
+      await _firestoreService.addToRecentlyViewed(recipe);
+      
+      if (mounted) {  // Check if widget is still mounted
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => RecipeDetailPage(recipe: recipe),
+          ),
+        );
+      }
+    } catch (e) {
+      print('Error opening recipe detail: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error opening recipe')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -506,14 +529,7 @@ class _SearchPageState extends State<SearchPage> {
       itemBuilder: (context, index) {
         final recipe = recipeList[index];
         return GestureDetector(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => RecipeDetailPage(recipe: recipe),
-              ),
-            );
-          },
+          onTap: () => _openRecipeDetail(recipe),
           child: Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12),

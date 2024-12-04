@@ -5,6 +5,7 @@ import 'package:linear_progress_bar/linear_progress_bar.dart';
 import 'home_page.dart';
 import 'personalization_page.dart';
 import 'services/themealdb_service.dart';
+import 'health_data_page.dart';
 
 
 class GoalsPage extends StatefulWidget {
@@ -345,6 +346,5 @@ class _GoalsPageState extends State<GoalsPage> {
       });
     }
   }
-}
-const kPrimaryColor = Colors.red;
+}const kPrimaryColor = Colors.red;
 const kColorsGrey400 = Colors.orangeAccent;

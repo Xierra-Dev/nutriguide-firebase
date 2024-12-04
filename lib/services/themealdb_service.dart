@@ -139,7 +139,7 @@ class TheMealDBService {
     }
   }
 
-    Future<List<Recipe>> searchRecipesByIngredient(String ingredient) async {
+  Future<List<Recipe>> searchRecipesByIngredient(String ingredient) async {
     try {
       final response = await http.get(Uri.parse('$baseUrl/filter.php?i=$ingredient'));
       if (response.statusCode == 200) {

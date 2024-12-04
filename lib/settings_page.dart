@@ -4,6 +4,7 @@ import '/profile_page.dart';
 import 'services/auth_service.dart';
 import 'services/firestore_service.dart';
 import 'profile_edit_page.dart';
+import 'preference_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -194,7 +195,12 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
                 trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 24),
                 onTap: () {
-                  // Navigate to Preferences page
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const PreferencePage(),
+                    ),
+                  );
                 },
               ),
               const SizedBox(height: 24),

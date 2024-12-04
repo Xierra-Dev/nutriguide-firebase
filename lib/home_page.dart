@@ -308,14 +308,15 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _viewRecipe(Recipe recipe) async {
-    await Navigator.push(
-      context,
-      SlideUpRoute(
-        page: RecipeDetailPage(recipe: recipe),
-      ),
-    );
-    // Reload recently viewed recipes after returning from RecipeDetailPage
-    _loadRecentlyViewedRecipes();
+    await _firestoreService.addToRecentlyViewed(recipe);
+    if (mounted) {
+      await Navigator.push(
+        context,
+        SlideUpRoute(page: RecipeDetailPage(recipe: recipe)),
+      );
+      // Reload recently viewed recipes setelah kembali
+      await _loadRecentlyViewedRecipes();
+    }
   }
 
   @override
