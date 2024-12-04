@@ -95,7 +95,8 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error updating profile: $e')),
+        SnackBar(content: Text('Error updating profile: $e'),
+          backgroundColor: Colors.red,),
       );
     } finally {
       setState(() {
