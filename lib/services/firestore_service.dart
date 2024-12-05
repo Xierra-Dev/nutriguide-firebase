@@ -8,14 +8,17 @@ class FirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final StorageService _storageService = StorageService();
-
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
   // Existing methods...
 
   Future<void> saveUserPersonalization(Map<String, dynamic> data) async {
     try {
       String? userId = _auth.currentUser?.uid;
       if (userId != null) {
-        await _firestore.collection('users').doc(userId).set(data, SetOptions(merge: true));
+        await _firestore
+            .collection('users')
+            .doc(userId)
+            .set(data, SetOptions(merge: true));
       } else {
         throw Exception('No authenticated user found');
       }
@@ -29,7 +32,8 @@ class FirestoreService {
     try {
       String? userId = _auth.currentUser?.uid;
       if (userId != null) {
-        DocumentSnapshot doc = await _firestore.collection('users').doc(userId).get();
+        DocumentSnapshot doc =
+            await _firestore.collection('users').doc(userId).get();
         return doc.data() as Map<String, dynamic>?;
       } else {
         throw Exception('No authenticated user found');
@@ -44,7 +48,10 @@ class FirestoreService {
     try {
       String? userId = _auth.currentUser?.uid;
       if (userId != null) {
-        await _firestore.collection('users').doc(userId).update({'goals': goals});
+        await _firestore
+            .collection('users')
+            .doc(userId)
+            .update({'goals': goals});
       } else {
         throw Exception('No authenticated user found');
       }
@@ -58,7 +65,10 @@ class FirestoreService {
     try {
       String? userId = _auth.currentUser?.uid;
       if (userId != null) {
-        await _firestore.collection('users').doc(userId).update({'allergies': allergies});
+        await _firestore
+            .collection('users')
+            .doc(userId)
+            .update({'allergies': allergies});
       } else {
         throw Exception('No authenticated user found');
       }
@@ -74,7 +84,12 @@ class FirestoreService {
     try {
       String? userId = _auth.currentUser?.uid;
       if (userId != null) {
-        await _firestore.collection('users').doc(userId).collection('saved_recipes').doc(recipe.id).set({
+        await _firestore
+            .collection('users')
+            .doc(userId)
+            .collection('saved_recipes')
+            .doc(recipe.id)
+            .set({
           'id': recipe.id,
           'title': recipe.title,
           'image': recipe.image,
@@ -134,6 +149,25 @@ class FirestoreService {
     }
   }
 
+  Future<bool> isRecipePlanned(String recipeId) async {
+    try {
+      String? userId = _auth.currentUser?.uid;
+      if (userId != null) {
+        final doc = await _firestore
+            .collection('users')
+            .doc(userId)
+            .collection('planned_recipes')
+            .doc(recipeId)
+            .get();
+        return doc.exists;
+      }
+      return false;
+    } catch (e) {
+      print('Error checking if recipe is planned: $e');
+      return false;
+    }
+  }
+
   Future<List<Recipe>> getSavedRecipes() async {
     try {
       String? userId = _auth.currentUser?.uid;
@@ -159,7 +193,8 @@ class FirestoreService {
             instructionSteps: data['instructions'].split('\n'),
             preparationTime: data['preparationTime'],
             healthScore: data['healthScore'].toDouble(),
-            nutritionInfo: NutritionInfo.generateRandom(), // We'll regenerate this since it's not stored
+            nutritionInfo: NutritionInfo
+                .generateRandom(), // We'll regenerate this since it's not stored
           );
         }).toList();
       } else {
@@ -167,6 +202,44 @@ class FirestoreService {
       }
     } catch (e) {
       print('Error getting saved recipes: $e');
+      return [];
+    }
+  }
+
+  Future<List<Recipe>> getPlannedRecipes() async {
+    try {
+      String? userId = _auth.currentUser?.uid;
+      if (userId != null) {
+        final snapshot = await _firestore
+            .collection('users')
+            .doc(userId)
+            .collection('planned_recipes')
+            .orderBy('plannedAt', descending: true)
+            .get();
+
+        return snapshot.docs.map((doc) {
+          final data = doc.data();
+          return Recipe(
+            id: data['id'],
+            title: data['title'],
+            image: data['image'],
+            category: data['category'],
+            area: data['area'],
+            ingredients: List<String>.from(data['ingredients']),
+            measurements: List<String>.from(data['measurements']),
+            instructions: data['instructions'],
+            instructionSteps: data['instructions'].split('\n'),
+            preparationTime: data['preparationTime'],
+            healthScore: data['healthScore'].toDouble(),
+            nutritionInfo: NutritionInfo
+                .generateRandom(), // We'll regenerate this since it's not stored
+          );
+        }).toList();
+      } else {
+        throw Exception('No authenticated user found');
+      }
+    } catch (e) {
+      print('Error getting planned recipes: $e');
       return [];
     }
   }
@@ -195,6 +268,38 @@ class FirestoreService {
       }
     } catch (e) {
       print('Error adding to recently viewed: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> addToMealPlan(Recipe recipe) async {
+    try {
+      String? userId = _auth.currentUser?.uid;
+      if (userId != null) {
+        await _firestore
+            .collection('users')
+            .doc(userId)
+            .collection('meal_plan')
+            .doc(recipe.id)
+            .set({
+          'id': recipe.id,
+          'title': recipe.title,
+          'image': recipe.image,
+          'category': recipe.category,
+          'area': recipe.area,
+          'instructions': recipe.instructions,
+          'ingredients': recipe.ingredients,
+          'measurements': recipe.measurements,
+          'preparationTime': recipe.preparationTime,
+          'healthScore': recipe.healthScore,
+          'addedAt': FieldValue.serverTimestamp(),
+        });
+        print('Recipe added to meal plan: ${recipe.title}');
+      } else {
+        throw Exception('No authenticated user found');
+      }
+    } catch (e) {
+      print('Error adding recipe to meal plan: $e');
       rethrow;
     }
   }
@@ -246,10 +351,12 @@ class FirestoreService {
     try {
       String? userId = _auth.currentUser?.uid;
       if (userId != null) {
-        DocumentSnapshot userDoc = await _firestore.collection('users').doc(userId).get();
+        DocumentSnapshot userDoc =
+            await _firestore.collection('users').doc(userId).get();
 
         // Periksa apakah dokumen ada dan memiliki field username
-        Map<String, dynamic>? userData = userDoc.data() as Map<String, dynamic>?;
+        Map<String, dynamic>? userData =
+            userDoc.data() as Map<String, dynamic>?;
 
         if (userData != null && userData.containsKey('username')) {
           return userData['username'];
@@ -283,6 +390,68 @@ class FirestoreService {
     } catch (e) {
       print('Error removing planned recipe: $e');
       rethrow;
+    }
+  }
+
+  Future<bool> isPlannerRecipe(String recipeId) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return false;
+
+      final doc = await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .collection('plannedMeals')
+          .doc(recipeId)
+          .get();
+
+      return doc.exists;
+    } catch (e) {
+      print('Error checking planner status: $e');
+      return false;
+    }
+  }
+
+  Future<void> planRecipe(Recipe recipe) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
+
+      await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .collection('plannedMeals')
+          .doc(recipe.id)
+          .set({
+        'id': recipe.id,
+        'title': recipe.title,
+        'image': recipe.image,
+        'area': recipe.area,
+        'preparationTime': recipe.preparationTime,
+        'healthScore': recipe.healthScore,
+        // Add any other relevant fields from the Recipe class
+        'plannedAt': FieldValue.serverTimestamp(), // Optional: add timestamp
+      });
+    } catch (e) {
+      print('Error planning recipe: $e');
+      throw e;
+    }
+  }
+
+  Future<void> unplanRecipe(String recipeId) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
+
+      await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .collection('plannedMeals')
+          .doc(recipeId)
+          .delete();
+    } catch (e) {
+      print('Error unplanning recipe: $e');
+      throw e;
     }
   }
 
@@ -344,7 +513,8 @@ class FirestoreService {
   Future<void> uploadProfilePicture(File imageFile) async {
     String? userId = _auth.currentUser?.uid;
     if (userId != null) {
-      final imageUrl = await _storageService.uploadProfilePicture(imageFile, userId);
+      final imageUrl =
+          await _storageService.uploadProfilePicture(imageFile, userId);
       await _firestore.collection('users').doc(userId).update({
         'profilePictureUrl': imageUrl,
       });
@@ -362,7 +532,8 @@ class FirestoreService {
     try {
       String? userId = _auth.currentUser?.uid;
       if (userId != null) {
-        DocumentSnapshot doc = await _firestore.collection('users').doc(userId).get();
+        DocumentSnapshot doc =
+            await _firestore.collection('users').doc(userId).get();
         if (doc.exists && doc.data() != null) {
           final data = doc.data() as Map<String, dynamic>;
           return List<String>.from(data['goals'] ?? []);
@@ -379,7 +550,8 @@ class FirestoreService {
     try {
       String? userId = _auth.currentUser?.uid;
       if (userId != null) {
-        DocumentSnapshot doc = await _firestore.collection('users').doc(userId).get();
+        DocumentSnapshot doc =
+            await _firestore.collection('users').doc(userId).get();
         if (doc.exists && doc.data() != null) {
           final data = doc.data() as Map<String, dynamic>;
           return List<String>.from(data['allergies'] ?? []);
@@ -391,10 +563,4 @@ class FirestoreService {
       return [];
     }
   }
-
-  
-
 }
-
-
-

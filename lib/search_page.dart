@@ -3,43 +3,13 @@ import 'models/recipe.dart';
 import 'services/themealdb_service.dart';
 import 'recipe_detail_page.dart';
 import 'services/firestore_service.dart';
+import 'package:intl/intl.dart';
 
 class SearchPage extends StatefulWidget {
-  const SearchPage({super.key});
+  const SearchPage({Key? key}) : super(key: key);
 
   @override
   _SearchPageState createState() => _SearchPageState();
-}
-
-class SlideUpRoute extends PageRouteBuilder {
-  final Widget page;
-
-  SlideUpRoute({required this.page})
-      : super(
-    pageBuilder: (
-        BuildContext context,
-        Animation<double> primaryAnimation,
-        Animation<double> secondaryAnimation,
-        ) =>
-    page,
-    transitionsBuilder: (
-        BuildContext context,
-        Animation<double> primaryAnimation,
-        Animation<double> secondaryAnimation,
-        Widget child,
-        ) {
-      return SlideTransition(
-        position: Tween<Offset>(
-          begin: const Offset(0.0, 1.0),  // Start from bottom
-          end: Offset.zero,  // End at the center
-        ).animate(CurvedAnimation(
-          parent: primaryAnimation,
-          curve: Curves.easeOutQuad,
-        )),
-        child: child,
-      );
-    },
-  );
 }
 
 class _SearchPageState extends State<SearchPage> {
@@ -59,6 +29,10 @@ class _SearchPageState extends State<SearchPage> {
   bool _isSearching = false;
   bool _isYouMightAlsoLikeSectionExpanded = true;
 
+  DateTime _selectedDate = DateTime.now();
+  String _selectedMeal = 'Dinner';
+  List<bool> _daysSelected = List.generate(7, (index) => false);
+
   @override
   void initState() {
     super.initState();
@@ -66,11 +40,11 @@ class _SearchPageState extends State<SearchPage> {
       // Check saved status for each recipe after loading
       for (var recipe in recipes) {
         _checkIfSaved(recipe);
+        _checkIfPlanned(recipe);
       }
     });
     _loadPopularIngredients();
     _scrollController.addListener(_onScroll);
-
   }
 
   Color _getHealthScoreColor(double healthScore) {
@@ -83,10 +57,186 @@ class _SearchPageState extends State<SearchPage> {
     }
   }
 
+  void _showPlannedDialog() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.grey[900], // Background untuk dark mode
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(16),
+        ),
+      ),
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setDialogState) {
+            return Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header dengan navigasi antar minggu
+                  const Text(
+                    'Choose a day',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      IconButton(
+                        onPressed: () {
+                          // Pindah ke minggu sebelumnya
+                          setDialogState(() {
+                            _selectedDate =
+                                _selectedDate.subtract(const Duration(days: 7));
+                          });
+                        },
+                        icon: const Icon(Icons.arrow_back),
+                        color: Colors.white,
+                      ),
+                      Text(
+                        // Menampilkan rentang tanggal minggu
+                        '${DateFormat('MMM dd').format(_selectedDate)} - '
+                        '${DateFormat('MMM dd').format(_selectedDate.add(const Duration(days: 6)))}',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          // Pindah ke minggu berikutnya
+                          setDialogState(() {
+                            _selectedDate =
+                                _selectedDate.add(const Duration(days: 7));
+                          });
+                        },
+                        icon: const Icon(Icons.arrow_forward),
+                        color: Colors.white,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButton<String>(
+                    dropdownColor: Colors.grey[850],
+                    value: _selectedMeal,
+                    onChanged: (String? newValue) {
+                      setDialogState(() {
+                        _selectedMeal = newValue!;
+                      });
+                    },
+                    items: ['Dinner', 'Breakfast', 'Lunch']
+                        .map(
+                          (String value) => DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(
+                              value,
+                              style: const TextStyle(color: Colors.white),
+                            ),
+                          ),
+                        )
+                        .toList(),
+                  ),
+                  const SizedBox(height: 8),
+                  // Pilihan hari menggunakan ChoiceChip (dimulai dari Sunday)
+                  Wrap(
+                    spacing: 8,
+                    children: [
+                      for (int i = 0; i < 7; i++)
+                        ChoiceChip(
+                          label: Text(
+                            DateFormat('EEE').format(
+                              _selectedDate.add(Duration(
+                                  days: i - _selectedDate.weekday % 7)),
+                            ), // Menampilkan hari dimulai dari Sunday
+                          ),
+                          selected: _daysSelected[i],
+                          onSelected: (bool selected) {
+                            setDialogState(() {
+                              _daysSelected[i] = selected;
+                            });
+                          },
+                          selectedColor: Colors.blue,
+                          backgroundColor: Colors.grey[800],
+                          labelStyle: TextStyle(
+                            color:
+                                _daysSelected[i] ? Colors.white : Colors.grey,
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  // Tombol aksi
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: const Text(
+                          'Cancel',
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          // Validasi data sebelum menyimpan
+                          if (_selectedMeal.isEmpty ||
+                              !_daysSelected.contains(true)) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                    'Please select at least one day and a meal type!'),
+                              ),
+                            );
+                            return;
+                          }
+
+                          // Simpan data yang dipilih
+                          _saveSelectedPlan();
+                          Navigator.of(context).pop();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                        ),
+                        child: const Text('Done'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+// Fungsi untuk menyimpan pilihan (sesuaikan dengan logika aplikasi Anda)
+  void _saveSelectedPlan() {
+    // Implementasi logika penyimpanan (Firestore atau lainnya)
+    print('Selected Meal: $_selectedMeal');
+    print('Selected Days: $_daysSelected');
+  }
+
   Future<void> _checkIfSaved(Recipe recipe) async {
     final saved = await _firestoreService.isRecipeSaved(recipe.id);
     setState(() {
       savedStatus[recipe.id] = saved;
+    });
+  }
+
+  Future<void> _checkIfPlanned(Recipe recipe) async {
+    final planned = await _firestoreService.isRecipePlanned(recipe.id);
+    setState(() {
+      plannedStatus[recipe.id] = planned;
     });
   }
 
@@ -120,31 +270,43 @@ class _SearchPageState extends State<SearchPage> {
     }
   }
 
-  void _planMeal(Recipe recipe) async {
+  Future<void> _togglePlan(Recipe recipe) async {
     try {
-      if (plannedStatus[recipe.id] == true) {
-        // Remove recipe from PlannerPage
-        await _firestoreService.removePlannedRecipe(recipe.id);
-        setState(() {
-          plannedStatus[recipe.id] = false;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Meal unplanned: ${recipe.title}')),
-        );
-      } else {
-        // Add recipe to PlannerPage
-        await _firestoreService.addPlannedRecipe(recipe);
-        setState(() {
-          plannedStatus[recipe.id] = true;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Meal planned: ${recipe.title}')),
-        );
+      // Validasi Recipe ID
+      if (recipe.id == null) {
+        throw Exception('Recipe ID cannot be null.');
       }
-    } catch (e) {
-      print('Error toggling meal plan: $e');
+
+      // Cek status dan lakukan aksi
+      if (plannedStatus[recipe.id] == true) {
+        await _firestoreService.unplanRecipe(recipe.id); // Hapus dari rencana
+      } else {
+        await _firestoreService.planRecipe(recipe); // Tambahkan ke rencana
+      }
+
+      // Update UI
+      setState(() {
+        plannedStatus[recipe.id] = !(plannedStatus[recipe.id] ?? false);
+      });
+
+      // Tampilkan SnackBar untuk notifikasi sukses
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to update meal plan: ${recipe.title}')),
+        SnackBar(
+          content: Text(
+            plannedStatus[recipe.id] == true
+                ? 'Recipe planned: ${recipe.title}'
+                : 'Recipe: "${recipe.title}" removed from planned',
+          ),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      // Tangani error dan tampilkan pesan kesalahan
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error plan recipe: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }
@@ -215,12 +377,13 @@ class _SearchPageState extends State<SearchPage> {
       selectedIngredient = ingredient;
     });
     try {
-      final recipes = await _mealDBService.searchRecipesByIngredient(ingredient);
+      final recipes =
+          await _mealDBService.searchRecipesByIngredient(ingredient);
       setState(() {
         this.recipes = recipes;
         isLoading = false;
       });
-      
+
       for (var recipe in recipes) {
         _checkIfSaved(recipe);
       }
@@ -236,12 +399,13 @@ class _SearchPageState extends State<SearchPage> {
     try {
       // Tambahkan ke recently viewed
       await _firestoreService.addToRecentlyViewed(recipe);
-      
-      if (mounted) {  // Check if widget is still mounted
+
+      if (mounted) {
+        // Check if widget is still mounted
         await Navigator.push(
           context,
-          SlideUpRoute(
-            page: RecipeDetailPage(recipe: recipe),
+          MaterialPageRoute(
+            builder: (context) => RecipeDetailPage(recipe: recipe),
           ),
         );
       }
@@ -288,7 +452,8 @@ class _SearchPageState extends State<SearchPage> {
                   hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
                   prefixIcon: const Icon(Icons.search, color: Colors.white),
                   border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 ),
                 onSubmitted: (value) {
                   if (value.isNotEmpty) {
@@ -311,7 +476,8 @@ class _SearchPageState extends State<SearchPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                     child: Text(
                       'Popular Ingredients',
                       style: TextStyle(
@@ -330,7 +496,8 @@ class _SearchPageState extends State<SearchPage> {
                       itemBuilder: (context, index) {
                         final ingredient = popularIngredients[index];
                         return GestureDetector(
-                          onTap: () => _searchRecipesByIngredient(ingredient['name']!),
+                          onTap: () =>
+                              _searchRecipesByIngredient(ingredient['name']!),
                           child: Container(
                             width: 100,
                             margin: const EdgeInsets.only(right: 12),
@@ -403,18 +570,22 @@ class _SearchPageState extends State<SearchPage> {
                       const Icon(Icons.arrow_drop_down, color: Colors.white),
                     ],
                   ),
-                  itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                  itemBuilder: (BuildContext context) =>
+                      <PopupMenuEntry<String>>[
                     const PopupMenuItem<String>(
                       value: 'Newest',
-                      child: Text('Newest', style: TextStyle(color: Colors.white)),
+                      child:
+                          Text('Newest', style: TextStyle(color: Colors.white)),
                     ),
                     const PopupMenuItem<String>(
                       value: 'Popular',
-                      child: Text('Popular', style: TextStyle(color: Colors.white)),
+                      child: Text('Popular',
+                          style: TextStyle(color: Colors.white)),
                     ),
                     const PopupMenuItem<String>(
                       value: 'Rating',
-                      child: Text('Rating', style: TextStyle(color: Colors.white)),
+                      child:
+                          Text('Rating', style: TextStyle(color: Colors.white)),
                     ),
                   ],
                 ),
@@ -424,21 +595,24 @@ class _SearchPageState extends State<SearchPage> {
         ],
         Expanded(
           child: isLoading
-              ? const Center(child: CircularProgressIndicator(color: Colors.deepOrange))
+              ? const Center(
+                  child: CircularProgressIndicator(color: Colors.deepOrange))
               : _isSearching
-              ? _buildSearchResults()
-              : _buildRecipeGrid(recipes),
+                  ? _buildSearchResults()
+                  : _buildRecipeGrid(recipes),
         ),
       ],
     );
   }
+
   Widget _buildSearchResults() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Move the back button and title row closer to the top
         Padding(
-          padding: const EdgeInsets.only(top: 8.0, left: 16.0, right: 16.0, bottom: 8.0),
+          padding: const EdgeInsets.only(
+              top: 8.0, left: 16.0, right: 16.0, bottom: 8.0),
           child: Row(
             children: [
               IconButton(
@@ -479,7 +653,8 @@ class _SearchPageState extends State<SearchPage> {
                 hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
                 prefixIcon: const Icon(Icons.search, color: Colors.white),
                 border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               ),
               onSubmitted: (value) {
                 if (value.isNotEmpty) {
@@ -527,7 +702,7 @@ class _SearchPageState extends State<SearchPage> {
                   onPressed: () {
                     setState(() {
                       _isYouMightAlsoLikeSectionExpanded =
-                      !_isYouMightAlsoLikeSectionExpanded;
+                          !_isYouMightAlsoLikeSectionExpanded;
                     });
                   },
                 ),
@@ -537,15 +712,18 @@ class _SearchPageState extends State<SearchPage> {
           // Only show the grid when section is expanded
           if (_isYouMightAlsoLikeSectionExpanded)
             SizedBox(
-              height: MediaQuery.of(context).size.height * 0.21, // Reduced height
-              child: _buildRecipeGrid(recipes.take(10).toList(), scrollDirection: Axis.horizontal),
+              height:
+                  MediaQuery.of(context).size.height * 0.21, // Reduced height
+              child: _buildRecipeGrid(recipes.take(10).toList(),
+                  scrollDirection: Axis.horizontal),
             ),
         ],
       ],
     );
   }
 
-  Widget _buildRecipeGrid(List<Recipe> recipeList, {Axis scrollDirection = Axis.vertical}) {
+  Widget _buildRecipeGrid(List<Recipe> recipeList,
+      {Axis scrollDirection = Axis.vertical}) {
     return GridView.builder(
       controller: _scrollController,
       scrollDirection: scrollDirection,
@@ -626,6 +804,8 @@ class _SearchPageState extends State<SearchPage> {
                               if (value == 'Save Recipe') {
                                 _toggleSave(recipe);
                               } else if (value == 'Plan Meal') {
+                                _togglePlan(recipe);
+                                _showPlannedDialog();
                               }
                             },
                             color: Colors.white,
@@ -643,8 +823,8 @@ class _SearchPageState extends State<SearchPage> {
                                 height: 60,
                                 value: 'Save Recipe',
                                 child: Container(
-                                  padding:
-                                  const EdgeInsets.symmetric(horizontal: 10),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10),
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.start,
                                     children: [
@@ -676,8 +856,8 @@ class _SearchPageState extends State<SearchPage> {
                                 height: 60,
                                 value: 'Plan Meal',
                                 child: Container(
-                                  padding:
-                                  const EdgeInsets.symmetric(horizontal: 10),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10),
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.start,
                                     children: [
@@ -695,9 +875,10 @@ class _SearchPageState extends State<SearchPage> {
                                             : 'Plan Meal',
                                         style: TextStyle(
                                           fontSize: 16,
-                                          color: plannedStatus[recipe.id] == true
-                                              ? Colors.deepOrange
-                                              : Colors.black87,
+                                          color:
+                                              plannedStatus[recipe.id] == true
+                                                  ? Colors.deepOrange
+                                                  : Colors.black87,
                                           fontWeight: FontWeight.w500,
                                         ),
                                       ),
@@ -763,7 +944,8 @@ class _SearchPageState extends State<SearchPage> {
                               Text(
                                 recipe.healthScore.toStringAsFixed(1),
                                 style: TextStyle(
-                                  color: _getHealthScoreColor(recipe.healthScore),
+                                  color:
+                                      _getHealthScoreColor(recipe.healthScore),
                                   fontSize: 11,
                                   fontWeight: FontWeight.w600,
                                 ),
@@ -790,4 +972,3 @@ class _SearchPageState extends State<SearchPage> {
     super.dispose();
   }
 }
-
