@@ -10,6 +10,7 @@ import 'profile_page.dart';
 import 'notifications_page.dart';
 import 'add_recipe_page.dart';
 import 'planner_page.dart';
+import 'package:intl/intl.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -23,30 +24,30 @@ class SlideLeftRoute extends PageRouteBuilder {
 
   SlideLeftRoute({required this.page})
       : super(
-    pageBuilder: (
-        BuildContext context,
-        Animation<double> primaryAnimation,
-        Animation<double> secondaryAnimation,
-        ) =>
-    page,
-    transitionsBuilder: (
-        BuildContext context,
-        Animation<double> primaryAnimation,
-        Animation<double> secondaryAnimation,
-        Widget child,
-        ) {
-      return SlideTransition(
-        position: Tween<Offset>(
-          begin: const Offset(1.0, 0.0),
-          end: Offset.zero,
-        ).animate(CurvedAnimation(
-          parent: primaryAnimation,
-          curve: Curves.easeOutQuad,
-        )),
-        child: child,
-      );
-    },
-  );
+          pageBuilder: (
+            BuildContext context,
+            Animation<double> primaryAnimation,
+            Animation<double> secondaryAnimation,
+          ) =>
+              page,
+          transitionsBuilder: (
+            BuildContext context,
+            Animation<double> primaryAnimation,
+            Animation<double> secondaryAnimation,
+            Widget child,
+          ) {
+            return SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(1.0, 0.0),
+                end: Offset.zero,
+              ).animate(CurvedAnimation(
+                parent: primaryAnimation,
+                curve: Curves.easeOutQuad,
+              )),
+              child: child,
+            );
+          },
+        );
 }
 
 class SlideUpRoute extends PageRouteBuilder {
@@ -54,37 +55,37 @@ class SlideUpRoute extends PageRouteBuilder {
 
   SlideUpRoute({required this.page})
       : super(
-    pageBuilder: (
-        BuildContext context,
-        Animation<double> primaryAnimation,
-        Animation<double> secondaryAnimation,
-        ) =>
-    page,
-    transitionsBuilder: (
-        BuildContext context,
-        Animation<double> primaryAnimation,
-        Animation<double> secondaryAnimation,
-        Widget child,
-        ) {
-      return SlideTransition(
-        position: Tween<Offset>(
-          begin: const Offset(0.0, 1.0),  // Start from bottom
-          end: Offset.zero,  // End at the center
-        ).animate(CurvedAnimation(
-          parent: primaryAnimation,
-          curve: Curves.easeOutQuad,
-        )),
-        child: child,
-      );
-    },
-  );
+          pageBuilder: (
+            BuildContext context,
+            Animation<double> primaryAnimation,
+            Animation<double> secondaryAnimation,
+          ) =>
+              page,
+          transitionsBuilder: (
+            BuildContext context,
+            Animation<double> primaryAnimation,
+            Animation<double> secondaryAnimation,
+            Widget child,
+          ) {
+            return SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(0.0, 1.0), // Start from bottom
+                end: Offset.zero, // End at the center
+              ).animate(CurvedAnimation(
+                parent: primaryAnimation,
+                curve: Curves.easeOutQuad,
+              )),
+              child: child,
+            );
+          },
+        );
 }
 
 class _HomePageState extends State<HomePage> {
   final TheMealDBService _mealDBService = TheMealDBService();
   final FirestoreService _firestoreService = FirestoreService();
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
-  GlobalKey<RefreshIndicatorState>();
+      GlobalKey<RefreshIndicatorState>();
   Map<String, bool> savedStatus = {};
   Map<String, bool> plannedStatus = {};
   List<Recipe> recommendedRecipes = [];
@@ -96,6 +97,10 @@ class _HomePageState extends State<HomePage> {
   String? errorMessage;
   int _currentIndex = 0;
 
+  DateTime _selectedDate = DateTime.now();
+  String _selectedMeal = 'Dinner';
+  List<bool> _daysSelected = List.generate(7, (index) => false);
+
   @override
   void initState() {
     super.initState();
@@ -103,12 +108,15 @@ class _HomePageState extends State<HomePage> {
       // After recipes are loaded, check saved status for each recipe
       for (var recipe in recommendedRecipes) {
         _checkIfSaved(recipe);
+        _checkIfPlanned(recipe);
       }
       for (var recipe in popularRecipes) {
         _checkIfSaved(recipe);
+        _checkIfPlanned(recipe);
       }
       for (var recipe in feedRecipes) {
         _checkIfSaved(recipe);
+        _checkIfPlanned(recipe);
       }
     });
     _loadRecentlyViewedRecipes();
@@ -128,6 +136,13 @@ class _HomePageState extends State<HomePage> {
     final saved = await _firestoreService.isRecipeSaved(recipe.id);
     setState(() {
       savedStatus[recipe.id] = saved;
+    });
+  }
+
+  Future<void> _checkIfPlanned(Recipe recipe) async {
+    final planned = await _firestoreService.isRecipePlanned(recipe.id);
+    setState(() {
+      plannedStatus[recipe.id] = planned;
     });
   }
 
@@ -155,6 +170,47 @@ class _HomePageState extends State<HomePage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Error saving recipe'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _togglePlan(Recipe recipe) async {
+    try {
+      // Validasi Recipe ID
+      if (recipe.id == null) {
+        throw Exception('Recipe ID cannot be null.');
+      }
+
+      // Cek status dan lakukan aksi
+      if (plannedStatus[recipe.id] == true) {
+        await _firestoreService.unplanRecipe(recipe.id); // Hapus dari rencana
+      } else {
+        await _firestoreService.planRecipe(recipe); // Tambahkan ke rencana
+      }
+
+      // Update UI
+      setState(() {
+        plannedStatus[recipe.id] = !(plannedStatus[recipe.id] ?? false);
+      });
+
+      // Tampilkan SnackBar untuk notifikasi sukses
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            plannedStatus[recipe.id] == true
+                ? 'Recipe planned: ${recipe.title}'
+                : 'Recipe: "${recipe.title}" removed from planned',
+          ),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      // Tangani error dan tampilkan pesan kesalahan
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error plan recipe: ${e.toString()}'),
           backgroundColor: Colors.red,
         ),
       );
@@ -323,18 +379,21 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      appBar : _buildAppBar(),
+      appBar: _buildAppBar(),
       body: _buildBody(),
-      floatingActionButton: _currentIndex == 1 ? null : FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const AddRecipePage()),
-          );
-        },
-        backgroundColor: Colors.deepOrange,
-        child: const Icon(Icons.add),
-      ),
+      floatingActionButton: _currentIndex == 1
+          ? null
+          : FloatingActionButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const AddRecipePage()),
+                );
+              },
+              backgroundColor: Colors.deepOrange,
+              child: const Icon(Icons.add),
+            ),
       bottomNavigationBar: _buildBottomNavigationBar(),
     );
   }
@@ -448,8 +507,7 @@ class _HomePageState extends State<HomePage> {
                   Navigator.push(
                     context,
                     SlideLeftRoute(
-                      page: AllRecipesPage(title: title, recipes: recipes)
-                    ),
+                        page: AllRecipesPage(title: title, recipes: recipes)),
                   );
                 },
                 child: const Text(
@@ -534,7 +592,7 @@ class _HomePageState extends State<HomePage> {
                                 ),
                               ],
                             ),
-                          ],//children
+                          ], //children
                         ),
                       ),
                       Padding(
@@ -580,6 +638,8 @@ class _HomePageState extends State<HomePage> {
                                     if (value == 'Save Recipe') {
                                       _toggleSave(recipe);
                                     } else if (value == 'Plan Meal') {
+                                      _togglePlan(recipe);
+                                      _showPlannedDialog();
                                     }
                                   },
                                   color: Colors.white,
@@ -597,17 +657,19 @@ class _HomePageState extends State<HomePage> {
                                       height: 60,
                                       value: 'Save Recipe',
                                       child: Container(
-                                        padding:
-                                        const EdgeInsets.symmetric(horizontal: 10),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 10),
                                         child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.start,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.start,
                                           children: [
                                             Icon(
                                               Icons.bookmark_border_rounded,
                                               size: 22,
-                                              color: savedStatus[recipe.id] == true
-                                                  ? Colors.deepOrange
-                                                  : Colors.black87,
+                                              color:
+                                                  savedStatus[recipe.id] == true
+                                                      ? Colors.deepOrange
+                                                      : Colors.black87,
                                             ),
                                             const SizedBox(width: 10),
                                             Text(
@@ -616,7 +678,8 @@ class _HomePageState extends State<HomePage> {
                                                   : 'Save Recipe',
                                               style: TextStyle(
                                                 fontSize: 16,
-                                                color: savedStatus[recipe.id] == true
+                                                color: savedStatus[recipe.id] ==
+                                                        true
                                                     ? Colors.deepOrange
                                                     : Colors.black87,
                                                 fontWeight: FontWeight.w500,
@@ -630,15 +693,17 @@ class _HomePageState extends State<HomePage> {
                                       height: 60,
                                       value: 'Plan Meal',
                                       child: Container(
-                                        padding:
-                                        const EdgeInsets.symmetric(horizontal: 10),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 10),
                                         child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.start,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.start,
                                           children: [
                                             Icon(
                                               Icons.calendar_today_rounded,
                                               size: 22,
-                                              color: plannedStatus[recipe.id] == true
+                                              color: plannedStatus[recipe.id] ==
+                                                      true
                                                   ? Colors.deepOrange
                                                   : Colors.black87,
                                             ),
@@ -649,9 +714,11 @@ class _HomePageState extends State<HomePage> {
                                                   : 'Plan Meal',
                                               style: TextStyle(
                                                 fontSize: 16,
-                                                color: plannedStatus[recipe.id] == true
-                                                    ? Colors.deepOrange
-                                                    : Colors.black87,
+                                                color:
+                                                    plannedStatus[recipe.id] ==
+                                                            true
+                                                        ? Colors.deepOrange
+                                                        : Colors.black87,
                                                 fontWeight: FontWeight.w500,
                                               ),
                                             ),
@@ -737,16 +804,16 @@ class _HomePageState extends State<HomePage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (recentlyViewedRecipes.isNotEmpty) ...[
-                      _buildRecipeSection(
-                          'Recently Viewed', recentlyViewedRecipes),
-                    ],
-                    _buildRecipeSection('Recommended', recommendedRecipes),
-                    _buildRecipeSection('Popular', popularRecipes),
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (recentlyViewedRecipes.isNotEmpty) ...[
+                    _buildRecipeSection(
+                        'Recently Viewed', recentlyViewedRecipes),
                   ],
-                ),
+                  _buildRecipeSection('Recommended', recommendedRecipes),
+                  _buildRecipeSection('Popular', popularRecipes),
+                ],
+              ),
               _buildRecipeFeed(),
             ],
           ),
@@ -781,7 +848,7 @@ class _HomePageState extends State<HomePage> {
                 Navigator.push(
                   context,
                   SlideUpRoute(
-                    page:  RecipeDetailPage(recipe: recipe),
+                    page: RecipeDetailPage(recipe: recipe),
                   ),
                 );
               },
@@ -898,14 +965,16 @@ class _HomePageState extends State<HomePage> {
                                 onSelected: (String value) {
                                   if (value == 'Save Recipe') {
                                     _toggleSave(recipe);
-                                  } else if (value == 'Plan Meal') {}
+                                  } else if (value == 'Plan Meal') {
+                                    _togglePlan(recipe);
+                                  }
                                 },
                                 color: Colors.white,
                                 elevation: 4,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(15),
                                 ),
-                                offset: const Offset(-142.5,45),
+                                offset: const Offset(-142.5, 45),
                                 constraints: const BoxConstraints(
                                   minWidth: 175, // Makes popup menu wider
                                   maxWidth: 175,
@@ -915,11 +984,16 @@ class _HomePageState extends State<HomePage> {
                                     height: 60, // Makes item taller
                                     value: 'Save Recipe',
                                     child: Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 10),
                                       child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.start,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
                                         children: [
-                                          const Icon(Icons.bookmark_border_rounded, size: 22, color: Colors.black87),
+                                          const Icon(
+                                              Icons.bookmark_border_rounded,
+                                              size: 22,
+                                              color: Colors.black87),
                                           const SizedBox(width: 10),
                                           Text(
                                             'Save Recipe',
@@ -937,11 +1011,16 @@ class _HomePageState extends State<HomePage> {
                                     height: 60, // Makes item taller
                                     value: 'Plan Meal',
                                     child: Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 10),
                                       child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.start,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
                                         children: [
-                                          const Icon(Icons.calendar_today_rounded, size: 22, color: Colors.black87),
+                                          const Icon(
+                                              Icons.calendar_today_rounded,
+                                              size: 22,
+                                              color: Colors.black87),
                                           const SizedBox(width: 10),
                                           Text(
                                             'Plan Meal',
@@ -970,6 +1049,175 @@ class _HomePageState extends State<HomePage> {
         ),
       ],
     );
+  }
+
+  void _showPlannedDialog() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.grey[900], // Background untuk dark mode
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(16),
+        ),
+      ),
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setDialogState) {
+            return Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header dengan navigasi antar minggu
+                  const Text(
+                    'Choose a day',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      IconButton(
+                        onPressed: () {
+                          // Pindah ke minggu sebelumnya
+                          setDialogState(() {
+                            _selectedDate =
+                                _selectedDate.subtract(const Duration(days: 7));
+                          });
+                        },
+                        icon: const Icon(Icons.arrow_back),
+                        color: Colors.white,
+                      ),
+                      Text(
+                        // Menampilkan rentang tanggal minggu
+                        '${DateFormat('MMM dd').format(_selectedDate)} - '
+                        '${DateFormat('MMM dd').format(_selectedDate.add(const Duration(days: 6)))}',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          // Pindah ke minggu berikutnya
+                          setDialogState(() {
+                            _selectedDate =
+                                _selectedDate.add(const Duration(days: 7));
+                          });
+                        },
+                        icon: const Icon(Icons.arrow_forward),
+                        color: Colors.white,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButton<String>(
+                    dropdownColor: Colors.grey[850],
+                    value: _selectedMeal,
+                    onChanged: (String? newValue) {
+                      setDialogState(() {
+                        _selectedMeal = newValue!;
+                      });
+                    },
+                    items: ['Dinner', 'Breakfast', 'Lunch']
+                        .map(
+                          (String value) => DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(
+                              value,
+                              style: const TextStyle(color: Colors.white),
+                            ),
+                          ),
+                        )
+                        .toList(),
+                  ),
+                  const SizedBox(height: 8),
+                  // Pilihan hari menggunakan ChoiceChip (dimulai dari Sunday)
+                  Wrap(
+                    spacing: 8,
+                    children: [
+                      for (int i = 0; i < 7; i++)
+                        ChoiceChip(
+                          label: Text(
+                            DateFormat('EEE').format(
+                              _selectedDate.add(Duration(
+                                  days: i - _selectedDate.weekday % 7)),
+                            ), // Menampilkan hari dimulai dari Sunday
+                          ),
+                          selected: _daysSelected[i],
+                          onSelected: (bool selected) {
+                            setDialogState(() {
+                              _daysSelected[i] = selected;
+                            });
+                          },
+                          selectedColor: Colors.blue,
+                          backgroundColor: Colors.grey[800],
+                          labelStyle: TextStyle(
+                            color:
+                                _daysSelected[i] ? Colors.white : Colors.grey,
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  // Tombol aksi
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: const Text(
+                          'Cancel',
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          // Validasi data sebelum menyimpan
+                          if (_selectedMeal.isEmpty ||
+                              !_daysSelected.contains(true)) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                    'Please select at least one day and a meal type!'),
+                              ),
+                            );
+                            return;
+                          }
+
+                          // Simpan data yang dipilih
+                          _saveSelectedPlan();
+                          Navigator.of(context).pop();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                        ),
+                        child: const Text('Done'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+// Fungsi untuk menyimpan pilihan (sesuaikan dengan logika aplikasi Anda)
+  void _saveSelectedPlan() {
+    // Implementasi logika penyimpanan (Firestore atau lainnya)
+    print('Selected Meal: $_selectedMeal');
+    print('Selected Days: $_daysSelected');
   }
 
   Widget _buildBottomNavigationBar() {
