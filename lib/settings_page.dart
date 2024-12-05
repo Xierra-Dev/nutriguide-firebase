@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nutriguide/notifications_page.dart';
 import 'account_page.dart';
 import '/profile_page.dart';
 import 'services/auth_service.dart';
@@ -172,7 +173,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   // Navigate to Profile page
                   Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const ProfileEditPage()),
+                      SlideLeftRoute(page: const ProfileEditPage()),
                     );
                 },
               ),
@@ -184,7 +185,9 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
                 trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 24),
                 onTap: () {
-                  // Navigate to Notifications page
+                  Navigator.of(context).pushReplacement(
+                    SlideLeftRoute(page: const NotificationsPage()),
+                  );
                 },
               ),
               const SizedBox(height: 24),
