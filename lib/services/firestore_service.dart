@@ -599,5 +599,126 @@ class FirestoreService {
     }
   }
 
+  Future<List<Recipe>> getUserCreatedRecipes() async {
+    try {
+      String? userId = _auth.currentUser?.uid;
+      if (userId == null) throw Exception('User not authenticated');
+
+      print('Fetching recipes for user: $userId'); // Debug print
+
+      final snapshot = await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('created_recipes')
+          .get();
+
+      print('Found ${snapshot.docs.length} recipes'); // Debug print
+
+      return snapshot.docs.map((doc) {
+        final data = doc.data();
+        print('Recipe data from Firestore: $data'); // Debug print
+
+        return Recipe(
+          id: doc.id,
+          title: data['title'],
+          image: data['image'],
+          category: data['category'],
+          area: data['area'],
+          instructions: data['instructions'],
+          ingredients: List<String>.from(data['ingredients']),
+          measurements: List<String>.from(data['measurements']),
+          preparationTime: data['preparationTime'],
+          healthScore: data['healthScore'].toDouble(),
+          instructionSteps: data['instructions'].split('\n'),
+          nutritionInfo: NutritionInfo.generateRandom(),
+        );
+      }).toList();
+    } catch (e) {
+      print('Error getting user created recipes: $e');
+      return [];
+    }
+  }
+
+  Future<void> deleteUserRecipe(String recipeId) async {
+    try {
+      String? userId = _auth.currentUser?.uid;
+      if (userId == null) throw Exception('User not authenticated');
+
+      await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('created_recipes')
+          .doc(recipeId)
+          .delete();
+    } catch (e) {
+      print('Error deleting user recipe: $e');
+      rethrow;
+    }
+  }
+
+    Future<void> saveUserCreatedRecipe(Recipe recipe) async {
+    try {
+      String? userId = _auth.currentUser?.uid;
+      if (userId == null) throw Exception('User not authenticated');
+
+      print('Saving recipe for user: $userId'); // Debug print
+
+      final recipeData = {
+        'title': recipe.title,
+        'image': recipe.image,
+        'category': recipe.category,
+        'area': recipe.area,
+        'instructions': recipe.instructions,
+        'ingredients': recipe.ingredients,
+        'measurements': recipe.measurements,
+        'preparationTime': recipe.preparationTime,
+        'healthScore': recipe.healthScore,
+        'createdAt': FieldValue.serverTimestamp(),
+      };
+
+      print('Recipe data to save: $recipeData'); // Debug print
+
+      await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('created_recipes')
+          .add(recipeData);
+      
+      print('Recipe saved to Firestore'); // Debug print
+    } catch (e) {
+      print('Error in saveUserCreatedRecipe: $e'); // Debug print
+      rethrow;
+    }
+  }
+
+  Future<void> updateUserRecipe(Recipe recipe) async {
+    try {
+      String? userId = _auth.currentUser?.uid;
+      if (userId == null) throw Exception('User not authenticated');
+
+      final recipeData = {
+        'title': recipe.title,
+        'image': recipe.image,
+        'category': recipe.category,
+        'area': recipe.area,
+        'instructions': recipe.instructions,
+        'ingredients': recipe.ingredients,
+        'measurements': recipe.measurements,
+        'preparationTime': recipe.preparationTime,
+        'healthScore': recipe.healthScore,
+        'updatedAt': FieldValue.serverTimestamp(),
+      };
+
+      await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('created_recipes')
+          .doc(recipe.id)
+          .update(recipeData);
+    } catch (e) {
+      print('Error updating recipe: $e');
+      rethrow;
+    }
+  }
 
 }

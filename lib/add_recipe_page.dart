@@ -3,6 +3,8 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'services/firestore_service.dart';
 import 'models/recipe.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class AddRecipePage extends StatefulWidget {
   const AddRecipePage({Key? key}) : super(key: key);
@@ -80,21 +82,86 @@ class _AddRecipePageState extends State<AddRecipePage> {
       });
 
       try {
-        // TODO: Implement recipe saving with image upload
-        // For now, we'll just show a success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Recipe saved successfully')),
+        // Upload image to Cloudinary if exists
+        String? imageUrl;
+        if (recipeImage != null) {
+          final cloudinaryResponse = await _uploadToCloudinary(recipeImage!);
+          imageUrl = cloudinaryResponse['secure_url'];
+        }
+
+        // Create recipe object
+        final recipe = Recipe(
+          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          title: title,
+          image: imageUrl ?? 'https://res.cloudinary.com/dwbii43dk/image/upload/default_recipe.jpg', // Sesuaikan dengan default image di Cloudinary Anda
+          category: 'My Recipe',
+          area: 'My Recipe',
+          instructions: instructions.join('\n'),
+          ingredients: ingredients.where((i) => i.isNotEmpty).toList(),
+          measurements: ingredients.map((_) => '1 portion').toList(),
+          preparationTime: cookTimeMinutes,
+          healthScore: 7.5,
+          instructionSteps: instructions.where((i) => i.isNotEmpty).toList(),
+          nutritionInfo: NutritionInfo.generateRandom(),
         );
-        Navigator.pop(context);
+
+        print('Saving recipe: ${recipe.title}');
+        await _firestoreService.saveUserCreatedRecipe(recipe);
+        print('Recipe saved successfully');
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Recipe saved successfully')),
+          );
+          Navigator.pop(context);
+        }
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error saving recipe: $e')),
-        );
+        print('Error saving recipe: $e');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error saving recipe: $e')),
+          );
+        }
       } finally {
-        setState(() {
-          isLoading = false;
-        });
+        if (mounted) {
+          setState(() {
+            isLoading = false;
+          });
+        }
       }
+    }
+  }
+
+  Future<Map<String, dynamic>> _uploadToCloudinary(File imageFile) async {
+    try {
+      final url = Uri.parse('https://api.cloudinary.com/v1_1/dwbii43dk/image/upload');
+      
+      // Create multipart request
+      final request = http.MultipartRequest('POST', url)
+        ..fields['upload_preset'] = 'impalkeun'
+        ..files.add(await http.MultipartFile.fromPath(
+          'file',
+          imageFile.path,
+        ));
+
+      print('Uploading image to Cloudinary...'); // Debug print
+      final response = await request.send();
+      final responseData = await response.stream.toBytes();
+      final responseString = String.fromCharCodes(responseData);
+      
+      print('Cloudinary response status: ${response.statusCode}'); // Debug print
+      print('Cloudinary response body: $responseString'); // Debug print
+
+      if (response.statusCode == 200) {
+        final parsedResponse = json.decode(responseString);
+        print('Upload successful, URL: ${parsedResponse['secure_url']}'); // Debug print
+        return parsedResponse;
+      } else {
+        throw Exception('Failed to upload image. Status: ${response.statusCode}, Body: $responseString');
+      }
+    } catch (e) {
+      print('Error uploading to Cloudinary: $e');
+      rethrow;
     }
   }
 

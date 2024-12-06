@@ -4,6 +4,10 @@ import 'settings_page.dart';
 import 'services/auth_service.dart';
 import 'services/firestore_service.dart';
 import 'profile_edit_page.dart';
+import 'add_recipe_page.dart';
+import 'models/recipe.dart';
+import 'recipe_detail_page.dart';
+import 'edit_recipe_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -80,13 +84,16 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
   final FirestoreService _firestoreService = FirestoreService();
   Map<String, dynamic>? userData;
   bool isLoading = true;
+  List<Recipe> createdRecipes = [];
+  bool isLoadingCreated = true;
   final Color selectedColor = const Color.fromARGB(255, 240, 182, 75);
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
     _loadUserData();
+    _loadCreatedRecipes();
 
     // Add listener to update state when tab changes
     _tabController.addListener(() {
@@ -265,6 +272,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
             tabs: const [
               Tab(text: 'Insights'),
               Tab(text: 'Activity'),
+              Tab(text: 'Created'),
             ],
           ),
           const SizedBox(height: 10,),
@@ -274,6 +282,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
               children: [
                 _buildInsightsTab(),
                 _buildActivityTab(),
+                _buildCreatedTab(),
               ],
             ),
           ),
@@ -345,35 +354,6 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
     );
   }
 
-  Widget _buildActivityTab() {
-    bool hasActivity = false; // Ubah kondisi ini sesuai dengan logika aktivitas
-
-    if (!hasActivity) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset(
-              'assets/images/no-activity.png',
-              width: 125, // Ukuran gambar
-              height: 125,
-              fit: BoxFit.contain,
-            ),
-            const SizedBox(height: 16), // Jarak antara gambar dan teks
-            const Text(
-              'No activity yet',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 17,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-  }
-
 
   Widget _buildNutritionItem(String label, String value, Color color) {
     return Column(
@@ -405,4 +385,346 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
       ],
     );
   }
+
+  Future<void> _loadCreatedRecipes() async {
+    print('Loading created recipes...'); // Debug print
+    try {
+      final recipes = await _firestoreService.getUserCreatedRecipes();
+      print('Loaded ${recipes.length} recipes'); // Debug print
+      setState(() {
+        createdRecipes = recipes;
+        isLoadingCreated = false;
+      });
+    } catch (e) {
+      print('Error loading created recipes: $e');
+      setState(() {
+        isLoadingCreated = false;
+      });
+    }
+  }
+
+  Widget _buildCreatedTab() {
+    if (isLoadingCreated) {
+      return const Center(child: CircularProgressIndicator(color: Colors.deepOrange));
+    }
+
+    return RefreshIndicator(
+      onRefresh: _loadCreatedRecipes,
+      color: Colors.deepOrange,
+      child: createdRecipes.isEmpty
+          ? ListView(
+              children: [
+                SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.7,
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.asset(
+                          'assets/images/no-activity.png',
+                          width: 125,
+                          height: 125,
+                          fit: BoxFit.contain,
+                        ),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'No recipes created yet',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 17,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const AddRecipePage()),
+                            ).then((_) => _loadCreatedRecipes()); // Refresh after creating new recipe
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.deepOrange,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                          ),
+                          child: const Text('Create Recipe'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            )
+          : ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: createdRecipes.length,
+              itemBuilder: (context, index) {
+                final recipe = createdRecipes[index];
+                return Card(
+                  color: Colors.grey[900],
+                  margin: const EdgeInsets.only(bottom: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: ListTile(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => RecipeDetailPage(recipe: recipe),
+                        ),
+                      ).then((_) => _loadCreatedRecipes()); // Refresh after returning
+                    },
+                    contentPadding: const EdgeInsets.all(16),
+                    leading: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.network(
+                        recipe.image,
+                        width: 60,
+                        height: 60,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    title: Text(
+                      recipe.title,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    subtitle: Text(
+                      '${recipe.preparationTime} min · ${recipe.category}',
+                      style: TextStyle(color: Colors.grey[400]),
+                    ),
+                    trailing: PopupMenuButton<String>(
+                      icon: const Icon(Icons.more_vert, color: Colors.white),
+                      onSelected: (value) async {
+                        if (value == 'edit') {
+                          // Navigate to edit page
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => EditRecipePage(recipe: recipe),
+                            ),
+                          ).then((_) => _loadCreatedRecipes());
+                        } else if (value == 'delete') {
+                          // Show delete confirmation
+                          final confirm = await showDialog<bool>(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              backgroundColor: Colors.grey[900],
+                              title: const Text('Delete Recipe?', style: TextStyle(color: Colors.white)),
+                              content: const Text('This action cannot be undone.', style: TextStyle(color: Colors.white70)),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context, false),
+                                  child: const Text('Cancel'),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context, true),
+                                  child: const Text('Delete', style: TextStyle(color: Colors.red)),
+                                ),
+                              ],
+                            ),
+                          );
+
+                          if (confirm == true) {
+                            await _firestoreService.deleteUserRecipe(recipe.id);
+                            _loadCreatedRecipes();
+                          }
+                        }
+                      },
+                      itemBuilder: (context) => [
+                        const PopupMenuItem(
+                          value: 'edit',
+                          child: Row(
+                            children: [
+                              Icon(Icons.edit, color: Colors.black),
+                              SizedBox(width: 8),
+                              Text('Edit'),
+                            ],
+                          ),
+                        ),
+                        const PopupMenuItem(
+                          value: 'delete',
+                          child: Row(
+                            children: [
+                              Icon(Icons.delete, color: Colors.red),
+                              SizedBox(width: 8),
+                              Text('Delete', style: TextStyle(color: Colors.red)),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+    );
+  }
+
+    Widget _buildActivityTab() {
+    if (isLoadingCreated) {
+      return const Center(child: CircularProgressIndicator(color: Colors.deepOrange));
+    }
+
+    if (createdRecipes.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset(
+              'assets/images/no-activity.png',
+              width: 125,
+              height: 125,
+              fit: BoxFit.contain,
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'No activity yet',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 17,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: createdRecipes.length,
+      itemBuilder: (context, index) {
+        final recipe = createdRecipes[index];
+        return Container(
+          margin: const EdgeInsets.only(bottom: 16),
+          decoration: BoxDecoration(
+            color: Colors.grey[900],
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // User Info Row
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 20,
+                      backgroundImage: NetworkImage(userData?['profilePictureUrl'] ?? 'default_avatar_url'),
+                    ),
+                    const SizedBox(width: 12),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _authService.currentUser?.displayName ?? 'User',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          '19h', // TODO: Calculate actual time
+                          style: TextStyle(
+                            color: Colors.grey[400],
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              // Recipe Image
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => RecipeDetailPage(recipe: recipe),
+                    ),
+                  );
+                },
+                child: Stack(
+                  children: [
+                    Image.network(
+                      recipe.image,
+                      width: double.infinity,
+                      height: 200,
+                      fit: BoxFit.cover,
+                    ),
+                    Positioned(
+                      top: 12,
+                      right: 12,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.7),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: const Text(
+                          'Made it ✨',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Recipe Info
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      recipe.title.toUpperCase(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      recipe.category ?? 'Custom Recipe',
+                      style: TextStyle(
+                        color: Colors.grey[400],
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Save Button
+              Padding(
+                padding: const EdgeInsets.only(right: 12, bottom: 12),
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: IconButton(
+                    icon: const Icon(Icons.bookmark_border, color: Colors.white),
+                    onPressed: () {
+                      // TODO: Implement save functionality
+                    },
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
 }
