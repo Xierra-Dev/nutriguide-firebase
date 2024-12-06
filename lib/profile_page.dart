@@ -8,6 +8,8 @@ import 'add_recipe_page.dart';
 import 'models/recipe.dart';
 import 'recipe_detail_page.dart';
 import 'edit_recipe_page.dart';
+import 'package:timeago/timeago.dart' as timeago;
+
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -601,6 +603,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
       itemCount: createdRecipes.length,
       itemBuilder: (context, index) {
         final recipe = createdRecipes[index];
+        final timeAgo = timeago.format(recipe.createdAt);
         return Container(
           margin: const EdgeInsets.only(bottom: 16),
           decoration: BoxDecoration(
@@ -631,7 +634,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                           ),
                         ),
                         Text(
-                          '19h', // TODO: Calculate actual time
+                          timeAgo, // TODO: Calculate actual time
                           style: TextStyle(
                             color: Colors.grey[400],
                             fontSize: 12,
