@@ -73,6 +73,38 @@ class Recipe {
     );
   }
 
+  factory Recipe.fromMap(Map<String, dynamic> map) {
+    return Recipe(
+      id: map['id'],
+      title: map['title'],
+      image: map['image'],
+      category: map['category'],
+      area: map['area'],
+      instructions: map['instructions'],
+      ingredients: List<String>.from(map['ingredients']),
+      measurements: List<String>.from(map['measurements']),
+      preparationTime: map['preparationTime'],
+      healthScore: map['healthScore'].toDouble(),
+      instructionSteps: map['instructions'].split('\n'),
+      nutritionInfo: NutritionInfo.generateRandom(),
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'title': title,
+      'image': image,
+      'category': category,
+      'area': area,
+      'instructions': instructions,
+      'ingredients': ingredients,
+      'measurements': measurements,
+      'preparationTime': preparationTime,
+      'healthScore': healthScore,
+    };
+  }
+
   static double _calculateHealthScore(NutritionInfo nutritionInfo, List<String> ingredients) {
     double score = 5.0; // Start with a base score of 5
 

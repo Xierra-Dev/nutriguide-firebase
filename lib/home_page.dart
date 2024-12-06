@@ -210,7 +210,8 @@ class _HomePageState extends State<HomePage> {
       if (plannedStatus[recipe.id] == true) {
         await _firestoreService.unplanRecipe(recipe.id); // Hapus dari rencana
       } else {
-        await _firestoreService.planRecipe(recipe); // Tambahkan ke rencana
+        await _firestoreService.planRecipe(recipe);
+        _showPlannedDialog(recipe); // Tambahkan ke rencana
       }
 
       // Update UI
@@ -262,7 +263,15 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  void _showPlannedDialog() {
+  void _showPlannedDialog(Recipe recipe) {
+
+    // Reset selected days
+  _daysSelected = List.generate(7, (index) => false);
+  
+  // Get the start of week (Sunday)
+  DateTime now = DateTime.now();
+  _selectedDate = now.subtract(Duration(days: now.weekday % 7));
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.grey[900], // Background untuk dark mode
@@ -391,23 +400,17 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
                       ElevatedButton(
-                        onPressed: () {
-                          // Validasi data sebelum menyimpan
-                          if (_selectedMeal.isEmpty ||
-                              !_daysSelected.contains(true)) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                    'Please select at least one day and a meal type!'),
-                              ),
-                            );
-                            return;
-                          }
-
-                          // Simpan data yang dipilih
-                          _saveSelectedPlan();
-                          Navigator.of(context).pop();
-                        },
+                        // Inside dialog's ElevatedButton onPressed
+                          onPressed: () {
+                            if (_selectedMeal.isEmpty || !_daysSelected.contains(true)) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Please select at least one day and a meal type!')),
+                              );
+                              return;
+                            }
+                            _saveSelectedPlan(recipe); // Pass the recipe
+                            Navigator.of(context).pop();
+                          },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue,
                         ),
@@ -425,10 +428,44 @@ class _HomePageState extends State<HomePage> {
   }
 
 // Fungsi untuk menyimpan pilihan (sesuaikan dengan logika aplikasi Anda)
-  void _saveSelectedPlan() {
-    // Implementasi logika penyimpanan (Firestore atau lainnya)
-    print('Selected Meal: $_selectedMeal');
-    print('Selected Days: $_daysSelected');
+  void _saveSelectedPlan(Recipe recipe) async {
+    try {
+      List<DateTime> selectedDates = [];
+      for (int i = 0; i < _daysSelected.length; i++) {
+        if (_daysSelected[i]) {
+          // Normalisasi tanggal
+          DateTime selectedDate = DateTime(
+            _selectedDate.year,
+            _selectedDate.month,
+            _selectedDate.day + i,
+          );
+          print('Selected date: $selectedDate');
+          selectedDates.add(selectedDate);
+        }
+      }
+
+      for (DateTime date in selectedDates) {
+        print('Saving recipe for date: $date'); // Debug print
+        await _firestoreService.addPlannedRecipe(
+          recipe,
+          _selectedMeal,
+          date,
+        );
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Recipe planned for ${selectedDates.length} day(s)')),
+        );
+      }
+    } catch (e) {
+      print('Error saving plan: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to save plan: $e')),
+        );
+      }
+    }
   }
 
   Future<void> _loadRecipes() async {
@@ -458,52 +495,6 @@ class _HomePageState extends State<HomePage> {
       print('Error in _loadRecipes: $e');
       setState(() {
         isLoading = false;
-        errorMessage =
-            'Failed to load recipes. Please check your internet connection and try again.';
-        recommendedRecipes = [];
-        popularRecipes = [];
-        feedRecipes = [];
-      });
-    }
-  }
-
-  Future<void> _loadInitialData() async {
-    try {
-      setState(() {
-        // Only set isLoading to true for first-time loading
-        if (_isFirstTimeLoading) {
-          isLoading = true;
-        }
-        errorMessage = null;
-      });
-
-      final futures = await Future.wait([
-        _mealDBService.getRandomRecipes(number: 20),
-        _mealDBService.getRecipesByCategory('Seafood'),
-        _mealDBService.getRandomRecipes(number: 10),
-      ]);
-
-      setState(() {
-        recommendedRecipes = futures[0];
-        popularRecipes = futures[1];
-        feedRecipes = futures[2];
-
-        // Reset first-time loading
-        isLoading = false;
-        _isFirstTimeLoading = false;
-      });
-
-      print('Loaded ${recommendedRecipes.length} recommended recipes');
-      print('Loaded ${popularRecipes.length} popular recipes');
-      print('Loaded ${feedRecipes.length} feed recipes');
-    } catch (e) {
-      print('Error in _loadRecipes: $e');
-      setState(() {
-        // Only set isLoading to false for first-time loading
-        if (_isFirstTimeLoading) {
-          isLoading = false;
-        }
-
         errorMessage =
             'Failed to load recipes. Please check your internet connection and try again.';
         recommendedRecipes = [];
@@ -850,9 +841,6 @@ class _HomePageState extends State<HomePage> {
                                       _toggleSave(recipe);
                                     } else if (value == 'Plan Meal') {
                                       _togglePlan(recipe);
-                                      if (plannedStatus[recipe.id] == true) {
-                                        _showPlannedDialog();
-                                      }
                                     }
                                   },
                                   color: Colors.white,
@@ -1179,9 +1167,6 @@ class _HomePageState extends State<HomePage> {
                                     _toggleSave(recipe);
                                   } else if (value == 'Plan Meal') {
                                     _togglePlan(recipe);
-                                    if (plannedStatus[recipe.id] == true) {
-                                      _showPlannedDialog();
-                                    }
                                   }
                                 },
                                 color: Colors.white,

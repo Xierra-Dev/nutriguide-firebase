@@ -217,7 +217,8 @@ class _AllRecipesPageState extends State<AllRecipesPage> {
       if (plannedStatus[recipe.id] == true) {
         await _firestoreService.unplanRecipe(recipe.id); // Hapus dari rencana
       } else {
-        await _firestoreService.planRecipe(recipe); // Tambahkan ke rencana
+        await _firestoreService.planRecipe(recipe);
+        _showPlannedDialog(); // Tambahkan ke rencana
       }
 
       // Update UI
@@ -538,9 +539,6 @@ class _AllRecipesPageState extends State<AllRecipesPage> {
                                 _toggleSave(recipe);
                               } else if (value == 'Plan Meal') {
                                 _togglePlan(recipe);
-                                if (plannedStatus[recipe.id] == true) {
-                                  _showPlannedDialog();
-                                }
                               }
                             },
                             color: Colors.white,

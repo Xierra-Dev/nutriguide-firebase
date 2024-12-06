@@ -304,7 +304,8 @@ class _SearchPageState extends State<SearchPage> {
       if (plannedStatus[recipe.id] == true) {
         await _firestoreService.unplanRecipe(recipe.id); // Hapus dari rencana
       } else {
-        await _firestoreService.planRecipe(recipe); // Tambahkan ke rencana
+        await _firestoreService.planRecipe(recipe);
+        _showPlannedDialog(); // Tambahkan ke rencana
       }
 
       // Update UI

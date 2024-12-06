@@ -3,6 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../models/recipe.dart';
 import 'dart:io' show File;
 import 'storage_service.dart';
+import 'package:intl/intl.dart';
+import '../models/planned_meal.dart';
 
 class FirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -335,16 +337,24 @@ class FirestoreService {
     }
   }
 
-  Future<void> addPlannedRecipe(Recipe recipe) async {
+  Future<void> addPlannedRecipe(Recipe recipe, String mealType, DateTime selectedDate) async {
     try {
       String? userId = _auth.currentUser?.uid;
       if (userId != null) {
-        // Menambahkan dokumen baru ke koleksi planned_recipes
+        // Normalisasi tanggal ke midnight untuk konsistensi
+        final normalizedDate = DateTime(
+          selectedDate.year, 
+          selectedDate.month, 
+          selectedDate.day,
+        );
+        
+        String plannedId = '${recipe.id}_${normalizedDate.millisecondsSinceEpoch}';
+        
         await _firestore
             .collection('users')
             .doc(userId)
             .collection('planned_recipes')
-            .doc(recipe.id)
+            .doc(plannedId)
             .set({
           'id': recipe.id,
           'title': recipe.title,
@@ -357,10 +367,10 @@ class FirestoreService {
           'preparationTime': recipe.preparationTime,
           'healthScore': recipe.healthScore,
           'plannedAt': FieldValue.serverTimestamp(),
+          'plannedDate': Timestamp.fromDate(normalizedDate), // Gunakan tanggal yang dinormalisasi
+          'mealType': mealType,
         });
-        print('Planned recipe added: ${recipe.title}');
-      } else {
-        throw Exception('No authenticated user found');
+        print('Planned recipe added: ${recipe.title} for date: $normalizedDate, type: $mealType'); // Debug print
       }
     } catch (e) {
       print('Error adding planned recipe: $e');
@@ -517,4 +527,77 @@ class FirestoreService {
       return [];
     }
   }
+
+  Future<Map<String, List<PlannedMeal>>> getPlannedMeals() async {
+    try {
+      String? userId = _auth.currentUser?.uid;
+      if (userId == null) throw Exception('User not authenticated');
+      
+      final snapshot = await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('planned_recipes')
+          .orderBy('plannedDate')
+          .get();
+      
+      Map<String, List<PlannedMeal>> meals = {};
+      
+      for (var doc in snapshot.docs) {
+        final data = doc.data();
+        print('Raw data from Firestore: $data'); // Debug print
+        
+        final recipe = Recipe(
+          id: data['id'],
+          title: data['title'],
+          image: data['image'],
+          category: data['category'],
+          area: data['area'],
+          instructions: data['instructions'],
+          ingredients: List<String>.from(data['ingredients']),
+          measurements: List<String>.from(data['measurements']),
+          preparationTime: data['preparationTime'],
+          healthScore: data['healthScore'].toDouble(),
+          instructionSteps: data['instructions'].split('\n'),
+          nutritionInfo: NutritionInfo.generateRandom(),
+        );
+
+        final date = (data['plannedDate'] as Timestamp).toDate();
+        // Normalisasi tanggal untuk key
+        final dateKey = DateFormat('yyyy-MM-dd').format(date);
+        print('Date from Firestore: $date, DateKey: $dateKey'); // Debug print
+        
+        final plannedMeal = PlannedMeal(
+          recipe: recipe,
+          mealType: data['mealType'],
+          date: date,
+        );
+        
+        if (!meals.containsKey(dateKey)) {
+          meals[dateKey] = [];
+        }
+        meals[dateKey]!.add(plannedMeal);
+      }
+      
+      print('Final meals map: $meals'); // Debug print
+      return meals;
+    } catch (e) {
+      print('Error in getPlannedMeals: $e');
+      throw Exception('Failed to load planned meals: $e');
+    }
+  }
+
+  Future<void> deletePlannedMeal(PlannedMeal meal) async {
+    String? userId = _auth.currentUser?.uid;
+    if (userId != null) {
+      String plannedId = '${meal.recipe.id}_${meal.date.millisecondsSinceEpoch}';
+      await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('planned_recipes')
+          .doc(plannedId)
+          .delete();
+    }
+  }
+
+
 }
