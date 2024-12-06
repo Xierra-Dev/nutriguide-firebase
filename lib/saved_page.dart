@@ -134,15 +134,14 @@ class _SavedPageState extends State<SavedPage> {
       backgroundColor: Colors.black,
       body: SafeArea(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Padding(
-              padding: EdgeInsets.fromLTRB(16, 5, 0, 8),
+              padding: EdgeInsets.fromLTRB(0, 10, 0, 5),
               child: Text(
                 'Saved Recipes',
                 style: TextStyle(
                   color: Colors.deepOrange,
-                  fontSize: 28,
+                  fontSize: 25,
                   fontWeight: FontWeight.bold,
                 ),
               ),

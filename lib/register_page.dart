@@ -97,8 +97,9 @@ class _RegisterPageState extends State<RegisterPage> {
           errorTitle = 'ACCOUNT ALREADY REGISTERED'; // Set specific title for this error
           specificImage = 'assets/images/account-already-registered.png';
         } else if (e.toString().contains('network-request-failed')) {
+          errorTitle = 'No Internet Connection';
           errorMessage = 'Network error. Please check your internet connection.';
-          specificImage = 'assets/image/no-internet.png';
+          specificImage = 'assets/images/no-internet.png';
         }
 
         // Show error dialog
@@ -170,8 +171,8 @@ class _RegisterPageState extends State<RegisterPage> {
                               (isSuccess
                                   ? 'assets/images/register-success.png'
                                   : 'assets/images/error-occur.png'),
-                          height: isSuccess ? 100 : 150,
-                          width: isSuccess ? 100 : 150,
+                          height: isSuccess ? 100 : 100,
+                          width: isSuccess ? 100 : 100,
                         ),
                         SizedBox(height: isSuccess ? 10 : 15),  // Reduced spacing for success case
                         Text(
@@ -605,7 +606,7 @@ class _RegisterPageState extends State<RegisterPage> {
                             ),
                           ),
                           child: _isLoading
-                              ? const CircularProgressIndicator()
+                              ? const CircularProgressIndicator(color: Colors.deepOrange)
                               : const Text(
                             'Register',
                             style: TextStyle(

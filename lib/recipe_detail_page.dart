@@ -16,8 +16,10 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
   final ScrollController _scrollController = ScrollController();
   bool isSaved = false;
   bool isPlanned = false;
-  bool isLoading = false;
+  bool isLoadingSave = false;
+  bool isLoadingPlan = false;
   bool showTitle = false;
+  bool _isTemporarilyPlanned = false;
 
   DateTime _selectedDate = DateTime.now();
   String _selectedMeal = 'Dinner';
@@ -27,7 +29,6 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
   void initState() {
     super.initState();
     _checkIfSaved();
-    _checkIfPlanned();
     _addToRecentlyViewed();
     _scrollController.addListener(_onScroll);
   }
@@ -71,13 +72,6 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
     });
   }
 
-  Future<void> _checkIfPlanned() async {
-    final saved = await _firestoreService.isRecipeSaved(widget.recipe.id);
-    setState(() {
-      isPlanned = saved;
-    });
-  }
-
   Future<void> _addToRecentlyViewed() async {
     try {
       await _firestoreService.addToRecentlyViewed(widget.recipe);
@@ -88,7 +82,7 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
 
   Future<void> _toggleSave(Recipe recipe) async {
     setState(() {
-      isLoading = true;
+      isLoadingSave = true;
     });
     try {
       if (isSaved) {
@@ -138,69 +132,46 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
       );
     } finally {
       setState(() {
-        isLoading = false;
+        isLoadingSave = false;
       });
     }
   }
 
   Future<void> _togglePlan(Recipe recipe) async {
-    setState(() {
-      isLoading = true;
-    });
     try {
-      if (isPlanned) {
-        await _firestoreService.unplanRecipe(widget.recipe.id);
-      } else {
-        await _firestoreService.planRecipe(widget.recipe);
-      }
-      setState(() {
-        isPlanned = !isPlanned;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              Icon(
-                isPlanned ? Icons.bookmark_added_rounded : Icons.delete,
-                color: isPlanned ? Colors.white : Colors.red,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  isPlanned ? 'Recipe planned: ${recipe.title}' : 'Recipe: "${recipe.title}" removed from planned',
-                ),
-              ),
-            ],
-          ),
-          backgroundColor: Colors.green,
-        ),
-      );
+      // Show the planning dialog without changing the planned status yet
+      _showPlannedDialog(recipe);
     } catch (e) {
+      // Handle error and show error message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
             children: [
-              Icon(
+              const Icon(
                 Icons.error,
                 color: Colors.white,
               ),
-              SizedBox(width: 8),
+              const SizedBox(width: 8),
               Expanded(
-                child: Text('Error plan recipe: ${e.toString()}'),
+                child: Text('Error planning recipe: ${e.toString()}'),
               ),
             ],
           ),
           backgroundColor: Colors.red,
         ),
       );
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
     }
   }
 
-  void _showPlannedDialog() {
+  void _showPlannedDialog(Recipe recipe) {
+
+    // Reset selected days
+    _daysSelected = List.generate(7, (index) => false);
+
+    // Get the start of week (Sunday)
+    DateTime now = DateTime.now();
+    _selectedDate = now.subtract(Duration(days: now.weekday % 7));
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.grey[900], // Background untuk dark mode
@@ -239,7 +210,10 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
                                 _selectedDate.subtract(const Duration(days: 7));
                           });
                         },
-                        icon: const Icon(Icons.arrow_back),
+                        icon: const Icon(
+                          Icons.arrow_left_rounded,
+                          size: 40,
+                        ),
                         color: Colors.white,
                       ),
                       Text(
@@ -260,7 +234,10 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
                                 _selectedDate.add(const Duration(days: 7));
                           });
                         },
-                        icon: const Icon(Icons.arrow_forward),
+                        icon: const Icon(
+                          Icons.arrow_right_rounded,
+                          size: 40,
+                        ),
                         color: Colors.white,
                       ),
                     ],
@@ -329,27 +306,25 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
                         ),
                       ),
                       ElevatedButton(
+                        // Inside dialog's ElevatedButton onPressed
                         onPressed: () {
-                          // Validasi data sebelum menyimpan
-                          if (_selectedMeal.isEmpty ||
-                              !_daysSelected.contains(true)) {
+                          if (_selectedMeal.isEmpty || !_daysSelected.contains(true)) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                    'Please select at least one day and a meal type!'),
-                              ),
+                              const SnackBar(content: Text('Please select at least one day and a meal type!')),
                             );
                             return;
                           }
-
-                          // Simpan data yang dipilih
-                          _saveSelectedPlan();
+                          _saveSelectedPlan(recipe); // Pass the recipe
                           Navigator.of(context).pop();
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
+                            backgroundColor: Colors.deepOrange,
+                            foregroundColor: Colors.white
                         ),
-                        child: const Text('Done'),
+                        child: const Text('Done', style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                        ) ,),
                       ),
                     ],
                   ),
@@ -363,10 +338,48 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
   }
 
 // Fungsi untuk menyimpan pilihan (sesuaikan dengan logika aplikasi Anda)
-  void _saveSelectedPlan() {
-    // Implementasi logika penyimpanan (Firestore atau lainnya)
-    print('Selected Meal: $_selectedMeal');
-    print('Selected Days: $_daysSelected');
+  void _saveSelectedPlan(Recipe recipe) async {
+    try {
+      List<DateTime> selectedDates = [];
+      for (int i = 0; i < _daysSelected.length; i++) {
+        if (_daysSelected[i]) {
+          DateTime selectedDate = DateTime(
+            _selectedDate.year,
+            _selectedDate.month,
+            _selectedDate.day + i,
+          );
+          print('Selected date: $selectedDate');
+          selectedDates.add(selectedDate);
+        }
+      }
+
+      for (DateTime date in selectedDates) {
+        print('Saving recipe for date: $date');
+        await _firestoreService.addPlannedRecipe(
+          recipe,
+          _selectedMeal,
+          date,
+        );
+      }
+
+      if (mounted) {
+        setState(() {
+          isPlanned = true;
+          _isTemporarilyPlanned = false;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Recipe planned for ${selectedDates.length} day(s)')),
+        );
+      }
+    } catch (e) {
+      print('Error saving plan: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to save plan: $e')),
+        );
+      }
+    }
   }
 
   @override
@@ -434,11 +447,11 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
                       ),
                       child: IconButton(
                         icon: Icon(
-                          isPlanned ? Icons.calendar_today : Icons.calendar_today,
-                          color: isPlanned ? Colors.deepOrange : Colors.white,
+                          Icons.calendar_today,
+                          color: Colors.white,
                           size: 20, // Reduced icon size
                         ), // Reduced padding
-                        onPressed: isLoading ? null : () => _togglePlan(widget.recipe),
+                        onPressed: isLoadingPlan ? null : () => _togglePlan(widget.recipe),
                       ),
                     ),
                     Container(
@@ -452,7 +465,7 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
                           color: isSaved ? Colors.deepOrange : Colors.white,
                           size: 22.5, // Reduced icon size
                         ), // Reduced padding
-                        onPressed: isLoading ? null : () => _toggleSave(widget.recipe),
+                        onPressed: isLoadingSave ? null : () => _toggleSave(widget.recipe),
                       ),
                     ),
                   ],
@@ -504,7 +517,7 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
             children: [
               Expanded(
                 child: ElevatedButton(
-                  onPressed: isLoading ? null : () => _toggleSave(widget.recipe),
+                  onPressed: isLoadingSave ? null : () => _toggleSave(widget.recipe),
                   style: ElevatedButton.styleFrom(
                     // Change background color based on save state
                     backgroundColor: isSaved ? Colors.deepOrange : Colors.white,
@@ -515,7 +528,7 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
                       borderRadius: BorderRadius.circular(50),
                     ),
                   ),
-                  child: isLoading
+                  child: isLoadingSave
                       ? const SizedBox(
                     width: 20,
                     height: 20,
@@ -534,18 +547,18 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
               SizedBox(width: 18,),
               Expanded(
                 child: ElevatedButton(
-                  onPressed: isLoading ? null : () => _togglePlan(widget.recipe),
+                  onPressed:  () => _togglePlan(widget.recipe),
                   style: ElevatedButton.styleFrom(
                     // Change background color based on save state
-                    backgroundColor: isPlanned ? Colors.deepOrange : Colors.white,
+                    backgroundColor: Colors.white,
                     // Change text color based on save state
-                    foregroundColor: isPlanned ? Colors.white : Colors.black,
+                    foregroundColor: Colors.black,
                     padding: const EdgeInsets.symmetric(vertical: 13),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(50),
                     ),
                   ),
-                  child: isLoading
+                  child: isLoadingPlan
                       ? const SizedBox(
                     width: 20,
                     height: 20,
@@ -555,7 +568,7 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
                       AlwaysStoppedAnimation<Color>(Colors.deepOrange),
                     ),
                   )
-                      : Text(isSaved ? 'Planned' : 'Plan', style: TextStyle(
+                      : Text('Plan', style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w700
                   ),),

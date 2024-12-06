@@ -209,55 +209,6 @@ class FirestoreService {
     }
   }
 
-  Future<void> planRecipe(Recipe recipe) async {
-    try {
-      String? userId = _auth.currentUser?.uid;
-      if (userId != null) {
-        await _firestore
-            .collection('users')
-            .doc(userId)
-            .collection('planned_recipes')
-            .doc(recipe.id)
-            .set({
-          'id': recipe.id,
-          'title': recipe.title,
-          'image': recipe.image,
-          'category': recipe.category,
-          'area': recipe.area,
-          'instructions': recipe.instructions,
-          'ingredients': recipe.ingredients,
-          'measurements': recipe.measurements,
-          'preparationTime': recipe.preparationTime,
-          'healthScore': recipe.healthScore,
-          'plannedAt': FieldValue.serverTimestamp(),
-        });
-      } else {
-        throw Exception('No authenticated user found');
-      }
-    } catch (e) {
-      print('Error planning recipe: $e');
-      rethrow;
-    }
-  }
-
-  Future<void> unplanRecipe(String recipeId) async {
-    try {
-      String? userId = _auth.currentUser?.uid;
-      if (userId != null) {
-        await _firestore
-            .collection('users')
-            .doc(userId)
-            .collection('planned_recipes')
-            .doc(recipeId)
-            .delete();
-      } else {
-        throw Exception('No authenticated user found');
-      }
-    } catch (e) {
-      print('Error removing planned recipe: $e');
-      rethrow;
-    }
-  }
 
   Future<bool> isRecipePlanned(String recipeId) async {
     try {
