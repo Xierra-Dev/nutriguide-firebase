@@ -830,111 +830,109 @@ class _SearchPageState extends State<SearchPage> {
                           ),
                         ),
                       ),
-                      Positioned(
-                        child: Container(
-                          width: 32.5,
-                          height: 32.5,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.black.withOpacity(0.5),
-                          ),
-                          child: PopupMenuButton<String>(
-                            padding: EdgeInsets.zero,
-                            iconSize: 24,
-                            icon: const Icon(
-                              Icons.more_vert,
-                              color: Colors.white,
-                            ),
-                            onSelected: (String value) {
-                              if (value == 'Save Recipe') {
-                                _toggleSave(recipe);
-                              } else if (value == 'Plan Meal') {
-                                _togglePlan(recipe);
-                                if (plannedStatus[recipe.id] == true) {
-                                  _showPlannedDialog();
-                                }
-                              }
-                            },
+                      Container(
+                        width: 32.5,
+                        height: 32.5,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.black.withOpacity(0.5),
+                        ),
+                        child: PopupMenuButton<String>(
+                          padding: EdgeInsets.zero,
+                          iconSize: 24,
+                          icon: const Icon(
+                            Icons.more_vert,
                             color: Colors.white,
-                            elevation: 4,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(15),
-                            ),
-                            offset: const Offset(0, 45),
-                            constraints: const BoxConstraints(
-                              minWidth: 175,
-                              maxWidth: 175,
-                            ),
-                            itemBuilder: (BuildContext context) => [
-                              PopupMenuItem<String>(
-                                height: 60,
-                                value: 'Save Recipe',
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 10),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      Icon(
-                                        Icons.bookmark_border_rounded,
-                                        size: 22,
+                          ),
+                          onSelected: (String value) {
+                            if (value == 'Save Recipe') {
+                              _toggleSave(recipe);
+                            } else if (value == 'Plan Meal') {
+                              _togglePlan(recipe);
+                              if (plannedStatus[recipe.id] == true) {
+                                _showPlannedDialog();
+                              }
+                            }
+                          },
+                          color: Colors.white,
+                          elevation: 4,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          offset: const Offset(0, 45),
+                          constraints: const BoxConstraints(
+                            minWidth: 175,
+                            maxWidth: 175,
+                          ),
+                          itemBuilder: (BuildContext context) => [
+                            PopupMenuItem<String>(
+                              height: 60,
+                              value: 'Save Recipe',
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    Icon(
+                                      Icons.bookmark_border_rounded,
+                                      size: 22,
+                                      color: savedStatus[recipe.id] == true
+                                          ? Colors.deepOrange
+                                          : Colors.black,
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Text(
+                                      savedStatus[recipe.id] == true
+                                          ? 'Saved'
+                                          : 'Save Recipe',
+                                      style: TextStyle(
+                                        fontSize: 16,
                                         color: savedStatus[recipe.id] == true
                                             ? Colors.deepOrange
                                             : Colors.black,
+                                        fontWeight: FontWeight.w500,
                                       ),
-                                      const SizedBox(width: 10),
-                                      Text(
-                                        savedStatus[recipe.id] == true
-                                            ? 'Saved'
-                                            : 'Save Recipe',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          color: savedStatus[recipe.id] == true
-                                              ? Colors.deepOrange
-                                              : Colors.black,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                              PopupMenuItem<String>(
-                                height: 60,
-                                value: 'Plan Meal',
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 10),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      Icon(
-                                        Icons.calendar_today_rounded,
-                                        size: 22,
-                                        color: plannedStatus[recipe.id] == true
-                                            ? Colors.deepOrange
-                                            : Colors.black,
+                            ),
+                            PopupMenuItem<String>(
+                              height: 60,
+                              value: 'Plan Meal',
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    Icon(
+                                      Icons.calendar_today_rounded,
+                                      size: 22,
+                                      color: plannedStatus[recipe.id] == true
+                                          ? Colors.deepOrange
+                                          : Colors.black,
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Text(
+                                      plannedStatus[recipe.id] == true
+                                          ? 'Planned'
+                                          : 'Plan Meal',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        color:
+                                            plannedStatus[recipe.id] == true
+                                                ? Colors.deepOrange
+                                                : Colors.black,
+                                        fontWeight: FontWeight.w500,
                                       ),
-                                      const SizedBox(width: 10),
-                                      Text(
-                                        plannedStatus[recipe.id] == true
-                                            ? 'Planned'
-                                            : 'Plan Meal',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          color:
-                                              plannedStatus[recipe.id] == true
-                                                  ? Colors.deepOrange
-                                                  : Colors.black,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
                     ],

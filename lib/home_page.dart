@@ -809,32 +809,29 @@ class _HomePageState extends State<HomePage> {
                           ], //children
                         ),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.all(7.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.black.withOpacity(0.5),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Text(
-                                recipe.area ?? 'International',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
+                      Stack(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withOpacity(0.5),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Text(
+                                  recipe.area ?? 'International',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                  ),
                                 ),
                               ),
-                            ),
-                            Positioned(
-                              right: 14,
-                              top: 13,
-                              child: Container(
+                              Container(
                                 width: 32.5,
                                 height: 32.5,
                                 decoration: BoxDecoration(
@@ -945,9 +942,9 @@ class _HomePageState extends State<HomePage> {
                                   ],
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
+                            ],
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -1141,30 +1138,29 @@ class _HomePageState extends State<HomePage> {
                         ],
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.all(9.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.5),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Text(
-                              recipe.area ?? 'International',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
+                    Stack(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(0.5),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Text(
+                                recipe.area ?? 'International',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                ),
                               ),
                             ),
-                          ),
-                          Positioned(
-                            child: Container(
+                            Container(
                               width: 32.5,
                               height: 32.5,
                               decoration: BoxDecoration(
@@ -1256,9 +1252,9 @@ class _HomePageState extends State<HomePage> {
                                 ],
                               ),
                             ),
-                          ),
-                        ],
-                      ),
+                          ],
+                        ),
+                      ],
                     ),
                   ],
                 ),
