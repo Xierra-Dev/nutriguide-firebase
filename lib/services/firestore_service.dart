@@ -674,6 +674,7 @@ class FirestoreService {
         'preparationTime': recipe.preparationTime,
         'healthScore': recipe.healthScore,
         'createdAt': FieldValue.serverTimestamp(),
+        'popularity': 0,
       };
 
       print('Recipe data to save: $recipeData'); // Debug print
@@ -718,6 +719,36 @@ class FirestoreService {
     } catch (e) {
       print('Error updating recipe: $e');
       rethrow;
+    }
+  }
+
+    Future<List<Recipe>> getRandomRecipes({int number = 10}) async {
+    try {
+      final snapshot = await _firestore
+          .collectionGroup('created_recipes')
+          .limit(number)
+          .get();
+
+      return snapshot.docs.map((doc) {
+        final data = doc.data();
+        return Recipe(
+          id: doc.id,
+          title: data['title'],
+          image: data['image'],
+          ingredients: List<String>.from(data['ingredients']),
+          measurements: List<String>.from(data['measurements']),
+          instructions: data['instructions'],
+          instructionSteps: data['instructions'].split('\n'),
+          preparationTime: data['preparationTime'],
+          healthScore: data['healthScore'].toDouble(),
+          nutritionInfo: NutritionInfo.generateRandom(),
+          createdAt: (data['createdAt'] as Timestamp).toDate(),
+          popularity: data['popularity'] ?? 0,
+        );
+      }).toList();
+    } catch (e) {
+      print('Error getting random recipes: $e');
+      return [];
     }
   }
 

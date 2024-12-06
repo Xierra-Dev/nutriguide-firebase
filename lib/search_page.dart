@@ -367,6 +367,7 @@ class _SearchPageState extends State<SearchPage> {
       final recipes = await _mealDBService.getRandomRecipes(number: 10);
       setState(() {
         this.recipes = recipes;
+        _sortRecipes();
         isLoading = false;
       });
     } catch (e) {
@@ -476,6 +477,22 @@ class _SearchPageState extends State<SearchPage> {
         );
       }
     }
+  }
+
+  void _sortRecipes() {
+    setState(() {
+      switch (sortBy) {
+        case 'Newest':
+          recipes.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+          break;
+        case 'Popular':
+          recipes.sort((a, b) => b.popularity.compareTo(a.popularity));
+          break;
+        case 'Rating':
+          recipes.sort((a, b) => b.healthScore.compareTo(a.healthScore));
+          break;
+      }
+    });
   }
 
   @override
@@ -617,6 +634,7 @@ class _SearchPageState extends State<SearchPage> {
                   onSelected: (String value) {
                     setState(() {
                       sortBy = value;
+                      _sortRecipes();
                     });
                   },
                   color: Colors.grey[850],

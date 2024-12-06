@@ -14,6 +14,8 @@ class Recipe {
   final int preparationTime;
   final double healthScore;
   final NutritionInfo nutritionInfo;
+  final int popularity;
+  final DateTime createdAt;
 
   Recipe({
     required this.id,
@@ -29,7 +31,9 @@ class Recipe {
     required this.preparationTime,
     required this.healthScore,
     required this.nutritionInfo,
-  });
+    DateTime? createdAt,
+    this.popularity = 0,
+  }) : this.createdAt = createdAt ?? DateTime.now();
 
   factory Recipe.fromTheMealDB(Map<String, dynamic> json) {
     List<String> ingredients = [];
