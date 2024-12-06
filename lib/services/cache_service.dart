@@ -6,6 +6,7 @@ class CacheService {
   static const String RECOMMENDED_CACHE_KEY = 'recommended_recipes';
   static const String POPULAR_CACHE_KEY = 'popular_recipes';
   static const String FEED_CACHE_KEY = 'feed_recipes';
+  static const String POPULAR_INGREDIENTS_KEY = 'popular_ingredients';
   static const Duration CACHE_DURATION = Duration(hours: 24);
 
   Future<void> cacheRecipes(String key, List<Recipe> recipes) async {
@@ -36,6 +37,30 @@ class CacheService {
       }
     } else {
       print('No cached data found for key: $key');
+    }
+    return null;
+  }
+
+  Future<void> cacheIngredients(List<Map<String, String>> ingredients) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(POPULAR_INGREDIENTS_KEY, jsonEncode({
+      'timestamp': DateTime.now().toIso8601String(),
+      'data': ingredients,
+    }));
+  }
+
+  Future<List<Map<String, String>>?> getCachedIngredients() async {
+    final prefs = await SharedPreferences.getInstance();
+    final cachedData = prefs.getString(POPULAR_INGREDIENTS_KEY);
+    
+    if (cachedData != null) {
+      final decoded = jsonDecode(cachedData);
+      final timestamp = DateTime.parse(decoded['timestamp']);
+      
+      if (DateTime.now().difference(timestamp) < CACHE_DURATION) {
+        final List<dynamic> data = decoded['data'];
+        return data.map((item) => Map<String, String>.from(item)).toList();
+      }
     }
     return null;
   }

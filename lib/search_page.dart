@@ -3,6 +3,7 @@ import 'models/recipe.dart';
 import 'services/themealdb_service.dart';
 import 'recipe_detail_page.dart';
 import 'services/firestore_service.dart';
+import 'services/cache_service.dart';
 import 'package:intl/intl.dart';
 
 class SearchPage extends StatefulWidget {
@@ -15,6 +16,7 @@ class SearchPage extends StatefulWidget {
 class _SearchPageState extends State<SearchPage> {
   final FirestoreService _firestoreService = FirestoreService();
   final TheMealDBService _mealDBService = TheMealDBService();
+  final CacheService _cacheService = CacheService();
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final Map<String, bool> savedStatus = {};
@@ -377,7 +379,18 @@ class _SearchPageState extends State<SearchPage> {
 
   Future<void> _loadPopularIngredients() async {
     try {
+      // Try to get cached ingredients first
+      final cachedIngredients = await _cacheService.getCachedIngredients();
+      if (cachedIngredients != null) {
+        setState(() {
+          popularIngredients = cachedIngredients;
+        });
+        return;
+      }
+
+      // If no cache, fetch from API
       final ingredients = await _mealDBService.getPopularIngredients();
+      await _cacheService.cacheIngredients(ingredients);
       setState(() {
         popularIngredients = ingredients;
       });
