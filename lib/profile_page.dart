@@ -152,7 +152,6 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
           IconButton(
             icon: const Icon(Icons.settings, color: Colors.white),
             onPressed: () {
-              Navigator.of(context).pop();
               Navigator.of(context).pushReplacement(
                 SlideLeftRoute(page: const SettingsPage()),
               );
