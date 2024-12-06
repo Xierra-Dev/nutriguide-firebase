@@ -166,5 +166,17 @@ class TheMealDBService {
     }
   }
 
+  Future<List<Recipe>> getRecommendedRecipes() async {
+    return getRandomRecipes(number: 10);
+  }
+
+  Future<List<Recipe>> getPopularRecipes() async {
+    return getRandomRecipes(number: 10);
+  }
+
+  Future<List<Recipe>> getFeedRecipes() async {
+    return getRandomRecipes(number: 20);
+  }
+
 }
 

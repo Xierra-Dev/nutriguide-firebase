@@ -125,6 +125,38 @@ class Recipe {
     // Ensure the score is between 0 and 10
     return max(0, min(10, score));
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'title': title,
+      'image': image,
+      'category': category,
+      'area': area,
+      'instructions': instructions,
+      'ingredients': ingredients,
+      'measurements': measurements,
+      'preparationTime': preparationTime,
+      'healthScore': healthScore,
+    };
+  }
+
+  factory Recipe.fromJson(Map<String, dynamic> json) {
+    return Recipe(
+      id: json['id'],
+      title: json['title'],
+      image: json['image'],
+      category: json['category'],
+      area: json['area'],
+      instructions: json['instructions'],
+      ingredients: List<String>.from(json['ingredients']),
+      measurements: List<String>.from(json['measurements']),
+      preparationTime: json['preparationTime'],
+      healthScore: json['healthScore'].toDouble(),
+      instructionSteps: json['instructions'].split('\n'),
+      nutritionInfo: NutritionInfo.generateRandom(),
+    );
+  }
 }
 
 class NutritionInfo {

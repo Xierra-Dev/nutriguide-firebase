@@ -11,7 +11,7 @@ import 'notifications_page.dart';
 import 'add_recipe_page.dart';
 import 'planner_page.dart';
 import 'package:intl/intl.dart';
-
+import 'services/cache_service.dart';
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -468,57 +468,88 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  final CacheService _cacheService = CacheService();
+  bool _isRefreshing = false;
+
   Future<void> _loadRecipes() async {
     try {
-      setState(() {
-        isLoading = true;
-        errorMessage = null;
-      });
+      // Jika sedang refresh, langsung ambil data baru
+      if (_isRefreshing) {
+        final recommended = await _mealDBService.getRecommendedRecipes();
+        final popular = await _mealDBService.getPopularRecipes();
+        final feed = await _mealDBService.getFeedRecipes();
 
-      final futures = await Future.wait([
-        _mealDBService.getRandomRecipes(number: 20),
-        _mealDBService.getRecipesByCategory('Seafood'),
-        _mealDBService.getRandomRecipes(number: 10),
-      ]);
+        // Cache data baru
+        await _cacheService.cacheRecipes(CacheService.RECOMMENDED_CACHE_KEY, recommended);
+        await _cacheService.cacheRecipes(CacheService.POPULAR_CACHE_KEY, popular);
+        await _cacheService.cacheRecipes(CacheService.FEED_CACHE_KEY, feed);
 
-      setState(() {
-        recommendedRecipes = futures[0];
-        popularRecipes = futures[1];
-        feedRecipes = futures[2];
-        isLoading = false;
-      });
+        if (mounted) {
+          setState(() {
+            recommendedRecipes = recommended;
+            popularRecipes = popular;
+            feedRecipes = feed;
+            isLoading = false;
+          });
+        }
+        return;
+      }
 
-      print('Loaded ${recommendedRecipes.length} recommended recipes');
-      print('Loaded ${popularRecipes.length} popular recipes');
-      print('Loaded ${feedRecipes.length} feed recipes');
+      // Initial load - coba load dari cache dulu
+      final cachedRecommended = await _cacheService.getCachedRecipes(CacheService.RECOMMENDED_CACHE_KEY);
+      final cachedPopular = await _cacheService.getCachedRecipes(CacheService.POPULAR_CACHE_KEY);
+      final cachedFeed = await _cacheService.getCachedRecipes(CacheService.FEED_CACHE_KEY);
+
+      if (cachedRecommended != null && cachedPopular != null && cachedFeed != null) {
+        setState(() {
+          recommendedRecipes = cachedRecommended;
+          popularRecipes = cachedPopular;
+          feedRecipes = cachedFeed;
+          isLoading = false;
+        });
+      } else {
+        // Jika tidak ada cache, fetch data baru
+        final recommended = await _mealDBService.getRecommendedRecipes();
+        final popular = await _mealDBService.getPopularRecipes();
+        final feed = await _mealDBService.getFeedRecipes();
+
+        await _cacheService.cacheRecipes(CacheService.RECOMMENDED_CACHE_KEY, recommended);
+        await _cacheService.cacheRecipes(CacheService.POPULAR_CACHE_KEY, popular);
+        await _cacheService.cacheRecipes(CacheService.FEED_CACHE_KEY, feed);
+
+        if (mounted) {
+          setState(() {
+            recommendedRecipes = recommended;
+            popularRecipes = popular;
+            feedRecipes = feed;
+            isLoading = false;
+          });
+        }
+      }
     } catch (e) {
-      print('Error in _loadRecipes: $e');
-      setState(() {
-        isLoading = false;
-        errorMessage =
-            'Failed to load recipes. Please check your internet connection and try again.';
-        recommendedRecipes = [];
-        popularRecipes = [];
-        feedRecipes = [];
-      });
+      if (mounted) {
+        setState(() {
+          errorMessage = e.toString();
+          isLoading = false;
+        });
+      }
     }
   }
 
   Future<void> _handleRefresh() async {
-    // Reset error message during refresh
     setState(() {
+      _isRefreshing = true;
       errorMessage = null;
     });
 
-    await Future.wait([
-      _loadRecipes(),
-      _loadRecentlyViewedRecipes(),
-    ]);
+    await _loadRecipes();
 
-    if (mounted) {
-      _refreshIndicatorKey.currentState?.deactivate();
-    }
+    setState(() {
+      _isRefreshing = false;
+    });
   }
+
+  
 
   Future<void> _handleNavigationTap(int index) async {
     if (_currentIndex == index) {
