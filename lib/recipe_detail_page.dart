@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'models/recipe.dart';
 import 'services/firestore_service.dart';
+import 'package:intl/intl.dart';
 
 class RecipeDetailPage extends StatefulWidget {
   final Recipe recipe;
@@ -14,13 +15,19 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
   final FirestoreService _firestoreService = FirestoreService();
   final ScrollController _scrollController = ScrollController();
   bool isSaved = false;
+  bool isPlanned = false;
   bool isLoading = false;
   bool showTitle = false;
+
+  DateTime _selectedDate = DateTime.now();
+  String _selectedMeal = 'Dinner';
+  List<bool> _daysSelected = List.generate(7, (index) => false);
 
   @override
   void initState() {
     super.initState();
     _checkIfSaved();
+    _checkIfPlanned();
     _addToRecentlyViewed();
     _scrollController.addListener(_onScroll);
   }
@@ -64,6 +71,13 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
     });
   }
 
+  Future<void> _checkIfPlanned() async {
+    final saved = await _firestoreService.isRecipeSaved(widget.recipe.id);
+    setState(() {
+      isPlanned = saved;
+    });
+  }
+
   Future<void> _addToRecentlyViewed() async {
     try {
       await _firestoreService.addToRecentlyViewed(widget.recipe);
@@ -87,16 +101,38 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            isSaved ? 'Recipe saved: ${recipe.title}' : 'Recipe: "${recipe.title}" removed from saved',
+          content: Row(
+            children: [
+              Icon(
+                isSaved ? Icons.bookmark_added_rounded : Icons.delete,
+                color: isSaved ? Colors.white : Colors.red,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  isSaved ? 'Recipe saved: ${recipe.title}' : 'Recipe: "${recipe.title}" removed from saved',
+                ),
+              ),
+            ],
           ),
           backgroundColor: Colors.green,
         ),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Error saving recipe'),
+        SnackBar(
+          content: Row(
+            children: const [
+              Icon(
+                Icons.error,
+                color: Colors.white,
+              ),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text('Error saving recipe'),
+              ),
+            ],
+          ),
           backgroundColor: Colors.red,
         ),
       );
@@ -105,6 +141,232 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
         isLoading = false;
       });
     }
+  }
+
+  Future<void> _togglePlan(Recipe recipe) async {
+    setState(() {
+      isLoading = true;
+    });
+    try {
+      if (isPlanned) {
+        await _firestoreService.unplanRecipe(widget.recipe.id);
+      } else {
+        await _firestoreService.planRecipe(widget.recipe);
+      }
+      setState(() {
+        isPlanned = !isPlanned;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              Icon(
+                isPlanned ? Icons.bookmark_added_rounded : Icons.delete,
+                color: isPlanned ? Colors.white : Colors.red,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  isPlanned ? 'Recipe planned: ${recipe.title}' : 'Recipe: "${recipe.title}" removed from planned',
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              Icon(
+                Icons.error,
+                color: Colors.white,
+              ),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text('Error plan recipe: ${e.toString()}'),
+              ),
+            ],
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  void _showPlannedDialog() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.grey[900], // Background untuk dark mode
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(16),
+        ),
+      ),
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setDialogState) {
+            return Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header dengan navigasi antar minggu
+                  const Text(
+                    'Choose Day',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      IconButton(
+                        onPressed: () {
+                          // Pindah ke minggu sebelumnya
+                          setDialogState(() {
+                            _selectedDate =
+                                _selectedDate.subtract(const Duration(days: 7));
+                          });
+                        },
+                        icon: const Icon(Icons.arrow_back),
+                        color: Colors.white,
+                      ),
+                      Text(
+                        // Menampilkan rentang tanggal minggu
+                        '${DateFormat('MMM dd').format(_selectedDate)} - '
+                            '${DateFormat('MMM dd').format(_selectedDate.add(const Duration(days: 6)))}',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          // Pindah ke minggu berikutnya
+                          setDialogState(() {
+                            _selectedDate =
+                                _selectedDate.add(const Duration(days: 7));
+                          });
+                        },
+                        icon: const Icon(Icons.arrow_forward),
+                        color: Colors.white,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButton<String>(
+                    dropdownColor: Colors.grey[850],
+                    value: _selectedMeal,
+                    onChanged: (String? newValue) {
+                      setDialogState(() {
+                        _selectedMeal = newValue!;
+                      });
+                    },
+                    items: [ 'Breakfast', 'Dinner', 'Lunch']
+                        .map(
+                          (String value) => DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(
+                          value,
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    )
+                        .toList(),
+                  ),
+                  const SizedBox(height: 8),
+                  // Pilihan hari menggunakan ChoiceChip (dimulai dari Sunday)
+                  Wrap(
+                    spacing: 8,
+                    children: [
+                      for (int i = 0; i < 7; i++)
+                        ChoiceChip(
+                          label: Text(
+                            DateFormat('EEE').format(
+                              _selectedDate.add(Duration(
+                                  days: i - _selectedDate.weekday % 7)),
+                            ), // Menampilkan hari dimulai dari Sunday
+                          ),
+                          selected: _daysSelected[i],
+                          onSelected: (bool selected) {
+                            setDialogState(() {
+                              _daysSelected[i] = selected;
+                            });
+                          },
+                          selectedColor: Colors.blue,
+                          backgroundColor: Colors.grey[800],
+                          labelStyle: TextStyle(
+                            color:
+                            _daysSelected[i] ? Colors.white : Colors.grey,
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  // Tombol aksi
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: const Text(
+                          'Cancel',
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          // Validasi data sebelum menyimpan
+                          if (_selectedMeal.isEmpty ||
+                              !_daysSelected.contains(true)) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                    'Please select at least one day and a meal type!'),
+                              ),
+                            );
+                            return;
+                          }
+
+                          // Simpan data yang dipilih
+                          _saveSelectedPlan();
+                          Navigator.of(context).pop();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                        ),
+                        child: const Text('Done'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+// Fungsi untuk menyimpan pilihan (sesuaikan dengan logika aplikasi Anda)
+  void _saveSelectedPlan() {
+    // Implementasi logika penyimpanan (Firestore atau lainnya)
+    print('Selected Meal: $_selectedMeal');
+    print('Selected Days: $_daysSelected');
   }
 
   @override
@@ -172,11 +434,11 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
                       ),
                       child: IconButton(
                         icon: Icon(
-                          isSaved ? Icons.calendar_today : Icons.calendar_today,
-                          color: isSaved ? Colors.deepOrange : Colors.white,
+                          isPlanned ? Icons.calendar_today : Icons.calendar_today,
+                          color: isPlanned ? Colors.deepOrange : Colors.white,
                           size: 20, // Reduced icon size
                         ), // Reduced padding
-                        onPressed: isLoading ? null : () => _toggleSave(widget.recipe),
+                        onPressed: isLoading ? null : () => _togglePlan(widget.recipe),
                       ),
                     ),
                     Container(
@@ -272,12 +534,12 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
               SizedBox(width: 18,),
               Expanded(
                 child: ElevatedButton(
-                  onPressed: isLoading ? null : () => _toggleSave(widget.recipe),
+                  onPressed: isLoading ? null : () => _togglePlan(widget.recipe),
                   style: ElevatedButton.styleFrom(
                     // Change background color based on save state
-                    backgroundColor: isSaved ? Colors.deepOrange : Colors.white,
+                    backgroundColor: isPlanned ? Colors.deepOrange : Colors.white,
                     // Change text color based on save state
-                    foregroundColor: isSaved ? Colors.white : Colors.black,
+                    foregroundColor: isPlanned ? Colors.white : Colors.black,
                     padding: const EdgeInsets.symmetric(vertical: 13),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(50),

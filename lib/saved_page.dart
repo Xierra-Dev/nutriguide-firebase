@@ -90,27 +90,43 @@ class _SavedPageState extends State<SavedPage> {
         savedRecipes.removeWhere((r) => r.id == recipe.id);
       });
 
-      // Show success message
+      // Show success message with Icon.delete
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Recipe: "${recipe.title}" removed from saved'),
+            content: Row(
+              children: [
+                Icon(Icons.delete, color: Colors.red),
+                SizedBox(width: 8),
+                Expanded(child: Text('Recipe: "${recipe.title}" removed from saved')),
+              ],
+            ),
             backgroundColor: Colors.green,
           ),
         );
       }
     } catch (e) {
       print('Error toggling save status: $e');
+      // Show error message with Icon.error
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to remove ${recipe.title} from saved recipes.\nError: ${e.toString()}'),
-            backgroundColor: Colors.green,
+            content: Row(
+              children: [
+                Icon(Icons.error, color: Colors.white),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text('Failed to remove ${recipe.title} from saved recipes.\nError: ${e.toString()}'),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.red,
           ),
         );
       }
     }
   }
+
 
   @override
   Widget build(BuildContext context) {

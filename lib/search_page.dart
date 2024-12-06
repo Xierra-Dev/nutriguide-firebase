@@ -242,29 +242,54 @@ class _SearchPageState extends State<SearchPage> {
 
   Future<void> _toggleSave(Recipe recipe) async {
     try {
+      final bool currentStatus = savedStatus[recipe.id] ?? false;
+
       if (savedStatus[recipe.id] == true) {
         await _firestoreService.unsaveRecipe(recipe.id);
       } else {
         await _firestoreService.saveRecipe(recipe);
       }
       setState(() {
-        savedStatus[recipe.id] = !(savedStatus[recipe.id] ?? false);
+        savedStatus[recipe.id] = !currentStatus;
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            savedStatus[recipe.id] == true
-                ? 'Recipe saved: ${recipe.title}'
-                : 'Recipe: "${recipe.title}" removed from saved',
+          content: Row(
+            children: [
+              Icon(
+                  savedStatus[recipe.id] == true
+                      ? Icons.bookmark_added
+                      : Icons.delete_rounded,
+                  color: savedStatus[recipe.id] == true
+                      ? Colors.deepOrange
+                      : Colors.red
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  savedStatus[recipe.id] == true
+                      ? 'Recipe: "${recipe.title}" saved'
+                      : 'Recipe: "${recipe.title}" removed from saved',
+                ),
+              ),
+            ],
           ),
-          duration: const Duration(seconds: 1),
+          backgroundColor: Colors.green,
         ),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Error saving recipe'),
-          duration: Duration(seconds: 1),
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.error, color: Colors.white),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text('Error plan recipe: ${e.toString()}'),
+              ),
+            ],
+          ),
+          backgroundColor: Colors.red,
         ),
       );
     }
@@ -273,9 +298,7 @@ class _SearchPageState extends State<SearchPage> {
   Future<void> _togglePlan(Recipe recipe) async {
     try {
       // Validasi Recipe ID
-      if (recipe.id == null) {
-        throw Exception('Recipe ID cannot be null.');
-      }
+      final bool currentStatus = plannedStatus[recipe.id] ?? false;
 
       // Cek status dan lakukan aksi
       if (plannedStatus[recipe.id] == true) {
@@ -286,16 +309,27 @@ class _SearchPageState extends State<SearchPage> {
 
       // Update UI
       setState(() {
-        plannedStatus[recipe.id] = !(plannedStatus[recipe.id] ?? false);
+        plannedStatus[recipe.id] = !currentStatus;
       });
 
       // Tampilkan SnackBar untuk notifikasi sukses
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            plannedStatus[recipe.id] == true
-                ? 'Recipe planned: ${recipe.title}'
-                : 'Recipe: "${recipe.title}" removed from planned',
+          content: Row(
+            children: [
+              Icon(
+                plannedStatus[recipe.id] == true ? Icons.bookmark : Icons.delete,
+                color: plannedStatus[recipe.id] == true ? Colors.deepOrange : Colors.red,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  plannedStatus[recipe.id] == true
+                      ? 'Recipe planned: ${recipe.title}'
+                      : 'Recipe: "${recipe.title}" removed from planned',
+                ),
+              ),
+            ],
           ),
           backgroundColor: Colors.green,
         ),
@@ -304,7 +338,18 @@ class _SearchPageState extends State<SearchPage> {
       // Tangani error dan tampilkan pesan kesalahan
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error plan recipe: ${e.toString()}'),
+          content: Row(
+            children: [
+              const Icon(
+                Icons.error,
+                color: Colors.white,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text('Error plan recipe: ${e.toString()}'),
+              ),
+            ],
+          ),
           backgroundColor: Colors.red,
         ),
       );
@@ -805,7 +850,9 @@ class _SearchPageState extends State<SearchPage> {
                                 _toggleSave(recipe);
                               } else if (value == 'Plan Meal') {
                                 _togglePlan(recipe);
-                                _showPlannedDialog();
+                                if (plannedStatus[recipe.id] == true) {
+                                  _showPlannedDialog();
+                                }
                               }
                             },
                             color: Colors.white,
@@ -833,7 +880,7 @@ class _SearchPageState extends State<SearchPage> {
                                         size: 22,
                                         color: savedStatus[recipe.id] == true
                                             ? Colors.deepOrange
-                                            : Colors.black87,
+                                            : Colors.black,
                                       ),
                                       const SizedBox(width: 10),
                                       Text(
@@ -844,7 +891,7 @@ class _SearchPageState extends State<SearchPage> {
                                           fontSize: 16,
                                           color: savedStatus[recipe.id] == true
                                               ? Colors.deepOrange
-                                              : Colors.black87,
+                                              : Colors.black,
                                           fontWeight: FontWeight.w500,
                                         ),
                                       ),
@@ -866,7 +913,7 @@ class _SearchPageState extends State<SearchPage> {
                                         size: 22,
                                         color: plannedStatus[recipe.id] == true
                                             ? Colors.deepOrange
-                                            : Colors.black87,
+                                            : Colors.black,
                                       ),
                                       const SizedBox(width: 10),
                                       Text(
@@ -878,7 +925,7 @@ class _SearchPageState extends State<SearchPage> {
                                           color:
                                               plannedStatus[recipe.id] == true
                                                   ? Colors.deepOrange
-                                                  : Colors.black87,
+                                                  : Colors.black,
                                           fontWeight: FontWeight.w500,
                                         ),
                                       ),

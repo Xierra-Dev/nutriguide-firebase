@@ -3,6 +3,7 @@ import 'models/recipe.dart';
 import 'recipe_detail_page.dart';
 import 'services/firestore_service.dart';
 import 'home_page.dart';
+import 'package:intl/intl.dart';
 
 class AllRecipesPage extends StatefulWidget {
   final String title;
@@ -114,12 +115,17 @@ class _AllRecipesPageState extends State<AllRecipesPage> {
   Map<String, bool> savedStatus = {};
   Map<String, bool> plannedStatus = {};
 
+  DateTime _selectedDate = DateTime.now();
+  String _selectedMeal = 'Dinner';
+  List<bool> _daysSelected = List.generate(7, (index) => false);
+
   @override
   void initState() {
     super.initState();
     // Inisialisasi status untuk setiap resep
     for (var recipe in widget.recipes) {
       _checkIfSaved(recipe);
+      _checkIfPlanned(recipe);
     }
   }
 
@@ -140,41 +146,295 @@ class _AllRecipesPageState extends State<AllRecipesPage> {
     });
   }
 
-  Future<void> _toggleSave(Recipe recipe) async {
+  Future<void> _checkIfPlanned(Recipe recipe) async {
+    final planned = await _firestoreService.isRecipePlanned(recipe.id);
     setState(() {
-      isLoading = true;
+      plannedStatus[recipe.id] = planned;
     });
+  }
+
+  Future<void> _toggleSave(Recipe recipe) async {
     try {
+      final bool currentStatus = savedStatus[recipe.id] ?? false;
+
       if (savedStatus[recipe.id] == true) {
         await _firestoreService.unsaveRecipe(recipe.id);
       } else {
         await _firestoreService.saveRecipe(recipe);
       }
       setState(() {
-        savedStatus[recipe.id] = !(savedStatus[recipe.id] ?? false);
+        savedStatus[recipe.id] = !currentStatus;
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            savedStatus[recipe.id] == true
-                ? 'Recipe saved: ${recipe.title}'
-                : 'Recipe: "${recipe.title}" removed from saved',
+          content: Row(
+            children: [
+              Icon(
+                  savedStatus[recipe.id] == true
+                      ? Icons.bookmark_added
+                      : Icons.delete_rounded,
+                  color: savedStatus[recipe.id] == true
+                      ? Colors.white
+                      : Colors.red
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  savedStatus[recipe.id] == true
+                      ? 'Recipe: "${recipe.title}" saved'
+                      : 'Recipe: "${recipe.title}" removed from saved',
+                ),
+              ),
+            ],
           ),
           backgroundColor: Colors.green,
         ),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Error saving recipe'),
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.error, color: Colors.white),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text('Error plan recipe: ${e.toString()}'),
+              ),
+            ],
+          ),
           backgroundColor: Colors.red,
         ),
       );
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
     }
+  }
+
+  Future<void> _togglePlan(Recipe recipe) async {
+    try {
+      // Validasi Recipe ID
+      final bool currentStatus = plannedStatus[recipe.id] ?? false;
+
+      // Cek status dan lakukan aksi
+      if (plannedStatus[recipe.id] == true) {
+        await _firestoreService.unplanRecipe(recipe.id); // Hapus dari rencana
+      } else {
+        await _firestoreService.planRecipe(recipe); // Tambahkan ke rencana
+      }
+
+      // Update UI
+      setState(() {
+        plannedStatus[recipe.id] = !currentStatus;
+      });
+
+      // Tampilkan SnackBar untuk notifikasi sukses
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              Icon(
+                plannedStatus[recipe.id] == true ? Icons.bookmark : Icons.delete,
+                color: plannedStatus[recipe.id] == true ? Colors.deepOrange : Colors.red,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  plannedStatus[recipe.id] == true
+                      ? 'Recipe planned: ${recipe.title}'
+                      : 'Recipe: "${recipe.title}" removed from planned',
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      // Tangani error dan tampilkan pesan kesalahan
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(
+                Icons.error,
+                color: Colors.white,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text('Error plan recipe: ${e.toString()}'),
+              ),
+            ],
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  void _showPlannedDialog() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.grey[900], // Background untuk dark mode
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(16),
+        ),
+      ),
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setDialogState) {
+            return Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header dengan navigasi antar minggu
+                  const Text(
+                    'Choose a day',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      IconButton(
+                        onPressed: () {
+                          // Pindah ke minggu sebelumnya
+                          setDialogState(() {
+                            _selectedDate =
+                                _selectedDate.subtract(const Duration(days: 7));
+                          });
+                        },
+                        icon: const Icon(Icons.arrow_back),
+                        color: Colors.white,
+                      ),
+                      Text(
+                        // Menampilkan rentang tanggal minggu
+                        '${DateFormat('MMM dd').format(_selectedDate)} - '
+                            '${DateFormat('MMM dd').format(_selectedDate.add(const Duration(days: 6)))}',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          // Pindah ke minggu berikutnya
+                          setDialogState(() {
+                            _selectedDate =
+                                _selectedDate.add(const Duration(days: 7));
+                          });
+                        },
+                        icon: const Icon(Icons.arrow_forward),
+                        color: Colors.white,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButton<String>(
+                    dropdownColor: Colors.grey[850],
+                    value: _selectedMeal,
+                    onChanged: (String? newValue) {
+                      setDialogState(() {
+                        _selectedMeal = newValue!;
+                      });
+                    },
+                    items: ['Dinner', 'Breakfast', 'Lunch']
+                        .map(
+                          (String value) => DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(
+                          value,
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    )
+                        .toList(),
+                  ),
+                  const SizedBox(height: 8),
+                  // Pilihan hari menggunakan ChoiceChip (dimulai dari Sunday)
+                  Wrap(
+                    spacing: 8,
+                    children: [
+                      for (int i = 0; i < 7; i++)
+                        ChoiceChip(
+                          label: Text(
+                            DateFormat('EEE').format(
+                              _selectedDate.add(Duration(
+                                  days: i - _selectedDate.weekday % 7)),
+                            ), // Menampilkan hari dimulai dari Sunday
+                          ),
+                          selected: _daysSelected[i],
+                          onSelected: (bool selected) {
+                            setDialogState(() {
+                              _daysSelected[i] = selected;
+                            });
+                          },
+                          selectedColor: Colors.blue,
+                          backgroundColor: Colors.grey[800],
+                          labelStyle: TextStyle(
+                            color:
+                            _daysSelected[i] ? Colors.white : Colors.grey,
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  // Tombol aksi
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: const Text(
+                          'Cancel',
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          // Validasi data sebelum menyimpan
+                          if (_selectedMeal.isEmpty ||
+                              !_daysSelected.contains(true)) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                    'Please select at least one day and a meal type!'),
+                              ),
+                            );
+                            return;
+                          }
+
+                          // Simpan data yang dipilih
+                          _saveSelectedPlan();
+                          Navigator.of(context).pop();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                        ),
+                        child: const Text('Done'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _saveSelectedPlan() {
+    // Implementasi logika penyimpanan (Firestore atau lainnya)
+    print('Selected Meal: $_selectedMeal');
+    print('Selected Days: $_daysSelected');
   }
 
   @override
@@ -277,6 +537,10 @@ class _AllRecipesPageState extends State<AllRecipesPage> {
                               if (value == 'Save Recipe') {
                                 _toggleSave(recipe);
                               } else if (value == 'Plan Meal') {
+                                _togglePlan(recipe);
+                                if (plannedStatus[recipe.id] == true) {
+                                  _showPlannedDialog();
+                                }
                               }
                             },
                             color: Colors.white,
@@ -304,7 +568,7 @@ class _AllRecipesPageState extends State<AllRecipesPage> {
                                         size: 22,
                                         color: savedStatus[recipe.id] == true
                                             ? Colors.deepOrange
-                                            : Colors.black87,
+                                            : Colors.black,
                                       ),
                                       const SizedBox(width: 10),
                                       Text(
@@ -315,7 +579,7 @@ class _AllRecipesPageState extends State<AllRecipesPage> {
                                           fontSize: 16,
                                           color: savedStatus[recipe.id] == true
                                               ? Colors.deepOrange
-                                              : Colors.black87,
+                                              : Colors.black,
                                           fontWeight: FontWeight.w500,
                                         ),
                                       ),
@@ -337,7 +601,7 @@ class _AllRecipesPageState extends State<AllRecipesPage> {
                                         size: 22,
                                         color: plannedStatus[recipe.id] == true
                                             ? Colors.deepOrange
-                                            : Colors.black87,
+                                            : Colors.black,
                                       ),
                                       const SizedBox(width: 10),
                                       Text(
@@ -348,7 +612,7 @@ class _AllRecipesPageState extends State<AllRecipesPage> {
                                           fontSize: 16,
                                           color: plannedStatus[recipe.id] == true
                                               ? Colors.deepOrange
-                                              : Colors.black87,
+                                              : Colors.black,
                                           fontWeight: FontWeight.w500,
                                         ),
                                       ),
