@@ -136,7 +136,7 @@ class _SavedPageState extends State<SavedPage> {
         child: Column(
           children: [
             const Padding(
-              padding: EdgeInsets.fromLTRB(0, 10, 0, 5),
+              padding: EdgeInsets.fromLTRB(0, 8.5, 0, 12.5),
               child: Text(
                 'Saved Recipes',
                 style: TextStyle(

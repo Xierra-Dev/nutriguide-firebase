@@ -524,7 +524,16 @@ class _HomePageState extends State<HomePage> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Recipe planned for ${selectedDates.length} day(s)')),
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.add_task_rounded, color: Colors.white),
+                SizedBox(width: 8),
+                Text('Recipe planned for ${selectedDates.length} day(s)'),
+              ],
+            ),
+            backgroundColor: Colors.green,
+          ),
         );
       }
 
@@ -536,7 +545,16 @@ class _HomePageState extends State<HomePage> {
       print('Error saving plan: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to save plan: $e')),
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.error, color: Colors.white),
+                SizedBox(width: 8),
+                Expanded(child: Text('Failed to save plan: $e')),
+              ],
+            ),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }

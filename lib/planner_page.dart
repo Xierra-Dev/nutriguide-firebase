@@ -178,71 +178,83 @@ class _PlannerPageState extends State<PlannerPage> {
                     itemCount: meals.length,
                     itemBuilder: (context, mealIndex) {
                       final meal = meals[mealIndex];
-                      return Container(
-                        width: 250,
-                        margin: const EdgeInsets.only(right: 16, bottom: 16),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          image: DecorationImage(
-                            image: NetworkImage(meal.recipe.image),
-                            fit: BoxFit.cover,
-                          ),
-                        ),
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => RecipeDetailPage(
+                                recipe: meal.recipe,
+                              ),
+                            ),
+                          );
+                        },
                         child: Container(
+                          width: 250,
+                          margin: const EdgeInsets.only(right: 16, bottom: 16),
                           decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12),
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [
-                                Colors.transparent,
-                                Colors.black.withOpacity(0.8),
-                              ],
+                            borderRadius: BorderRadius.circular(15),
+                            image: DecorationImage(
+                              image: NetworkImage(meal.recipe.image),
+                              fit: BoxFit.cover,
                             ),
                           ),
-                          padding: const EdgeInsets.all(12),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              Text(
-                                meal.recipe.title,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  Icon(
-                                    Icons.timer,
-                                    color: Colors.orange,
-                                    size: 16,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    '${meal.recipe.preparationTime} min',
-                                    style: TextStyle(
-                                      color: Colors.white70,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  Text(
-                                    meal.mealType,
-                                    style: TextStyle(
-                                      color: Colors.orange,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Colors.transparent,
+                                  Colors.black.withOpacity(0.8),
                                 ],
                               ),
-                            ],
+                            ),
+                            padding: const EdgeInsets.all(12),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                Text(
+                                  meal.recipe.title,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.timer,
+                                      color: Colors.orange,
+                                      size: 16,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      '${meal.recipe.preparationTime} min',
+                                      style: TextStyle(
+                                        color: Colors.white70,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Text(
+                                      meal.mealType,
+                                      style: TextStyle(
+                                        color: Colors.orange,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       );
@@ -278,13 +290,31 @@ class _PlannerPageState extends State<PlannerPage> {
       await _loadPlannedMeals();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Meal removed from $dayName')),
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.delete, color: Colors.red),
+                SizedBox(width: 10),
+                Text('Recipe: "${meal.recipe.title}" removed from $dayName'),
+              ],
+            ),
+            backgroundColor: Colors.green,
+          ),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error removing meal: $e')),
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.error, color: Colors.white),
+                SizedBox(width: 10),
+                Text('Error removing meal: $e'),
+              ],
+            ),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
@@ -328,8 +358,14 @@ class _PlannerPageState extends State<PlannerPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('All meals for $dayName have been deleted'),
-            backgroundColor: Colors.deepOrange,
+            content: Row(
+              children: [
+                Icon(Icons.delete, color: Colors.red),
+                SizedBox(width: 10),
+                Text('All meals for $dayName have been deleted'),
+              ],
+            ),
+            backgroundColor: Colors.green,
           ),
         );
       }
@@ -337,7 +373,13 @@ class _PlannerPageState extends State<PlannerPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error deleting meals: $e'),
+            content: Row(
+              children: [
+                Icon(Icons.error, color: Colors.white),
+                SizedBox(width: 10),
+                Text('Error removing meal: $e'),
+              ],
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -421,7 +463,7 @@ class _PlannerPageState extends State<PlannerPage> {
                         child: ListTile(
                           contentPadding: const EdgeInsets.all(12),
                           leading: ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(50),
                             child: Image.network(
                               meal.recipe.image,
                               width: 60,
