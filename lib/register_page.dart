@@ -92,7 +92,7 @@ class _RegisterPageState extends State<RegisterPage> {
         String? specificImage;
 
         // Common Firebase Auth errors
-        if (e.toString().contains('The account already exist')) {
+        if (e.toString().contains('The email address is already in use')) {
           errorMessage = 'This email is already registered. Please use a different email or log in.';
           errorTitle = 'ACCOUNT ALREADY REGISTERED'; // Set specific title for this error
           specificImage = 'assets/images/account-already-registered.png';
