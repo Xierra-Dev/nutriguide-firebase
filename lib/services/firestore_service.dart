@@ -347,6 +347,10 @@ class FirestoreService {
           'preparationTime': recipe.preparationTime,
           'healthScore': recipe.healthScore,
           'viewedAt': FieldValue.serverTimestamp(),
+          // Add these fields
+          'ingredients': recipe.ingredients,
+          'measurements': recipe.measurements,
+          'instructions': recipe.instructions,
         });
       } else {
         throw Exception('No authenticated user found');
@@ -379,10 +383,11 @@ class FirestoreService {
             area: data['area'],
             preparationTime: data['preparationTime'],
             healthScore: data['healthScore'].toDouble(),
-            ingredients: [], // These fields are not stored in recently viewed
-            measurements: [], // for simplicity, but you can add them if needed
-            instructions: '',
-            instructionSteps: [],
+            // Update these fields to use stored data
+            ingredients: List<String>.from(data['ingredients'] ?? []),
+            measurements: List<String>.from(data['measurements'] ?? []),
+            instructions: data['instructions'] ?? '',
+            instructionSteps: (data['instructions'] ?? '').split('\n'),
             nutritionInfo: NutritionInfo.generateRandom(),
           );
         }).toList();
