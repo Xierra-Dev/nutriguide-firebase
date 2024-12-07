@@ -445,10 +445,6 @@ class _RegisterPageState extends State<RegisterPage> {
                                     borderRadius: BorderRadius.circular(25.0),
                                     borderSide: BorderSide.none,
                                   ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(25.0),
-                                    borderSide: BorderSide.none,
-                                  ),
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(25.0),
                                     borderSide: const BorderSide(color: Colors.deepOrange, width: 1.75,),

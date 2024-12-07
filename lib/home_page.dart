@@ -920,131 +920,132 @@ class _HomePageState extends State<HomePage> {
                                 ),
                               ],
                             ),
-                          ], //children
+                          ],
                         ),
                       ),
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.black.withOpacity(0.5),
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Text(
-                                    recipe.area ?? 'International',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 12,
-                                    ),
-                                  ),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(0.5),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Text(
+                                recipe.area ?? 'International',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
                                 ),
-                                Container(
-                                  width: 32.5,
-                                  height: 32.5,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: Colors.black.withOpacity(0.5),
-                                  ),
-                                  child: PopupMenuButton<String>(
-                                    padding: EdgeInsets.zero,
-                                    iconSize: 24,
-                                    icon: const Icon(
-                                      Icons.more_vert,
-                                      color: Colors.white,
-                                    ),
-                                    onSelected: (String value) {
-                                      if (value == 'Save Recipe') {
-                                        _toggleSave(recipe);
-                                      } else if (value == 'Plan Meal') {
-                                        _togglePlan(recipe);
-                                      }
-                                    },
-                                    color: Colors.white,
-                                    elevation: 4,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(15),
-                                    ),
-                                    offset: const Offset(0, 45),
-                                    constraints: const BoxConstraints(
-                                      minWidth: 175,
-                                      maxWidth: 175,
-                                    ),
-                                    itemBuilder: (BuildContext context) => [
-                                      PopupMenuItem<String>(
-                                        height: 60,
-                                        value: 'Save Recipe',
-                                        child: Container(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 10),
-                                          child: Row(
-                                            mainAxisAlignment: MainAxisAlignment.start,
-                                            children: [
-                                              Icon(
-                                                Icons.bookmark_border_rounded,
-                                                size: 22,
-                                                color: savedStatus[recipe.id] == true
-                                                    ? Colors.deepOrange
-                                                    : Colors.black,
-                                              ),
-                                              const SizedBox(width: 10),
-                                              Text(
-                                                savedStatus[recipe.id] == true
-                                                    ? 'Saved'
-                                                    : 'Save Recipe',
-                                                style: TextStyle(
-                                                  fontSize: 16,
-                                                  color: savedStatus[recipe.id] == true
-                                                      ? Colors.deepOrange
-                                                      : Colors.black,
-                                                  fontWeight: FontWeight.w500,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                      PopupMenuItem<String>(
-                                        height: 60,
-                                        value: 'Plan Meal',
-                                        child: Container(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 10),
-                                          child: Row(
-                                            mainAxisAlignment: MainAxisAlignment.start,
-                                            children: [
-                                              Icon(
-                                                Icons.calendar_today_rounded,
-                                                size: 22,
-                                                color: Colors.black,
-                                              ),
-                                              const SizedBox(width: 10),
-                                              Text(
-                                               'Plan Meal',
-                                                style: TextStyle(
-                                                  fontSize: 16,
-                                                  color:
-                                                  Colors.black,
-                                                  fontWeight: FontWeight.w500,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
+                              ),
                             ),
-                          ),
-                        ],
+                            Container(
+                              width: 32.5,
+                              height: 32.5,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.black.withOpacity(0.5),
+                              ),
+                              child: PopupMenuButton<String>(
+                                padding: EdgeInsets.zero,
+                                iconSize: 24,
+                                icon: const Icon(
+                                  Icons.more_vert,
+                                  color: Colors.white,
+                                ),
+                                onSelected: (String value) {
+                                  if (value == 'Save Recipe') {
+                                    _toggleSave(recipe);
+                                  } else if (value == 'Plan Meal') {
+                                    _togglePlan(recipe);
+                                  }
+                                },
+                                color: Colors.grey[900], // Mengubah warna background PopupMenu menjadi grey[900]
+                                elevation: 4,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                                offset: const Offset(0, 45),
+                                constraints: const BoxConstraints(
+                                  minWidth: 175,
+                                  maxWidth: 175,
+                                ),
+                                itemBuilder: (BuildContext context) => [
+                                  PopupMenuItem<String>(
+                                    height: 60,
+                                    value: 'Save Recipe',
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 10),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.start,
+                                        children: [
+                                          Icon(
+                                            savedStatus[recipe.id] == true
+                                                ? Icons.bookmark
+                                                : Icons.bookmark_border_rounded,
+                                            size: 22,
+                                            color: savedStatus[recipe.id] == true
+                                                ? Colors.deepOrange
+                                                : Colors.white, // Mengubah warna icon menjadi putih
+                                          ),
+                                          const SizedBox(width: 10),
+                                          Text(
+                                            savedStatus[recipe.id] == true
+                                                ? 'Saved'
+                                                : 'Save Recipe',
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              color: savedStatus[recipe.id] == true
+                                                  ? Colors.deepOrange
+                                                  : Colors.white, // Mengubah warna text menjadi putih
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  PopupMenuItem<String>(
+                                    height: 60,
+                                    value: 'Plan Meal',
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 10),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.start,
+                                        children: [
+                                          const Icon(
+                                            Icons.calendar_today_rounded,
+                                            size: 22,
+                                            color: Colors.white, // Mengubah warna icon menjadi putih
+                                          ),
+                                          const SizedBox(width: 10),
+                                          const Text(
+                                            'Plan Meal',
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              color: Colors.white, // Mengubah warna text menjadi putih
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               );
@@ -1279,7 +1280,7 @@ class _HomePageState extends State<HomePage> {
                                       _togglePlan(recipe);
                                     }
                                   },
-                                  color: Colors.white,
+                                  color: Colors.grey[900],
                                   elevation: 4,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(15),
@@ -1300,16 +1301,25 @@ class _HomePageState extends State<HomePage> {
                                           mainAxisAlignment:
                                               MainAxisAlignment.start,
                                           children: [
-                                            const Icon(
-                                                Icons.bookmark_border_rounded,
-                                                size: 22,
-                                                color: Colors.black),
+                                            Icon(
+                                              savedStatus[recipe.id] == true
+                                                  ? Icons.bookmark
+                                                  : Icons.bookmark_border_rounded,
+                                              size: 22,
+                                              color: savedStatus[recipe.id] == true
+                                                  ? Colors.deepOrange
+                                                  : Colors.white, // Mengubah warna icon menjadi putih
+                                            ),
                                             const SizedBox(width: 10),
                                             Text(
-                                              'Save Recipe',
+                                              savedStatus[recipe.id] == true
+                                                  ? 'Saved'
+                                                  : 'Save Recipe',
                                               style: TextStyle(
                                                 fontSize: 16,
-                                                color: Colors.black,
+                                                color: savedStatus[recipe.id] == true
+                                                    ? Colors.deepOrange
+                                                    : Colors.white, // Mengubah warna text menjadi putih
                                                 fontWeight: FontWeight.w500,
                                               ),
                                             ),
@@ -1330,14 +1340,14 @@ class _HomePageState extends State<HomePage> {
                                             const Icon(
                                                 Icons.calendar_today_rounded,
                                                 size: 22,
-                                                color: Colors.black,
+                                                color: Colors.white,
                                             ),
                                             const SizedBox(width: 10),
                                             Text(
                                               'Plan Meal',
                                               style: TextStyle(
                                                 fontSize: 16,
-                                                color: Colors.black,
+                                                color: Colors.white,
                                                 fontWeight: FontWeight.w500,
                                               ),
                                             ),
@@ -1360,8 +1370,6 @@ class _HomePageState extends State<HomePage> {
       ],
     );
   }
-
-
 
   Widget _buildBottomNavigationBar() {
     return BottomNavigationBar(

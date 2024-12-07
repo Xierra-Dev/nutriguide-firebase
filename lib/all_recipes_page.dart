@@ -669,7 +669,7 @@ class _AllRecipesPageState extends State<AllRecipesPage> {
                                 _togglePlan(recipe);
                               }
                             },
-                            color: Colors.white,
+                            color: Colors.grey[900],
                             elevation: 4,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(15),
@@ -684,17 +684,19 @@ class _AllRecipesPageState extends State<AllRecipesPage> {
                                 height: 60,
                                 value: 'Save Recipe',
                                 child: Container(
-                                  padding:
-                                  const EdgeInsets.symmetric(horizontal: 10),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10),
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.start,
                                     children: [
                                       Icon(
-                                        Icons.bookmark_border_rounded,
+                                        savedStatus[recipe.id] == true
+                                            ? Icons.bookmark
+                                            : Icons.bookmark_border_rounded,
                                         size: 22,
                                         color: savedStatus[recipe.id] == true
                                             ? Colors.deepOrange
-                                            : Colors.black,
+                                            : Colors.white, // Mengubah warna icon menjadi putih
                                       ),
                                       const SizedBox(width: 10),
                                       Text(
@@ -705,7 +707,7 @@ class _AllRecipesPageState extends State<AllRecipesPage> {
                                           fontSize: 16,
                                           color: savedStatus[recipe.id] == true
                                               ? Colors.deepOrange
-                                              : Colors.black,
+                                              : Colors.white, // Mengubah warna text menjadi putih
                                           fontWeight: FontWeight.w500,
                                         ),
                                       ),
@@ -717,22 +719,22 @@ class _AllRecipesPageState extends State<AllRecipesPage> {
                                 height: 60,
                                 value: 'Plan Meal',
                                 child: Container(
-                                  padding:
-                                  const EdgeInsets.symmetric(horizontal: 10),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10),
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.start,
                                     children: [
-                                      Icon(
+                                      const Icon(
                                         Icons.calendar_today_rounded,
                                         size: 22,
-                                        color: Colors.black,
+                                        color: Colors.white, // Mengubah warna icon menjadi putih
                                       ),
                                       const SizedBox(width: 10),
-                                      Text(
+                                      const Text(
                                         'Plan Meal',
                                         style: TextStyle(
                                           fontSize: 16,
-                                          color: Colors.black,
+                                          color: Colors.white, // Mengubah warna text menjadi putih
                                           fontWeight: FontWeight.w500,
                                         ),
                                       ),

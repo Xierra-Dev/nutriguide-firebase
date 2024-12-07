@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'settings_page.dart';
 import 'login_page.dart';
 import 'services/auth_service.dart';
@@ -80,6 +81,7 @@ class _AccountPageState extends State<AccountPage> {
   final TextEditingController _newEmailController = TextEditingController();
   final TextEditingController _currentPasswordController = TextEditingController();
   final TextEditingController _newPasswordController = TextEditingController();
+  bool _isPasswordVisible = false;
 
   @override
   void initState() {
@@ -147,7 +149,6 @@ class _AccountPageState extends State<AccountPage> {
           const SnackBar(content: Text('Email successfully changed'),
             backgroundColor: Colors.green,),
         );
-
         // Optional: Close email change dialog
         Navigator.of(context).pop();
       }
@@ -200,39 +201,53 @@ class _AccountPageState extends State<AccountPage> {
                   labelText: 'New Email',
                   labelStyle: const TextStyle(color: Colors.white),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Colors.white),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(50),
                     borderSide: const BorderSide(color: Colors.white),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Colors.white),
+                    borderRadius: BorderRadius.circular(50),
+                    borderSide: const BorderSide(color: Colors.deepOrange),
                   ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 25,
+                      vertical: 12,
+                    )
                 ),
                 style: const TextStyle(color: Colors.white),
               ),
               const SizedBox(height: 10),
               TextField(
                 controller: _currentPasswordController,
-                obscureText: true,
+                obscureText: !_isPasswordVisible,
                 decoration: InputDecoration(
                   labelText: 'Current Password',
                   labelStyle: const TextStyle(color: Colors.white),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Colors.white),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(50),
                     borderSide: const BorderSide(color: Colors.white),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Colors.white),
+                    borderRadius: BorderRadius.circular(50),
+                    borderSide: const BorderSide(color: Colors.deepOrange),
                   ),
+                  suffixIcon: Padding(
+                    padding: const EdgeInsets.only(right: 12.5),
+                    child: IconButton(
+                      icon: Icon(
+                        _isPasswordVisible ? MdiIcons.eyeOff : MdiIcons.eye,
+                        color: Colors.grey,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _isPasswordVisible = !_isPasswordVisible;
+                        });
+                      },
+                    ),
+                  ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 25,
+                      vertical: 12,
+                    )
                 ),
                 style: const TextStyle(color: Colors.white),
               ),
@@ -376,44 +391,72 @@ class _AccountPageState extends State<AccountPage> {
               const SizedBox(height: 16),
               TextField(
                 controller: _currentPasswordController,
-                obscureText: true,
+                obscureText: !_isPasswordVisible,
                 decoration: InputDecoration(
                   labelText: 'Current Password',
                   labelStyle: const TextStyle(color: Colors.white),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Colors.white),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(50),
                     borderSide: const BorderSide(color: Colors.white),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Colors.white),
+                    borderRadius: BorderRadius.circular(50),
+                    borderSide: const BorderSide(color: Colors.deepOrange),
                   ),
+                  suffixIcon: Padding(
+                    padding: const EdgeInsets.only(right: 12.5),
+                    child: IconButton(
+                      icon: Icon(
+                        _isPasswordVisible ? MdiIcons.eyeOff : MdiIcons.eye,
+                        color: Colors.grey,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _isPasswordVisible = !_isPasswordVisible;
+                        });
+                      },
+                    ),
+                  ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 25,
+                      vertical: 12,
+                    )
                 ),
                 style: const TextStyle(color: Colors.white),
               ),
               const SizedBox(height: 10),
               TextField(
                 controller: _newPasswordController,
-                obscureText: true,
+                obscureText: !_isPasswordVisible,
                 decoration: InputDecoration(
                   labelText: 'New Password',
                   labelStyle: const TextStyle(color: Colors.white),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Colors.white),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(50),
                     borderSide: const BorderSide(color: Colors.white),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Colors.white),
+                    borderRadius: BorderRadius.circular(50),
+                    borderSide: const BorderSide(color: Colors.deepOrange),
                   ),
+                  suffixIcon: Padding(
+                    padding: const EdgeInsets.only(right: 12.5),
+                    child: IconButton(
+                      icon: Icon(
+                        _isPasswordVisible ? MdiIcons.eyeOff : MdiIcons.eye,
+                        color: Colors.grey,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _isPasswordVisible = !_isPasswordVisible;
+                        });
+                      },
+                    ),
+                  ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 25,
+                      vertical: 12,
+                    )
                 ),
                 style: const TextStyle(color: Colors.white),
               ),

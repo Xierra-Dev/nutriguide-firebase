@@ -765,7 +765,15 @@ class _SearchPageState extends State<SearchPage> {
                       _sortRecipes();
                     });
                   },
+                  offset: const Offset(0, 40), // Mengatur posisi popup di bawah icon
                   color: Colors.grey[850],
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15), // Menambahkan border radius
+                  ),
+                  constraints: const BoxConstraints( // Mengatur ukuran minimum popup
+                    minWidth: 180, // Lebar minimum
+                    maxWidth: 180, // Lebar maximum
+                  ),
                   child: Row(
                     children: [
                       Text(
@@ -775,25 +783,35 @@ class _SearchPageState extends State<SearchPage> {
                       const Icon(Icons.arrow_drop_down, color: Colors.white),
                     ],
                   ),
-                  itemBuilder: (BuildContext context) =>
-                      <PopupMenuEntry<String>>[
+                  itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
                     const PopupMenuItem<String>(
                       value: 'Newest',
-                      child:
-                          Text('Newest', style: TextStyle(color: Colors.white)),
+                      height: 50, // Menambah tinggi setiap item
+                      child: Text(
+                        'Newest',
+                        style: TextStyle(
+                            color: Colors.white,
+                        ),
+                      ),
                     ),
                     const PopupMenuItem<String>(
                       value: 'Popular',
-                      child: Text('Popular',
-                          style: TextStyle(color: Colors.white)),
+                      height: 50, // Menambah tinggi setiap item
+                      child: Text(
+                        'Popular',
+                        style: TextStyle(color: Colors.white),
+                      ),
                     ),
                     const PopupMenuItem<String>(
                       value: 'Rating',
-                      child:
-                          Text('Rating', style: TextStyle(color: Colors.white)),
+                      height: 50, // Menambah tinggi setiap item
+                      child: Text(
+                        'Rating',
+                        style: TextStyle(color: Colors.white),
+                      ),
                     ),
                   ],
-                ),
+                )
               ],
             ),
           ),
@@ -817,7 +835,7 @@ class _SearchPageState extends State<SearchPage> {
         // Move the back button and title row closer to the top
         Padding(
           padding: const EdgeInsets.only(
-              top: 8.0, left: 16.0, right: 16.0, bottom: 8.0),
+              left: 16.0, right: 16.0, bottom: 8.0),
           child: Row(
             children: [
               IconButton(
@@ -828,7 +846,6 @@ class _SearchPageState extends State<SearchPage> {
                     _searchController.clear();
                   });
                 },
-                padding: EdgeInsets.zero,
               ),
               const SizedBox(width: 5),
               const Text(
@@ -1011,7 +1028,7 @@ class _SearchPageState extends State<SearchPage> {
                               _togglePlan(recipe);
                             }
                           },
-                          color: Colors.white,
+                          color: Colors.grey[900],
                           elevation: 4,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(15),
@@ -1032,11 +1049,13 @@ class _SearchPageState extends State<SearchPage> {
                                   mainAxisAlignment: MainAxisAlignment.start,
                                   children: [
                                     Icon(
-                                      Icons.bookmark_border_rounded,
+                                      savedStatus[recipe.id] == true
+                                          ? Icons.bookmark
+                                          : Icons.bookmark_border_rounded,
                                       size: 22,
                                       color: savedStatus[recipe.id] == true
                                           ? Colors.deepOrange
-                                          : Colors.black,
+                                          : Colors.white, // Mengubah warna icon menjadi putih
                                     ),
                                     const SizedBox(width: 10),
                                     Text(
@@ -1047,7 +1066,7 @@ class _SearchPageState extends State<SearchPage> {
                                         fontSize: 16,
                                         color: savedStatus[recipe.id] == true
                                             ? Colors.deepOrange
-                                            : Colors.black,
+                                            : Colors.white, // Mengubah warna text menjadi putih
                                         fontWeight: FontWeight.w500,
                                       ),
                                     ),
@@ -1064,24 +1083,17 @@ class _SearchPageState extends State<SearchPage> {
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.start,
                                   children: [
-                                    Icon(
+                                    const Icon(
                                       Icons.calendar_today_rounded,
                                       size: 22,
-                                      color: plannedStatus[recipe.id] == true
-                                          ? Colors.deepOrange
-                                          : Colors.black,
+                                      color: Colors.white, // Mengubah warna icon menjadi putih
                                     ),
                                     const SizedBox(width: 10),
-                                    Text(
-                                      plannedStatus[recipe.id] == true
-                                          ? 'Planned'
-                                          : 'Plan Meal',
+                                    const Text(
+                                      'Plan Meal',
                                       style: TextStyle(
                                         fontSize: 16,
-                                        color:
-                                            plannedStatus[recipe.id] == true
-                                                ? Colors.deepOrange
-                                                : Colors.black,
+                                        color: Colors.white, // Mengubah warna text menjadi putih
                                         fontWeight: FontWeight.w500,
                                       ),
                                     ),

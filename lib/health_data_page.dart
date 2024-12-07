@@ -225,7 +225,10 @@ class _HealthDataPageState extends State<HealthDataPage> {
           children: [
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 5,
+                  vertical: 20,
+                ),
                 child: Column(
                   children: [
                     _buildDataItem('Sex', gender ?? 'Not set', _editSex),
@@ -280,27 +283,39 @@ class _HealthDataPageState extends State<HealthDataPage> {
               fontWeight: FontWeight.w500,
             ),
           ),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                value,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
+          trailing: Container(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.end, // Align content to the end
+              children: [
+                Flexible(
+                  child: Text(
+                    value,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              IconButton(
-                icon: const Icon(Icons.edit, color: Colors.white, size: 20),
-                onPressed: onEdit,
-              ),
-            ],
+                const SizedBox(width: 8),
+                Transform.translate(
+                  offset: const Offset(16, 0), // Shift edit icon to the right
+                  child: IconButton(
+                    icon: const Icon(Icons.edit, color: Colors.white, size: 20),
+                    onPressed: onEdit,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-        const Divider(
-          color: Colors.grey,
-          height: 1,
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16.0),
+          child: Divider(
+            color: Colors.grey,
+            height: 1,
+          ),
         ),
       ],
     );
