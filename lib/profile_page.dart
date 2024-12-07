@@ -143,28 +143,38 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
   Widget build(BuildContext context) {
     // Add debug print
     print('Building profile page with userData: $userData');
-    
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () {
-            Navigator.of(context).pushReplacement(
-              SlideRightRoute(page: const HomePage()),
-            );
-          },
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings, color: Colors.white),
+        leading: Padding(
+          padding: const EdgeInsets.only(
+            left: 12,
+          ),
+          child: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white, size: 27,),
             onPressed: () {
               Navigator.of(context).pushReplacement(
-                SlideLeftRoute(page: const SettingsPage()),
+                SlideRightRoute(page: const HomePage()),
               );
             },
+          ),
+        ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(
+              top: 2,
+              right: 10,
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.settings, color: Colors.white),
+              onPressed: () {
+                Navigator.of(context).pushReplacement(
+                  SlideLeftRoute(page: const SettingsPage()),
+                );
+              },
+            ),
           ),
         ],
       ),
@@ -173,7 +183,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
           child: CircularProgressIndicator(color: Colors.deepOrange))
           : Column(
         children: [
-          const SizedBox(height: 20),
+          const SizedBox(height: 15),
           Center(
             child: Column(
               children: [
@@ -332,7 +342,10 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(
+              vertical: 25,
+              horizontal: 17.5,
+            ),
             decoration: BoxDecoration(
               color: Colors.grey[900],
               borderRadius: BorderRadius.circular(16),
@@ -351,17 +364,9 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    TextButton(
-                      onPressed: () {
-                        // TODO: Navigate to edit goals
-                      },
-                      style: TextButton.styleFrom(
-                        foregroundColor: Colors.white,
-                      ),
-                      child: const Text('Edit'),
-                    ),
                   ],
                 ),
+                SizedBox(height: 7.5,),
                 const Text(
                   'Balanced macros',
                   style: TextStyle(
