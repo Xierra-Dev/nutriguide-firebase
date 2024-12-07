@@ -102,7 +102,7 @@ class _PlannerPageState extends State<PlannerPage> {
             ),
             Expanded(
               child: isLoading
-                  ? const Center(child: CircularProgressIndicator())
+                  ? const Center(child: CircularProgressIndicator(color: Colors.deepOrange,))
                   : _buildWeekMeals(currentSunday),
             ),
           ],
@@ -495,78 +495,120 @@ class _PlannerPageState extends State<PlannerPage> {
                 ),
               ),
               // Fixed Delete All Meals button
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: ElevatedButton(
-                  onPressed: meals.isNotEmpty
-                      ? () {
-                    // Show confirmation dialog before deleting all meals
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext dialogContext) {
-                        return AlertDialog(
-                          title: const Text(
-                            'Delete All Meals',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
+              Container(
+                width: MediaQuery.of(context).size.width * 0.9,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: ElevatedButton(
+                    onPressed: meals.isNotEmpty
+                        ? () {
+                      // Show confirmation dialog before deleting all meals
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext dialogContext) {
+                          return Dialog(
+                            backgroundColor: Colors.transparent, // Membuat latar dialog transparan
+                            child: Container(
+                              width: MediaQuery.of(context).size.width * 0.9,
+                              height: MediaQuery.of(context).size.height * 0.25,
+                              padding: EdgeInsets.all(24),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF1E1E1E), // Warna latar belakang gelap
+                                borderRadius: BorderRadius.circular(28), // Sudut yang lebih bulat
+                              ),
+                              child: Column(
+                                children: [
+                                  SizedBox(height: 9,),
+                                  const Text(
+                                    'Delete All Meals',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 21.5),
+                                  const Text(
+                                    'Are you sure you want to delete all meals\nfor this day?',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: 15,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 37),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      // Cancel Button
+                                      Expanded(
+                                        child: ElevatedButton(
+                                          onPressed: () {
+                                            Navigator.of(dialogContext).pop();
+                                          },
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Colors.transparent,
+                                            foregroundColor: Colors.white,
+                                            elevation: 0,
+                                            padding: EdgeInsets.symmetric(vertical: 12),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(25),
+                                              side: BorderSide(color: Colors.white.withOpacity(0.2)),
+                                            ),
+                                          ),
+                                          child: const Text(
+                                            'Cancel',
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      // Delete Button
+                                      Expanded(
+                                        child: ElevatedButton(
+                                          onPressed: () {
+                                            Navigator.of(dialogContext).pop();
+                                            Navigator.of(context).pop();
+                                            _deletePlannedMealByDay(dayName);
+                                          },
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Colors.red,
+                                            foregroundColor: Colors.white,
+                                            elevation: 0,
+                                            padding: EdgeInsets.symmetric(vertical: 12),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(25),
+                                            ),
+                                          ),
+                                          child: const Text(
+                                            'Delete',
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ),
-                            textAlign: TextAlign.center, // Center the title text
-                          ),
-                          backgroundColor: Colors.grey,
-                          content: const Text(
-                            'Are you sure you want to delete all meals for this day?',
-                            style: TextStyle(color: Colors.white),
-                            textAlign: TextAlign.center, // Center the content text
-                          ),
-                          actionsAlignment: MainAxisAlignment.center, // Center the actions row
-                          actions: [
-                            OutlinedButton(
-                              onPressed: () {
-                                Navigator.of(dialogContext).pop();
-                              },
-                              style: OutlinedButton.styleFrom(
-                                side: const BorderSide(color: Colors.black),
-                              ),
-                              child: const Text(
-                                'Cancel',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 16), // Spacing between buttons
-                            ElevatedButton(
-                              onPressed: () {
-                                Navigator.of(dialogContext).pop(); // Close the dialog
-                                Navigator.of(context).pop(); // Close the bottom sheet
-                                // Delete all meals for this day
-                                _deletePlannedMealByDay(dayName);
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.red,
-                              ),
-                              child: const Text(
-                                'Delete',
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ],
-                        );
-                      },
-                    );
-                  }
-                      : null,
-                  style: ElevatedButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    backgroundColor: Colors.red,
-                    minimumSize: const Size(double.infinity, 50),
+                          );
+                        },
+                      );
+                    }
+                        : null,
+                    style: ElevatedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      backgroundColor: Colors.red,
+                      minimumSize: const Size(double.infinity, 50),
+                    ),
+                    child: const Text('Delete All Meals'),
                   ),
-                  child: const Text('Delete All Meals'),
                 ),
               ),
             ],

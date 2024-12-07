@@ -226,6 +226,30 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                     fontWeight: FontWeight.bold,
                   ),
                 ),
+                if (userData != null && userData!['username'] != null && userData!['username'].toString().isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                    child: Text(
+                      userData!['username'],
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.grey[400],
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                if (userData != null && userData!['bio'] != null && userData!['bio'].toString().isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                    child: Text(
+                      userData!['bio'],
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.grey[400],
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
                 const SizedBox(height: 12),
                 ElevatedButton(
                   onPressed: () {
