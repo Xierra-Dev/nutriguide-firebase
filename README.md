@@ -1,4 +1,4 @@
-# nutriguide
+# NutriGuide
 
 A new Flutter project.
 
