@@ -163,8 +163,86 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
     }
   }
 
-  void _showPlannedDialog(Recipe recipe) {
+  void _showMealSelectionDialog(BuildContext context, StateSetter setDialogState, Recipe recipe) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.grey[900],
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(16),
+        ),
+      ),
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter mealSetState) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(
+                  vertical: 40,
+                  horizontal: 20
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Select Meal Type',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  // Meal type selection
+                  ListView(
+                    shrinkWrap: true,
+                    children: ['Breakfast', 'Lunch', 'Dinner'].map((String mealType) {
+                      return ListTile(
+                        title: Text(
+                          mealType,
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                        onTap: () {
+                          // Update the selected meal in the parent dialog
+                          setDialogState(() {
+                            _selectedMeal = mealType;
+                          });
+                          // Close both dialogs
+                          Navigator.of(context).pop(); // Close meal selection dialog
+                          Navigator.of(context).pop(); // Close parent dialog
 
+                          // Reopen the parent dialog with selected meal
+                          _showPlannedDialog(recipe);
+                        },
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 16),
+                  // Cancel button
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: const Text(
+                          'Cancel',
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showPlannedDialog(Recipe recipe) {
     // Reset selected days
     _daysSelected = List.generate(7, (index) => false);
 
@@ -184,7 +262,10 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setDialogState) {
             return Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.symmetric(
+                  vertical: 20,
+                  horizontal: 20
+              ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -193,7 +274,7 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
                   const Text(
                     'Choose Day',
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
@@ -242,28 +323,42 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
-                  DropdownButton<String>(
-                    dropdownColor: Colors.grey[850],
-                    value: _selectedMeal,
-                    onChanged: (String? newValue) {
-                      setDialogState(() {
-                        _selectedMeal = newValue!;
-                      });
-                    },
-                    items: [ 'Breakfast', 'Dinner', 'Lunch']
-                        .map(
-                          (String value) => DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(
-                          value,
-                          style: const TextStyle(color: Colors.white),
+                  Container(
+                    height: 60,
+                    child: Center(
+                      child: InkWell(
+                        onTap: () {
+                          // Open meal selection dialog
+                          _showMealSelectionDialog(context, setDialogState, recipe);
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[850],
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                _selectedMeal.isEmpty ? 'Select Meal' : _selectedMeal,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              const Icon(
+                                Icons.arrow_drop_down,
+                                color: Colors.white,
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    )
-                        .toList(),
+                    ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 15),
                   // Pilihan hari menggunakan ChoiceChip (dimulai dari Sunday)
                   Wrap(
                     spacing: 8,
