@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'services/firestore_service.dart';
+import 'preference_page.dart';
 
 class AllergiesSettingsPage extends StatefulWidget {
   const AllergiesSettingsPage({Key? key}) : super(key: key);
@@ -52,7 +53,10 @@ class _AllergiesSettingsPageState extends State<AllergiesSettingsPage> {
     setState(() => isLoading = true);
     try {
       await _firestoreService.saveUserAllergies(selectedAllergies.toList());
-      setState(() => isEditing = false);
+      setState(() {
+        isEditing = false;
+        _hasChanges = false; // Reset perubahan setelah disimpan
+      });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error saving allergies: $e')),
@@ -89,18 +93,19 @@ class _AllergiesSettingsPageState extends State<AllergiesSettingsPage> {
                       padding: const EdgeInsets.only(top: 8),
                       child: Center(
                         child: const Text(
-                          'Leave This Page',
+                          'Any unsaved data\nwill be lost',
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
+                          textAlign: TextAlign.center,
                         ),
                       ),
                     ),
                     const SizedBox(height: 21.5),
                     const Text(
-                      'Your Profile Changes won\'t be saved',
+                      'Are you sure you want leave this page\nbefore you save your data changes?',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Colors.white70,
@@ -110,7 +115,14 @@ class _AllergiesSettingsPageState extends State<AllergiesSettingsPage> {
                     const SizedBox(height: 37),
                     // Tombol disusun secara vertikal
                     ElevatedButton(
-                      onPressed: () => Navigator.of(context).pop(true),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const PreferencePage(),
+                          ),
+                        );
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red,
                         foregroundColor: Colors.white,
@@ -167,9 +179,20 @@ class _AllergiesSettingsPageState extends State<AllergiesSettingsPage> {
     }
   }
 
+  void _onBackPressed(BuildContext context) {
+    if (_hasChanges) {
+      // Jika ada perubahan yang belum disimpan, panggil _onWillPop
+      _onWillPop();
+    } else {
+      Navigator.pop(context); // Jika tidak ada perubahan, cukup navigasi kembali
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return WillPopScope(
+      onWillPop: _onWillPop,
+      child: Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Colors.black,
@@ -183,11 +206,11 @@ class _AllergiesSettingsPageState extends State<AllergiesSettingsPage> {
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => _onBackPressed(context),
         ),
       ),
       body: isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator(color: Colors.deepOrange,))
           : Column(
               children: [
                 Expanded(
@@ -220,6 +243,7 @@ class _AllergiesSettingsPageState extends State<AllergiesSettingsPage> {
                                       } else {
                                         selectedAllergies.add(allergy);
                                       }
+                                      _hasChanges = true;
                                     });
                                   }
                                 : null,
@@ -235,49 +259,66 @@ class _AllergiesSettingsPageState extends State<AllergiesSettingsPage> {
                 ),
                 Padding(
                   padding: const EdgeInsets.all(16.0),
-                  child: Row(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Expanded(
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.transparent,
-                            side: const BorderSide(color: Colors.white),
+                      // Tombol 'Save' di atas
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: isEditing
+                                ? Colors.deepOrange
+                                : Colors.grey[900], // Jika tidak ada perubahan
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(25),
                             ),
-                          ),
-                          onPressed: isEditing ? _saveAllergies : null,
-                          child: const Text(
-                            'Save',
-                            style: TextStyle(color: Colors.white),
+                            padding: EdgeInsets.symmetric(vertical: 12)
+                        ),
+                        onPressed: isLoading && isEditing && _hasChanges ? null : _saveAllergies,
+                        child: Text(
+                          'SAVE',
+                          style: TextStyle(
+                            color: isEditing ? Colors.black : Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.deepOrange,
+                      const SizedBox(height: 20),
+                      // Tombol 'Edit' di bawah
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: isEditing
+                                ? Colors.grey[900]
+                                : Colors.white,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(25),
                             ),
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              isEditing = !isEditing;
-                            });
-                          },
-                          child: Text(
-                            isEditing ? 'Cancel' : 'Edit',
-                            style: const TextStyle(color: Colors.black),
+                            padding: EdgeInsets.symmetric(vertical: 12)
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            isEditing = !isEditing;
+                            if (!isEditing) {
+                              _hasChanges = false; // Reset changes if editing is canceled
+                            }
+                          });
+                        },
+                        child: Text(
+                          isEditing ? 'CANCEL' : 'EDIT',
+                          style: TextStyle(
+                            color: isEditing ? Colors.red : Colors.black,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
                     ],
                   ),
                 ),
+
               ],
             ),
+    ),
     );
   }
 }

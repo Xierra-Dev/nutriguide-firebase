@@ -228,7 +228,10 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                 ),
                 if (userData != null && userData!['username'] != null && userData!['username'].toString().isNotEmpty)
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                    padding: const EdgeInsets.only(
+                      top: 5,
+                      bottom: 8,
+                    ),
                     child: Text(
                       userData!['username'],
                       textAlign: TextAlign.center,
@@ -240,7 +243,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                   ),
                 if (userData != null && userData!['bio'] != null && userData!['bio'].toString().isNotEmpty)
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                    padding: const EdgeInsets.symmetric(vertical: 8),
                     child: Text(
                       userData!['bio'],
                       textAlign: TextAlign.center,
@@ -441,7 +444,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
           ? ListView(
               children: [
                 SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.7,
+                  height: MediaQuery.of(context).size.height * 0.465,
                   child: Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -462,17 +465,17 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                           ),
                         ),
                         const SizedBox(height: 8),
-                        ElevatedButton(
+                        OutlinedButton(
                           onPressed: () {
                             Navigator.push(
                               context,
                               MaterialPageRoute(builder: (context) => const AddRecipePage()),
                             ).then((_) => _loadCreatedRecipes()); // Refresh after creating new recipe
                           },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.deepOrange,
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
+                              borderRadius: BorderRadius.circular(50),
                             ),
                           ),
                           child: const Text('Create Recipe'),

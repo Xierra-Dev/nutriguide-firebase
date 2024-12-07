@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'services/firestore_service.dart';
+import 'preference_page.dart';
 
 class GoalsSettingsPage extends StatefulWidget {
   const GoalsSettingsPage({Key? key}) : super(key: key);
@@ -48,7 +49,10 @@ class _GoalsSettingsPageState extends State<GoalsSettingsPage> {
     setState(() => isLoading = true);
     try {
       await _firestoreService.saveUserGoals(selectedGoals.toList());
-      setState(() => isEditing = false);
+      setState(() {
+        isEditing = false;
+        _hasChanges = false; // Reset perubahan setelah disimpan
+      });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error saving goals: $e')),
@@ -85,18 +89,19 @@ class _GoalsSettingsPageState extends State<GoalsSettingsPage> {
                       padding: const EdgeInsets.only(top: 8),
                       child: Center(
                         child: const Text(
-                          'Leave This Page',
+                          'Any unsaved data\nwill be lost',
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
+                          textAlign: TextAlign.center,
                         ),
                       ),
                     ),
                     const SizedBox(height: 21.5),
                     const Text(
-                      'Your Profile Changes won\'t be saved',
+                      'Are you sure you want leave this page\nbefore you save your data changes?',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Colors.white70,
@@ -106,7 +111,14 @@ class _GoalsSettingsPageState extends State<GoalsSettingsPage> {
                     const SizedBox(height: 37),
                     // Tombol disusun secara vertikal
                     ElevatedButton(
-                      onPressed: () => Navigator.of(context).pop(true),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const PreferencePage(),
+                          ),
+                        );
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red,
                         foregroundColor: Colors.white,
@@ -163,9 +175,20 @@ class _GoalsSettingsPageState extends State<GoalsSettingsPage> {
     }
   }
 
+  void _onBackPressed(BuildContext context) {
+    if (_hasChanges) {
+      // Jika ada perubahan yang belum disimpan, panggil _onWillPop
+      _onWillPop();
+    } else {
+      Navigator.pop(context); // Jika tidak ada perubahan, cukup navigasi kembali
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return WillPopScope (
+      onWillPop: _onWillPop,
+      child: Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Colors.black,
@@ -179,101 +202,120 @@ class _GoalsSettingsPageState extends State<GoalsSettingsPage> {
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => _onBackPressed(context),
         ),
       ),
       body: isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator(color: Colors.deepOrange,))
           : Column(
+        children: [
+          Expanded(
+            child: ListView.builder(
+              itemCount: goals.length,
+              itemBuilder: (context, index) {
+                final goal = goals[index];
+                final isSelected = selectedGoals.contains(goal);
+                return Column(
+                  children: [
+                    ListTile(
+                      title: Text(
+                        goal,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      trailing: Icon(
+                        isSelected
+                            ? Icons.check_circle
+                            : Icons.circle_outlined,
+                        color: isSelected ? Colors.green : Colors.grey,
+                        size: 24,
+                      ),
+                      onTap: isEditing
+                          ? () {
+                        setState(() {
+                          if (isSelected) {
+                            selectedGoals.remove(goal);
+                          } else {
+                            selectedGoals.add(goal);
+                          }
+                          _hasChanges = true; // Set to true when user changes goal selection
+                        });
+                      }
+                          : null,
+                    ),
+                    const Divider(
+                      color: Colors.grey,
+                      height: 1,
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: goals.length,
-                    itemBuilder: (context, index) {
-                      final goal = goals[index];
-                      final isSelected = selectedGoals.contains(goal);
-                      return Column(
-                        children: [
-                          ListTile(
-                            title: Text(
-                              goal,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            trailing: Icon(
-                              isSelected ? Icons.check_circle : Icons.circle_outlined,
-                              color: isSelected ? Colors.green : Colors.grey,
-                              size: 24,
-                            ),
-                            onTap: isEditing
-                                ? () {
-                                    setState(() {
-                                      if (isSelected) {
-                                        selectedGoals.remove(goal);
-                                      } else {
-                                        selectedGoals.add(goal);
-                                      }
-                                    });
-                                  }
-                                : null,
-                          ),
-                          const Divider(
-                            color: Colors.grey,
-                            height: 1,
-                          ),
-                        ],
-                      );
-                    },
+                // Tombol 'Save' dipindahkan ke atas
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: isEditing
+                        ? Colors.deepOrange
+                        : Colors.grey[900], // Jika tidak ada perubahan
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(25),
+                    ),
+                    padding: EdgeInsets.symmetric(vertical: 12)
+                  ),
+                  onPressed: isLoading && isEditing && _hasChanges ? null : _saveGoals,
+                  child: Text(
+                    'SAVE',
+                    style: TextStyle(
+                      color: isEditing ? Colors.black : Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.transparent,
-                            side: const BorderSide(color: Colors.white),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(25),
-                            ),
-                          ),
-                          onPressed: isEditing ? _saveGoals : null,
-                          child: const Text(
-                            'Save',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.deepOrange,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(25),
-                            ),
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              isEditing = !isEditing;
-                            });
-                          },
-                          child: Text(
-                            isEditing ? 'Cancel' : 'Edit',
-                            style: const TextStyle(color: Colors.black),
-                          ),
-                        ),
-                      ),
-                    ],
+                const SizedBox(height: 16),
+                // Tombol 'Edit'
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: isEditing
+                          ? Colors.grey[900]
+                          : Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(25),
+                    ),
+                      padding: EdgeInsets.symmetric(vertical: 12)
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      isEditing = !isEditing;
+                      if (!isEditing) {
+                        _hasChanges = false; // Reset changes if editing is canceled
+                      }
+                    });
+                  },
+                  child: Text(
+                    isEditing ? 'CANCEL' : 'EDIT',
+                    style: TextStyle(
+                      color: isEditing ? Colors.red : Colors.black,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ],
             ),
+          ),
+        ],
+      ),
+    ),
     );
   }
-} 
+}

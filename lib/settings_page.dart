@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nutriguide/about_nutriGuide_page.dart';
 import 'package:nutriguide/notifications_page.dart';
 import 'account_page.dart';
 import '/profile_page.dart';
@@ -200,8 +201,8 @@ class _SettingsPageState extends State<SettingsPage> {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
-                      builder: (context) => const PreferencePage(),
+                    SlideLeftRoute(
+                      page:  const PreferencePage(),
                     ),
                   );
                 },
@@ -214,7 +215,12 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
                 trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 24),
                 onTap: () {
-                  // Navigate to About NutriGuide page
+                  Navigator.push(
+                    context,
+                    SlideLeftRoute(
+                      page:  const AboutNutriguidePage(),
+                    ),
+                  );
                 },
               ),
             ],

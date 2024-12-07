@@ -256,7 +256,8 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-      onWillPop: _onWillPop, // Tambahkan logika untuk intercept back navigation
+      onWillPop: _onWillPop,
+       // Tambahkan logika untuk intercept back navigation
       child: Scaffold(
         backgroundColor: Colors.black,
         appBar: AppBar(
@@ -359,7 +360,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                       'SAVE',
                       style: TextStyle(
                         color: _hasChanges ? Colors.black : Colors.white,
-                        fontSize: 17,
+                        fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
