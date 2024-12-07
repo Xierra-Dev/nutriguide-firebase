@@ -217,7 +217,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                         : const Icon(Icons.person, size: 50, color: Colors.white),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 18),
                 Text(
                   _authService.currentUser?.displayName ?? 'User',
                   style: const TextStyle(
@@ -229,7 +229,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                 if (userData != null && userData!['username'] != null && userData!['username'].toString().isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.only(
-                      top: 5,
+                      top: 7,
                       bottom: 8,
                     ),
                     child: Text(
@@ -238,12 +238,17 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                       style: TextStyle(
                         color: Colors.grey[400],
                         fontSize: 16,
+                        fontStyle: FontStyle.italic,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
                 if (userData != null && userData!['bio'] != null && userData!['bio'].toString().isNotEmpty)
                   Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    padding: const EdgeInsets.only(
+                      top: 6,
+                      bottom: 10,
+                    ),
                     child: Text(
                       userData!['bio'],
                       textAlign: TextAlign.center,
@@ -464,7 +469,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 13),
                         OutlinedButton(
                           onPressed: () {
                             Navigator.push(
@@ -756,5 +761,4 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
       },
     );
   }
-
 }
