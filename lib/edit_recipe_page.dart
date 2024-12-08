@@ -9,7 +9,7 @@ import 'package:http/http.dart' as http;
 class EditRecipePage extends StatefulWidget {
   final Recipe recipe;
   
-  const EditRecipePage({Key? key, required this.recipe}) : super(key: key);
+  const EditRecipePage({super.key, required this.recipe});
 
   @override
   _EditRecipePageState createState() => _EditRecipePageState();

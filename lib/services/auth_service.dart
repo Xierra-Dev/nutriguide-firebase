@@ -73,7 +73,7 @@ class AuthService {
       }
     } catch (e) {
       print('Error updating display name: $e');
-      throw e;
+      rethrow;
     }
   }
 

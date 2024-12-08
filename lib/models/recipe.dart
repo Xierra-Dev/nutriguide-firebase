@@ -33,7 +33,7 @@ class Recipe {
     required this.nutritionInfo,
     DateTime? createdAt,
     this.popularity = 0,
-  }) : this.createdAt = createdAt ?? DateTime.now();
+  }) : createdAt = createdAt ?? DateTime.now();
 
   factory Recipe.fromTheMealDB(Map<String, dynamic> json) {
     List<String> ingredients = [];

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'login_page.dart';
 import 'register_page.dart';
 import 'services/themealdb_service.dart';
+import 'services/notifications_service.dart';
 
 class LandingPage extends StatefulWidget {
   const LandingPage({super.key});
@@ -17,10 +18,13 @@ class _LandingPageState extends State<LandingPage> {
   final TheMealDBService _mealService = TheMealDBService();
   Timer? _imageChangeTimer;
 
+  NotificationsServices notificationsServices = NotificationsServices();
+
   @override
   void initState() {
     super.initState();
     _loadRandomMealImage();
+    notificationsServices.requestNotificationPermission();
     // Set up timer to change image every 3 seconds
     _imageChangeTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
       _loadRandomMealImage();

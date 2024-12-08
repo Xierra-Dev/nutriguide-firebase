@@ -6,7 +6,7 @@ import 'widgets/custom_activitiyLevel_picker.dart';
 import 'preference_page.dart';
 
 class HealthDataPage extends StatefulWidget {
-  const HealthDataPage({Key? key}) : super(key: key);
+  const HealthDataPage({super.key});
 
   @override
   State<HealthDataPage> createState() => _HealthDataPageState();

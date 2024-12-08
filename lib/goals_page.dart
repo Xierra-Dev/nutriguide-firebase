@@ -5,7 +5,6 @@ import 'package:linear_progress_bar/linear_progress_bar.dart';
 import 'home_page.dart';
 import 'personalization_page.dart';
 import 'services/themealdb_service.dart';
-import 'health_data_page.dart';
 
 
 class GoalsPage extends StatefulWidget {
@@ -84,7 +83,7 @@ class _GoalsPageState extends State<GoalsPage> {
         return Dialog(
           insetPadding: EdgeInsets.symmetric(horizontal: 10.0),
           backgroundColor: Color.fromARGB(255, 91, 91, 91),
-          child: Container(
+          child: SizedBox(
             width: double.infinity,
             child: Column(
               mainAxisSize: MainAxisSize.min,

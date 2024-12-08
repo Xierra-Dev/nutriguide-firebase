@@ -7,7 +7,7 @@ import 'services/cache_service.dart';
 import 'package:intl/intl.dart';
 
 class SearchPage extends StatefulWidget {
-  const SearchPage({Key? key}) : super(key: key);
+  const SearchPage({super.key});
 
   @override
   _SearchPageState createState() => _SearchPageState();
@@ -219,7 +219,7 @@ class _SearchPageState extends State<SearchPage> {
                       ),
                     ],
                   ),
-                  Container(
+                  SizedBox(
                     height: 60,
                     child: Center(
                       child: InkWell(

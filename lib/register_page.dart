@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'login_page.dart';
 import 'services/auth_service.dart';
-import 'personalization_page.dart';
 import 'landing_page.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'email_verification_page.dart';

@@ -6,7 +6,7 @@ import 'package:linear_progress_bar/linear_progress_bar.dart';
 import 'goals_page.dart';
 
 class AllergiesPage extends StatefulWidget {
-  const AllergiesPage({Key? key}) : super(key: key);
+  const AllergiesPage({super.key});
 
   @override
   _AllergiesPageState createState() => _AllergiesPageState();
@@ -82,7 +82,7 @@ class _AllergiesPageState extends State<AllergiesPage> {
         return Dialog(
           insetPadding: EdgeInsets.symmetric(horizontal: 10.0),
           backgroundColor: Color.fromARGB(255, 91, 91, 91),
-          child: Container(
+          child: SizedBox(
             width: double.infinity,
             child: Column(
               mainAxisSize: MainAxisSize.min,

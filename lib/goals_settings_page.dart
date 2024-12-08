@@ -3,7 +3,7 @@ import 'services/firestore_service.dart';
 import 'preference_page.dart';
 
 class GoalsSettingsPage extends StatefulWidget {
-  const GoalsSettingsPage({Key? key}) : super(key: key);
+  const GoalsSettingsPage({super.key});
 
   @override
   State<GoalsSettingsPage> createState() => _GoalsSettingsPageState();

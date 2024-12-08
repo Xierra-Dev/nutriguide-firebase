@@ -93,7 +93,7 @@ class _HomePageState extends State<HomePage> {
   List<Recipe> recentlyViewedRecipes = [];
   List<Recipe> feedRecipes = [];
   bool isLoading = true;
-  bool _isFirstTimeLoading = true;
+  final bool _isFirstTimeLoading = true;
   String? errorMessage;
   int _currentIndex = 0;
 
@@ -387,7 +387,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ],
                   ),
-                  Container(
+                  SizedBox(
                     height: 60,
                     child: Center(
                       child: InkWell(

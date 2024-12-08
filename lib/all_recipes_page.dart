@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'models/recipe.dart';
 import 'recipe_detail_page.dart';
 import 'services/firestore_service.dart';
-import 'home_page.dart';
 import 'package:intl/intl.dart';
 
 class AllRecipesPage extends StatefulWidget {
@@ -394,7 +393,7 @@ class _AllRecipesPageState extends State<AllRecipesPage> {
                       ),
                     ],
                   ),
-                  Container(
+                  SizedBox(
                     height: 60,
                     child: Center(
                       child: InkWell(

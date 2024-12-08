@@ -91,8 +91,8 @@ class _SettingsPageState extends State<SettingsPage> {
     final authService = AuthService();
     final firestoreService = FirestoreService();
 
-    email = await authService.getCurrentUserEmail();
-    username = await authService.getCurrentUsername();
+    email = authService.getCurrentUserEmail();
+    username = authService.getCurrentUsername();
 
     setState(() {});
   }

@@ -83,7 +83,7 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
         return Dialog(
           insetPadding: EdgeInsets.symmetric(horizontal: 10.0),
           backgroundColor: Color.fromARGB(255, 91, 91, 91),
-          child: Container(
+          child: SizedBox(
             width: double.infinity,
             child: Column(
               mainAxisSize: MainAxisSize.min,

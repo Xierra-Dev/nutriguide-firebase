@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'models/recipe.dart';
 import 'models/planned_meal.dart';
 import 'services/firestore_service.dart';
 import 'recipe_detail_page.dart';
@@ -537,7 +536,7 @@ class _PlannerPageState extends State<PlannerPage> {
                 ),
               ),
               // Fixed Delete All Meals button
-              Container(
+              SizedBox(
                 width: MediaQuery.of(context).size.width * 0.9,
                 child: Padding(
                   padding: const EdgeInsets.all(16),

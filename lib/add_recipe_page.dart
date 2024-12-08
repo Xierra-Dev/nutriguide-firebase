@@ -7,7 +7,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class AddRecipePage extends StatefulWidget {
-  const AddRecipePage({Key? key}) : super(key: key);
+  const AddRecipePage({super.key});
 
   @override
   _AddRecipePageState createState() => _AddRecipePageState();
@@ -489,9 +489,8 @@ class _CookTimeDialog extends StatefulWidget {
   final int initialTime;
 
   const _CookTimeDialog({
-    Key? key,
     required this.initialTime,
-  }) : super(key: key);
+  });
 
   @override
   _CookTimeDialogState createState() => _CookTimeDialogState();
@@ -571,7 +570,7 @@ class _CookTimeDialogState extends State<_CookTimeDialog> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Container(
+                              SizedBox(
                                 width: 10,
                                 child: TextFormField(
                                   controller: _minutesController,

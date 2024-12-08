@@ -378,7 +378,6 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
-    String? Function(String?)? validator,
     int maxLines = 1,
     int? maxLength,
   }) {

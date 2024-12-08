@@ -3,7 +3,7 @@ import 'services/firestore_service.dart';
 import 'preference_page.dart';
 
 class AllergiesSettingsPage extends StatefulWidget {
-  const AllergiesSettingsPage({Key? key}) : super(key: key);
+  const AllergiesSettingsPage({super.key});
 
   @override
   State<AllergiesSettingsPage> createState() => _AllergiesSettingsPageState();

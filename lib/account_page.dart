@@ -93,7 +93,7 @@ class _AccountPageState extends State<AccountPage> {
     final authService = AuthService();
 
     try {
-      email = await authService.getCurrentUserEmail();
+      email = authService.getCurrentUserEmail();
       setState(() {});
     } catch (e) {
       print('Error fetching user data: $e');

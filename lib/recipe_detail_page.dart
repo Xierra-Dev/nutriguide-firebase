@@ -323,7 +323,7 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
                       ),
                     ],
                   ),
-                  Container(
+                  SizedBox(
                     height: 60,
                     child: Center(
                       child: InkWell(
