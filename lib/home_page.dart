@@ -715,8 +715,8 @@ class _HomePageState extends State<HomePage> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                      builder: (context) => const AddRecipePage()),
+                  SlideUpRoute(
+                      page: const AddRecipePage()),
                 );
               },
               backgroundColor: Colors.deepOrange,
@@ -760,8 +760,8 @@ class _HomePageState extends State<HomePage> {
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(
-                  builder: (context) => const NotificationsPage()),
+              SlideLeftRoute(
+                  page:  const NotificationsPage()),
             );
           },
         ),

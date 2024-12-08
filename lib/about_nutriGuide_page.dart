@@ -65,7 +65,7 @@ class AboutNutriguidePage extends StatelessWidget {
       ),
       body: Center(
         child: Container(
-          child: Text('NutriGuide v1.0',style: TextStyle(
+          child: Text('NutriGuide v1.01',style: TextStyle(
             fontSize: 20,
             color: Colors.grey.shade800,
           ),

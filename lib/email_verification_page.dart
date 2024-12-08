@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:nutriguide/landing_page.dart';
 import 'services/auth_service.dart';
 import 'personalization_page.dart';
 
@@ -9,6 +10,36 @@ class EmailVerificationPage extends StatefulWidget {
 
   @override
   State<EmailVerificationPage> createState() => _EmailVerificationPageState();
+}
+
+class SlideRightRoute extends PageRouteBuilder {
+  final Widget page;
+
+  SlideRightRoute({required this.page})
+      : super(
+    pageBuilder: (
+        BuildContext context,
+        Animation<double> primaryAnimation,
+        Animation<double> secondaryAnimation,
+        ) => page,
+    transitionsBuilder: (
+        BuildContext context,
+        Animation<double> primaryAnimation,
+        Animation<double> secondaryAnimation,
+        Widget child,
+        ) {
+      return SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(-1.0, 0.0),
+          end: Offset.zero,
+        ).animate(CurvedAnimation(
+          parent: primaryAnimation,
+          curve: Curves.easeOutQuad, // You can change the curve for different animation feels
+        ),),
+        child: child,
+      );
+    },
+  );
 }
 
 class _EmailVerificationPageState extends State<EmailVerificationPage> {
@@ -141,7 +172,7 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
                   borderRadius: BorderRadius.circular(30),
                 ),
               ),
-              onPressed: canResendEmail ? resendVerificationEmail : null,
+              onPressed: canResendEmail ? resendVerificationEmail : (){},
               child: Text(
                 canResendEmail
                     ? 'Resend Email'
@@ -151,7 +182,14 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
             ),
             const SizedBox(height: 8),
             TextButton(
-              onPressed: () => FirebaseAuth.instance.signOut(),
+              onPressed: () {
+                Navigator.pushReplacement(
+                  context,
+                  SlideRightRoute(page: LandingPage()),
+                );
+
+                FirebaseAuth.instance.signOut();
+              },
               child: const Text(
                 'Cancel',
                 style: TextStyle(color: Colors.white70),

@@ -116,7 +116,7 @@ class _LandingPageState extends State<LandingPage> {
                         style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 20),
                     ElevatedButton(
                       onPressed: () {
                         Navigator.push(

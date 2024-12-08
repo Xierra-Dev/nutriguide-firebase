@@ -44,6 +44,37 @@ class SlideRightRoute extends PageRouteBuilder {
   );
 }
 
+class SlideLeftRoute extends PageRouteBuilder {
+  final Widget page;
+
+  SlideLeftRoute({required this.page})
+      : super(
+    pageBuilder: (
+        BuildContext context,
+        Animation<double> primaryAnimation,
+        Animation<double> secondaryAnimation,
+        ) =>
+    page,
+    transitionsBuilder: (
+        BuildContext context,
+        Animation<double> primaryAnimation,
+        Animation<double> secondaryAnimation,
+        Widget child,
+        ) {
+      return SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(1.0, 0.0),
+          end: Offset.zero,
+        ).animate(CurvedAnimation(
+          parent: primaryAnimation,
+          curve: Curves.easeOutQuad,
+        )),
+        child: child,
+      );
+    },
+  );
+}
+
 class _GoalsPageState extends State<GoalsPage> {
   final FirestoreService _firestoreService = FirestoreService();
   final TheMealDBService _mealService = TheMealDBService();
@@ -445,7 +476,7 @@ class _GoalsPageState extends State<GoalsPage> {
       await _firestoreService.saveUserGoals(selectedGoals.toList());
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const AllergiesPage()),
+        SlideLeftRoute(page: const AllergiesPage()),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
