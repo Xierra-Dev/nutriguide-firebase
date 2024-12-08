@@ -9,9 +9,7 @@ android {
     namespace = "com.example.nutriguide"
     compileSdk = 35
     ndkVersion = "28.0.12674087-rc1"
-    defaultConfig {
-        multiDexEnabled true
-    }
+
     compileOptions {
         coreLibraryDesugaringEnabled true
         sourceCompatibility = JavaVersion.VERSION_1_8
@@ -26,8 +24,9 @@ android {
         applicationId = "com.example.nutriguide"
         minSdk = 23
         targetSdk = flutter.targetSdkVersion
-        versionCode = flutter.versionCode
-        versionName = flutter.versionName
+        versionCode = 1
+        versionName = 1.0
+        multiDexEnabled true
     }
 
     buildTypes {

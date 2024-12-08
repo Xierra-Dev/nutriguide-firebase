@@ -11,6 +11,37 @@ class PlannerPage extends StatefulWidget {
   _PlannerPageState createState() => _PlannerPageState();
 }
 
+class SlideUpRoute extends PageRouteBuilder {
+  final Widget page;
+
+  SlideUpRoute({required this.page})
+      : super(
+    pageBuilder: (
+        BuildContext context,
+        Animation<double> primaryAnimation,
+        Animation<double> secondaryAnimation,
+        ) =>
+    page,
+    transitionsBuilder: (
+        BuildContext context,
+        Animation<double> primaryAnimation,
+        Animation<double> secondaryAnimation,
+        Widget child,
+        ) {
+      return SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0.0, 1.0), // Start from bottom
+          end: Offset.zero, // End at the center
+        ).animate(CurvedAnimation(
+          parent: primaryAnimation,
+          curve: Curves.easeOutQuad,
+        )),
+        child: child,
+      );
+    },
+  );
+}
+
 class _PlannerPageState extends State<PlannerPage> {
   final FirestoreService _firestoreService = FirestoreService();
   Map<String, List<PlannedMeal>> weeklyMeals = {};
@@ -181,8 +212,8 @@ class _PlannerPageState extends State<PlannerPage> {
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(
-                              builder: (context) => RecipeDetailPage(
+                            SlideUpRoute(
+                              page:  RecipeDetailPage(
                                 recipe: meal.recipe,
                               ),
                             ),
@@ -452,8 +483,8 @@ class _PlannerPageState extends State<PlannerPage> {
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(
-                              builder: (context) => RecipeDetailPage(
+                            SlideUpRoute(
+                              page: RecipeDetailPage(
                                 recipe: meal.recipe,
                               ),
                             ),

@@ -3,7 +3,7 @@ import 'dart:async';
 import 'login_page.dart';
 import 'register_page.dart';
 import 'services/themealdb_service.dart';
-import 'services/notifications_service.dart';
+import 'permission/notifications_permission.dart';
 
 class LandingPage extends StatefulWidget {
   const LandingPage({super.key});
