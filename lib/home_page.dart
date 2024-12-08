@@ -86,6 +86,7 @@ class _HomePageState extends State<HomePage> {
   final FirestoreService _firestoreService = FirestoreService();
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
       GlobalKey<RefreshIndicatorState>();
+  final CacheService _cacheService = CacheService();
   Map<String, bool> savedStatus = {};
   Map<String, bool> plannedStatus = {};
   List<Recipe> recommendedRecipes = [];
@@ -93,6 +94,7 @@ class _HomePageState extends State<HomePage> {
   List<Recipe> recentlyViewedRecipes = [];
   List<Recipe> feedRecipes = [];
   bool isLoading = true;
+  bool _isRefreshing = false;
   final bool _isFirstTimeLoading = true;
   String? errorMessage;
   int _currentIndex = 0;
@@ -123,7 +125,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Color _getHealthScoreColor(double score) {
-    if (score <= 4.5) {
+    if (score < 6) {
       return Colors.red;
     } else if (score <= 7.5) {
       return Colors.yellow;
@@ -560,9 +562,6 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  final CacheService _cacheService = CacheService();
-  bool _isRefreshing = false;
-
   Future<void> _loadRecipes() async {
     try {
       // Jika sedang refresh, langsung ambil data baru
@@ -635,13 +634,12 @@ class _HomePageState extends State<HomePage> {
     });
 
     await _loadRecipes();
+    await _loadRecentlyViewedRecipes();
 
     setState(() {
       _isRefreshing = false;
     });
   }
-
-  
 
   Future<void> _handleNavigationTap(int index) async {
     if (_currentIndex == index) {
@@ -654,12 +652,20 @@ class _HomePageState extends State<HomePage> {
           }
           await _handleRefresh();
           break;
+        case 1: // Home
+          if (index == 1) {
+            // Saved
+            _refreshIndicatorKey.currentState?.show();
+          }
+          await _handleRefresh();
+          break;
         case 2: // Planner
           if (index == 2) {
             // Saved
             _refreshIndicatorKey.currentState?.show();
           }
           // Tambahkan logika untuk me-refresh halaman Planner
+          await _handleRefresh();
           print(
               'Planner page refreshed'); // Ganti dengan metode refresh Planner
           break;
@@ -669,6 +675,7 @@ class _HomePageState extends State<HomePage> {
             _refreshIndicatorKey.currentState?.show();
           }
           // Tambahkan logika untuk me-refresh halaman Saved
+          await _handleRefresh();
           print('Saved page refreshed'); // Ganti dengan metode refresh Saved
           break;
       }
@@ -800,13 +807,6 @@ class _HomePageState extends State<HomePage> {
           onRefresh: _handleRefresh, // Sama seperti pull-to-refresh
           color: Colors.deepOrange,
           child: PlannerPage(),
-        );
-      case 3:
-        return RefreshIndicator(
-          key: _refreshIndicatorKey, // Key untuk animasi refresh
-          onRefresh: _handleRefresh, // Sama seperti pull-to-refresh
-          color: Colors.deepOrange,
-          child: const SavedPage(),
         );
       default:
         return _buildHomeContent();
@@ -1156,14 +1156,7 @@ class _HomePageState extends State<HomePage> {
           itemBuilder: (context, index) {
             final recipe = feedRecipes[index];
             return GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  SlideUpRoute(
-                    page: RecipeDetailPage(recipe: recipe),
-                  ),
-                );
-              },
+              onTap: () => _viewRecipe(recipe),
               child: Container(
                 height: 250,
                 margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),

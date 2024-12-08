@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'models/planned_meal.dart';
+import 'models/recipe.dart';
 import 'services/firestore_service.dart';
 import 'recipe_detail_page.dart';
 
@@ -54,6 +55,16 @@ class _PlannerPageState extends State<PlannerPage> {
   void initState() {
     super.initState();
     _loadPlannedMeals();
+  }
+
+  void _viewRecipe(Recipe recipe) async {
+    await _firestoreService.addToRecentlyViewed(recipe);
+    if (mounted) {
+      await Navigator.push(
+        context,
+        SlideUpRoute(page: RecipeDetailPage(recipe: recipe)),
+      );
+    }
   }
 
   Future<void> _loadPlannedMeals() async {
@@ -138,13 +149,6 @@ class _PlannerPageState extends State<PlannerPage> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.deepOrange,
-        child: const Icon(Icons.add),
-        onPressed: () {
-          // Navigate to add meal page
-        },
-      ),
     );
   }
 
@@ -209,16 +213,7 @@ class _PlannerPageState extends State<PlannerPage> {
                     itemBuilder: (context, mealIndex) {
                       final meal = meals[mealIndex];
                       return GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            SlideUpRoute(
-                              page:  RecipeDetailPage(
-                                recipe: meal.recipe,
-                              ),
-                            ),
-                          );
-                        },
+                        onTap: () => _viewRecipe(meal.recipe),
                         child: Container(
                           width: 250,
                           margin: const EdgeInsets.only(right: 16, bottom: 16),

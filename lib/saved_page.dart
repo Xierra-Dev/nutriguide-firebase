@@ -62,6 +62,16 @@ class _SavedPageState extends State<SavedPage> {
     }
   }
 
+  void _viewRecipe(Recipe recipe) async {
+    await _firestoreService.addToRecentlyViewed(recipe);
+    if (mounted) {
+      await Navigator.push(
+        context,
+        SlideUpRoute(page: RecipeDetailPage(recipe: recipe)),
+      );
+    }
+  }
+
   Future<void> _loadSavedRecipes() async {
     setState(() {
       isLoading = true;
@@ -80,7 +90,7 @@ class _SavedPageState extends State<SavedPage> {
     }
   }
 
-  Future<void> _toggleSaveRecipe(Recipe recipe) async {
+  Future<void> _removeSaveRecipe(Recipe recipe) async {
     try {
       // Remove the recipe from saved recipes
       await _firestoreService.removeFromSavedRecipes(recipe);
@@ -214,14 +224,7 @@ class _SavedPageState extends State<SavedPage> {
 
   Widget _buildRecipeCard(Recipe recipe) {
     return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          SlideUpRoute(
-            page: RecipeDetailPage(recipe: recipe),
-          ),
-        ).then((_) => _loadSavedRecipes());
-      },
+      onTap: () => _viewRecipe(recipe),
       child: Stack(
         children: [
           Container(
@@ -308,7 +311,7 @@ class _SavedPageState extends State<SavedPage> {
                   color: Colors.deepOrange,
                   size: 17.5,
                 ),
-                onPressed: () => _toggleSaveRecipe(recipe),
+                onPressed: () => _removeSaveRecipe(recipe),
               ),
             ),
           ),

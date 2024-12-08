@@ -90,6 +90,16 @@ class _SearchPageState extends State<SearchPage> {
     }
   }
 
+  void _viewRecipe(Recipe recipe) async {
+    await _firestoreService.addToRecentlyViewed(recipe);
+    if (mounted) {
+      await Navigator.push(
+        context,
+        SlideUpRoute(page: RecipeDetailPage(recipe: recipe)),
+      );
+    }
+  }
+
   void _showMealSelectionDialog(BuildContext context, StateSetter setDialogState, Recipe recipe) {
     showModalBottomSheet(
       context: context,
@@ -613,12 +623,10 @@ class _SearchPageState extends State<SearchPage> {
       });
     }
   }
-
   void _openRecipeDetail(Recipe recipe) async {
     try {
       // Tambahkan ke recently viewed
       await _firestoreService.addToRecentlyViewed(recipe);
-
       if (mounted) {
         // Check if widget is still mounted
         await Navigator.push(
@@ -991,7 +999,7 @@ class _SearchPageState extends State<SearchPage> {
       itemBuilder: (context, index) {
         final recipe = recipeList[index];
         return GestureDetector(
-          onTap: () => _openRecipeDetail(recipe),
+          onTap: () => _viewRecipe(recipe),
           child: Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12),

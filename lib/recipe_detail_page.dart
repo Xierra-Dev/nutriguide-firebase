@@ -546,7 +546,10 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
             ),
             leading: IconButton(
               icon: const Icon(Icons.arrow_back, color: Colors.white),
-                onPressed: () => Navigator.pop(context),
+                onPressed: () async {
+                await _firestoreService.addToRecentlyViewed(widget.recipe);
+                Navigator.pop(context);
+                },
             ),
             actions: [
                 Row(

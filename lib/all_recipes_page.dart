@@ -138,6 +138,16 @@ class _AllRecipesPageState extends State<AllRecipesPage> {
     }
   }
 
+  void _viewRecipe(Recipe recipe) async {
+    await _firestoreService.addToRecentlyViewed(recipe);
+    if (mounted) {
+      await Navigator.push(
+        context,
+        SlideUpRoute(page: RecipeDetailPage(recipe: recipe)),
+      );
+    }
+  }
+
   Future<void> _checkIfSaved(Recipe recipe) async {
     final saved = await _firestoreService.isRecipeSaved(recipe.id);
     setState(() {
