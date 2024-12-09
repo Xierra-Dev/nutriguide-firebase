@@ -4,7 +4,7 @@ import '../models/recipe.dart';
 import 'dart:io' show File;
 import 'storage_service.dart';
 import 'package:intl/intl.dart';
-import '../models/planned_meal.dart';
+import '../models/planned_recipe.dart';
 
 class FirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -294,13 +294,20 @@ class FirestoreService {
       if (userId != null) {
         // Normalisasi tanggal ke midnight untuk konsistensi
         final normalizedDate = DateTime(
-          selectedDate.year, 
-          selectedDate.month, 
+          selectedDate.year,
+          selectedDate.month,
           selectedDate.day,
         );
-        
+
+        // Periksa apakah rencana sudah ada
+        bool exists = await checkIfPlanExists(recipe.id, mealType, normalizedDate);
+        if (exists) {
+          print('Duplicate plan detected for recipe: ${recipe.title} on $normalizedDate');
+          throw Exception('Duplicate plan detected'); // Lempar error untuk penanganan lebih lanjut
+        }
+
         String plannedId = '${recipe.id}_${normalizedDate.millisecondsSinceEpoch}';
-        
+
         await _firestore
             .collection('users')
             .doc(userId)
@@ -328,6 +335,36 @@ class FirestoreService {
       rethrow;
     }
   }
+
+  Future<bool> checkIfPlanExists(String recipeId, String mealType, DateTime selectedDate) async {
+    try {
+      String? userId = _auth.currentUser?.uid;
+      if (userId != null) {
+        // Normalisasi tanggal ke midnight untuk konsistensi
+        final normalizedDate = DateTime(
+          selectedDate.year,
+          selectedDate.month,
+          selectedDate.day,
+        );
+
+        final querySnapshot = await _firestore
+            .collection('users')
+            .doc(userId)
+            .collection('planned_recipes')
+            .where('id', isEqualTo: recipeId)
+            .where('mealType', isEqualTo: mealType)
+            .where('plannedDate', isEqualTo: Timestamp.fromDate(normalizedDate))
+            .get();
+
+        return querySnapshot.docs.isNotEmpty; // Jika ada dokumen, berarti duplikat
+      }
+      return false;
+    } catch (e) {
+      print('Error checking for duplicate plan: $e');
+      rethrow;
+    }
+  }
+
 
   Future<void> addToRecentlyViewed(Recipe recipe) async {
     try {

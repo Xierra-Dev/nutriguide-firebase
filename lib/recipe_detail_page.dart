@@ -196,11 +196,11 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
                   // Meal type selection
                   ListView(
                     shrinkWrap: true,
-                    children: ['Breakfast', 'Lunch', 'Dinner'].map((String mealType) {
+                    children: ['Breakfast', 'Lunch', 'Dinner', 'Supper', 'Snacks'].map((String mealType) {
                       return ListTile(
                         title: Text(
                           mealType,
-                          style: const TextStyle(color: Colors.white),
+                          style: const TextStyle(color: Colors.white, fontSize: 16,),
                         ),
                         onTap: () {
                           // Update the selected meal in the parent dialog
@@ -436,6 +436,8 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
   void _saveSelectedPlan(Recipe recipe) async {
     try {
       List<DateTime> selectedDates = [];
+      List<DateTime> successfullyPlannedDates = []; // Menyimpan tanggal yang berhasil disimpan
+
       for (int i = 0; i < _daysSelected.length; i++) {
         if (_daysSelected[i]) {
           DateTime selectedDate = DateTime(
@@ -443,18 +445,30 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
             _selectedDate.month,
             _selectedDate.day + i,
           );
-          print('Selected date: $selectedDate');
           selectedDates.add(selectedDate);
         }
       }
 
       for (DateTime date in selectedDates) {
+        bool exists = await _firestoreService.checkIfPlanExists(
+          recipe.id,
+          _selectedMeal,
+          date,
+        );
+
+        if (exists) {
+          print('Duplicate plan detected for date: $date');
+          continue; // Lewati tanggal yang sudah direncanakan
+        }
+
         print('Saving recipe for date: $date');
         await _firestoreService.addPlannedRecipe(
           recipe,
           _selectedMeal,
           date,
         );
+
+        successfullyPlannedDates.add(date); // Tambahkan tanggal yang berhasil direncanakan
       }
 
       if (mounted) {
@@ -462,20 +476,35 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
           isPlanned = true;
           _isTemporarilyPlanned = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                Icon(Icons.add_task_rounded, color: Colors.white),
-                SizedBox(width: 8),
-                Text('Recipe planned for ${selectedDates.length} day(s)'),
-              ],
+
+        if (successfullyPlannedDates.isNotEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.add_task_rounded, color: Colors.white),
+                  SizedBox(width: 8),
+                  Text('Recipe planned for ${successfullyPlannedDates.length} day(s)'),
+                ],
+              ),
+              backgroundColor: Colors.green,
             ),
-            backgroundColor: Colors.green,
-          ),
-        );
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.info, color: Colors.white),
+                  SizedBox(width: 8),
+                  Text('No new plans were added. All selected plans already exist.', style: TextStyle(fontSize: 13.25),),
+                ],
+              ),
+              backgroundColor: Colors.blue,
+            ),
+          );
+        }
       }
-      // Update the planned status after saving
     } catch (e) {
       print('Error saving plan: $e');
       if (mounted) {
@@ -494,6 +523,8 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
       }
     }
   }
+
+
 
   @override
   Widget build(BuildContext context) {

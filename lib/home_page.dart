@@ -262,11 +262,14 @@ class _HomePageState extends State<HomePage> {
                   // Meal type selection
                   ListView(
                     shrinkWrap: true,
-                    children: ['Breakfast', 'Lunch', 'Dinner'].map((String mealType) {
+                    children: ['Breakfast', 'Lunch', 'Dinner', 'Supper', 'Snacks'].map((String mealType) {
                       return ListTile(
                         title: Text(
                           mealType,
-                          style: const TextStyle(color: Colors.white),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                          ),
                         ),
                         onTap: () {
                           // Update the selected meal in the parent dialog
@@ -502,6 +505,8 @@ class _HomePageState extends State<HomePage> {
   void _saveSelectedPlan(Recipe recipe) async {
     try {
       List<DateTime> selectedDates = [];
+      List<DateTime> successfullyPlannedDates = []; // Untuk menyimpan tanggal yang berhasil direncanakan
+
       for (int i = 0; i < _daysSelected.length; i++) {
         if (_daysSelected[i]) {
           // Normalize the date
@@ -516,33 +521,65 @@ class _HomePageState extends State<HomePage> {
       }
 
       for (DateTime date in selectedDates) {
-        print('Saving recipe for date: $date'); // Debug print
+        // Periksa apakah rencana dengan tanggal ini sudah ada
+        bool exists = await _firestoreService.checkIfPlanExists(
+          recipe.id,
+          _selectedMeal,
+          date,
+        );
+
+        if (exists) {
+          print('Duplicate plan detected for date: $date');
+          continue; // Lewati tanggal yang sudah direncanakan
+        }
+
+        // Simpan rencana baru
+        print('Saving recipe for date: $date');
         await _firestoreService.addPlannedRecipe(
           recipe,
           _selectedMeal,
           date,
         );
+
+        successfullyPlannedDates.add(date); // Tambahkan tanggal yang berhasil direncanakan
       }
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                Icon(Icons.add_task_rounded, color: Colors.white),
-                SizedBox(width: 8),
-                Text('Recipe planned for ${selectedDates.length} day(s)'),
-              ],
+        if (successfullyPlannedDates.isNotEmpty) {
+          // Tampilkan SnackBar untuk tanggal yang berhasil direncanakan
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.add_task_rounded, color: Colors.white),
+                  SizedBox(width: 8),
+                  Text('Recipe planned for ${successfullyPlannedDates.length} day(s)'),
+                ],
+              ),
+              backgroundColor: Colors.green,
             ),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
+          );
+        } else {
+          // Tampilkan SnackBar jika semua tanggal adalah duplikat
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.info, color: Colors.white),
+                  SizedBox(width: 8),
+                  Text('No new plans were added. All selected plans already exist.', style: TextStyle(fontSize: 13),),
+                ],
+              ),
+              backgroundColor: Colors.blue,
+            ),
+          );
+        }
 
-      // Update the planned status after saving
-      setState(() {
-        plannedStatus[recipe.id] = true; // Mark as planned
-      });
+        // Perbarui status rencana di UI
+        setState(() {
+          plannedStatus[recipe.id] = true; // Tandai sebagai direncanakan
+        });
+      }
     } catch (e) {
       print('Error saving plan: $e');
       if (mounted) {
@@ -561,6 +598,7 @@ class _HomePageState extends State<HomePage> {
       }
     }
   }
+
 
   Future<void> _loadRecipes() async {
     try {
