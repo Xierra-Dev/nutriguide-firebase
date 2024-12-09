@@ -40,14 +40,14 @@ class _HealthDataPageState extends State<HealthDataPage> {
   Future<void> _loadHealthData() async {
     try {
       final userData = await _firestoreService.getUserPersonalization();
-      if (userData != null) {
+      if (mounted) {  // Check if widget is still mounted
         setState(() {
           // Save original values
-          originalGender = userData['gender'];
-          originalBirthYear = userData['birthYear'];
-          originalHeight = userData['height'];
-          originalWeight = userData['weight'];
-          originalActivityLevel = userData['activityLevel'];
+          originalGender = userData?['gender'];
+          originalBirthYear = userData?['birthYear'];
+          originalHeight = userData?['height'];
+          originalWeight = userData?['weight'];
+          originalActivityLevel = userData?['activityLevel'];
 
           // Set current values
           gender = originalGender;
@@ -61,9 +61,17 @@ class _HealthDataPageState extends State<HealthDataPage> {
       }
     } catch (e) {
       print('Error loading health data: $e');
-      setState(() {
-        isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          // Set default values if there's an error
+          gender = null;
+          birthYear = 2000;
+          height = 170;
+          weight = 70;
+          activityLevel = 'Not active';
+          isLoading = false;
+        });
+      }
     }
   }
 
@@ -199,75 +207,74 @@ class _HealthDataPageState extends State<HealthDataPage> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: _onWillPop, // Mencegah navigasi kembali sebelum konfirmasi
-      child: Scaffold(
+Widget build(BuildContext context) {
+  return WillPopScope(
+    onWillPop: _onWillPop,
+    child: Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
         backgroundColor: Colors.black,
-        appBar: AppBar(
-          backgroundColor: Colors.black,
-          title: const Text(
-            'Health Data',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () => _onBackPressed(context),
+        title: const Text(
+          'Health Data',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
           ),
         ),
-        body: isLoading
-            ? const Center(child: CircularProgressIndicator(color: Colors.deepOrange))
-            : Column(
-          children: [
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 5,
-                  vertical: 20,
-                ),
-                child: Column(
-                  children: [
-                    _buildDataItem('Sex', gender ?? 'Not set', _editSex),
-                    _buildDataItem('Year of Birth', birthYear.toString(), _editYearOfBirth),
-                    _buildDataItem('Height', '$height cm', _editHeight),
-                    _buildDataItem('Weight', '$weight kg', _editWeight),
-                    _buildDataItem('Activity Level', activityLevel, _editActivityLevel),
-                  ],
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _hasChanges
-                      ? Colors.deepOrange
-                      : Colors.grey,
-                  minimumSize: const Size(double.infinity, 50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(50),
-                  ),
-                ),
-                onPressed: isLoading && _hasChanges ? null : _saveHealthData,
-                child: Text(
-                  'SAVE',
-                  style: TextStyle(
-                    color: _hasChanges ? Colors.black : Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-          ],
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => _onBackPressed(context),
         ),
       ),
-    );
-  }
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator(color: Colors.deepOrange))
+          : Column(
+              children: [
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 5,
+                      vertical: 20,
+                    ),
+                    child: Column(
+                      children: [
+                        _buildDataItem('Sex', gender ?? 'Not set', _editSex),
+                        _buildDataItem('Year of Birth', birthYear.toString(), _editYearOfBirth),
+                        _buildDataItem('Height', '$height cm', _editHeight),
+                        _buildDataItem('Weight', '$weight kg', _editWeight),
+                        _buildDataItem('Activity Level', activityLevel, _editActivityLevel),
+                      ],
+                    ),
+                  ),
+                ),
+                if (!isLoading) // Only show save button when not loading
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _hasChanges ? Colors.deepOrange : Colors.grey,
+                        minimumSize: const Size(double.infinity, 50),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(50),
+                        ),
+                      ),
+                      onPressed: _hasChanges ? _saveHealthData : null,
+                      child: Text(
+                        'SAVE',
+                        style: TextStyle(
+                          color: _hasChanges ? Colors.black : Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+    ),
+  );
+}
 
 
 
