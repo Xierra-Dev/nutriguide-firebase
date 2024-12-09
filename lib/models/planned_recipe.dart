@@ -3,11 +3,11 @@ import 'recipe.dart';
 class PlannedMeal {
   final Recipe recipe;
   final String mealType;
-  final DateTime date;
+  final DateTime dateKey;
 
   PlannedMeal({
     required this.recipe,
     required this.mealType,
-    required this.date,
+    required this.dateKey,
   });
 } 

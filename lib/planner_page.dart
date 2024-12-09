@@ -90,36 +90,43 @@ class _PlannerPageState extends State<PlannerPage> {
     });
   }
 
-  Future<void> _toggleMade(Recipe recipe) async {
+  Future<void> _toggleMade(PlannedMeal plannedMeal) async {
     try {
-      final bool currentStatus = madeStatus[recipe.id] ?? false;
+      // Generate a unique identifier for this specific planned meal
+      final String mealKey = '${plannedMeal.recipe.id}_${plannedMeal.mealType}_${plannedMeal.dateKey}';
 
-      if (madeStatus[recipe.id] == true) {
-        await _firestoreService.removeMadeRecipe(recipe.id);
+      final bool currentStatus = madeStatus[mealKey] ?? false;
+
+      if (madeStatus[mealKey] == true) {
+        // Remove the specific planned meal from made recipes
+        await _firestoreService.removeMadeRecipe(mealKey);
       } else {
-        await _firestoreService.madeRecipe(recipe);
+        // Add this specific planned meal as a made recipe
+        await _firestoreService.madeRecipe(plannedMeal.recipe, additionalKey: mealKey);
       }
+
       setState(() {
-        madeStatus[recipe.id] = !currentStatus;
+        madeStatus[mealKey] = !currentStatus;
       });
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
             children: [
               Icon(
-                  madeStatus[recipe.id] == true
+                  madeStatus[mealKey] == true
                       ? Icons.bookmark_added
                       : Icons.delete_rounded,
-                  color: madeStatus[recipe.id] == true
+                  color: madeStatus[mealKey] == true
                       ? Colors.white
                       : Colors.red
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  madeStatus[recipe.id] == true
-                      ? 'Recipe: "${recipe.title}" saved'
-                      : 'Recipe: "${recipe.title}" removed from saved',
+                  madeStatus[mealKey] == true
+                      ? 'Recipe: "${plannedMeal.recipe.title}" made'
+                      : 'Recipe: "${plannedMeal.recipe.title}" unmade',
                 ),
               ),
             ],
@@ -135,7 +142,7 @@ class _PlannerPageState extends State<PlannerPage> {
               const Icon(Icons.error, color: Colors.white),
               const SizedBox(width: 8),
               Expanded(
-                child: Text('Error plan recipe: ${e.toString()}'),
+                child: Text('Error made recipe: ${e.toString()}'),
               ),
             ],
           ),
@@ -268,6 +275,9 @@ class _PlannerPageState extends State<PlannerPage> {
                     itemCount: meals.length,
                     itemBuilder: (context, mealIndex) {
                       final meal = meals[mealIndex];
+
+                      // Generate a unique key for this specific planned meal
+                      final mealKey = '${meal.recipe.id}_${meal.mealType}_${meal.dateKey}';
                       // Inside the horizontal ListView.builder
                       return GestureDetector(
                         onTap: () => _viewRecipe(meal.recipe),
@@ -346,14 +356,14 @@ class _PlannerPageState extends State<PlannerPage> {
                               top: -3,
                               right: 16,
                               child: IconButton(
-                                iconSize: 30, // Reduced from 30 to 20
+                                iconSize: 30,
                                 icon: Icon(
                                   Icons.check_circle,
-                                  color: madeStatus[meal.recipe.id] ?? false
+                                  color: madeStatus[mealKey] ?? false
                                       ? Colors.green
                                       : Colors.white,
                                 ),
-                                onPressed: () => _toggleMade(meal.recipe),
+                                onPressed: () => _toggleMade(meal),
                               ),
                             ),
                           ],

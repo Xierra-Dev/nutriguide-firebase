@@ -567,7 +567,7 @@ class FirestoreService {
         final plannedMeal = PlannedMeal(
           recipe: recipe,
           mealType: data['mealType'],
-          date: date,
+          dateKey: date,
         );
         
         if (!meals.containsKey(dateKey)) {
@@ -587,7 +587,7 @@ class FirestoreService {
   Future<void> deletePlannedMeal(PlannedMeal meal) async {
     String? userId = _auth.currentUser?.uid;
     if (userId != null) {
-      String plannedId = '${meal.recipe.id}_${meal.date.millisecondsSinceEpoch}';
+      String plannedId = '${meal.recipe.id}_${meal.dateKey.millisecondsSinceEpoch}';
       await _firestore
           .collection('users')
           .doc(userId)
@@ -750,53 +750,64 @@ class FirestoreService {
     }
   }
 
-  Future<void> madeRecipe(Recipe recipe) async {
+  Future<void> madeRecipe(Recipe recipe, {String? additionalKey}) async {
     try {
-      String? userId = _auth.currentUser?.uid;
-      if (userId != null) {
-        await _firestore
-            .collection('users')
-            .doc(userId)
-            .collection('made_recipes')
-            .doc(recipe.id)
-            .set({
-          'id': recipe.id,
-          'title': recipe.title,
-          'image': recipe.image,
-          'category': recipe.category,
-          'area': recipe.area,
-          'instructions': recipe.instructions,
-          'ingredients': recipe.ingredients,
-          'measurements': recipe.measurements,
-          'preparationTime': recipe.preparationTime,
-          'healthScore': recipe.healthScore,
-          'madeAt': FieldValue.serverTimestamp(),
-        });
-      } else {
-        throw Exception('No authenticated user found');
-      }
+      // Use the additionalKey if provided, otherwise use the recipe ID
+      final docId = additionalKey ?? recipe.id;
+
+      await _firestore
+          .collection('made_recipes')
+          .doc(docId)
+          .set({
+        'id': recipe.id,
+        'title': recipe.title,
+        'image': recipe.image,
+        'category': recipe.category,
+        'area': recipe.area,
+        'instructions': recipe.instructions,
+        'ingredients': recipe.ingredients,
+        'measurements': recipe.measurements,
+        'preparationTime': recipe.preparationTime,
+        'healthScore': recipe.healthScore,
+        'madeAt': FieldValue.serverTimestamp(),
+        'madeDate': Timestamp.fromDate, // Gunakan tanggal yang dinormalisasi
+        // Add any other relevant recipe details
+        'timestamp': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
     } catch (e) {
-      print('Error saving recipe: $e');
+      print('Error marking recipe as made: $e');
       rethrow;
     }
   }
 
-  Future<void> removeMadeRecipe(String recipeId) async {
+  Future<void> removeMadeRecipe(String docId) async {
+    try {
+      await _firestore
+          .collection('made_recipes')
+          .doc(docId)
+          .delete();
+    } catch (e) {
+      print('Error removing made recipe: $e');
+      rethrow;
+    }
+  }
+
+  Future<bool> isRecipeMade(String recipeId) async {
     try {
       String? userId = _auth.currentUser?.uid;
       if (userId != null) {
-        await _firestore
+        final doc = await _firestore
             .collection('users')
             .doc(userId)
             .collection('made_recipes')
             .doc(recipeId)
-            .delete();
-      } else {
-        throw Exception('No authenticated user found');
+            .get();
+        return doc.exists;
       }
+      return false;
     } catch (e) {
-      print('Error removing saved recipe: $e');
-      rethrow;
+      print('Error checking if recipe is saved: $e');
+      return false;
     }
   }
 }
