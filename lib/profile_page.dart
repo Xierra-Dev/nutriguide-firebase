@@ -86,9 +86,18 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
   final FirestoreService _firestoreService = FirestoreService();
   Map<String, dynamic>? userData;
   bool isLoading = true;
+  bool isLoadingActivity = true; 
+  List<Recipe> activityRecipes = []; 
   List<Recipe> createdRecipes = [];
   bool isLoadingCreated = true;
+
   final Color selectedColor = const Color.fromARGB(255, 240, 182, 75);
+
+  // Define the daily nutrition variables
+  double dailyCalories = 0;
+  double dailyProtein = 0;
+  double dailyCarbs = 0;
+  double dailyFat = 0;
 
   @override
   void initState() {
@@ -96,6 +105,8 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
     _tabController = TabController(length: 3, vsync: this);
     _loadUserData();
     _loadCreatedRecipes();
+    _loadDailyNutritionData();
+    _loadActivityData();
 
     // Add listener to update state when tab changes
     _tabController.addListener(() {
@@ -103,6 +114,21 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
         setState(() {});
       }
     });
+  }
+
+  Future<void> _loadActivityData() async {
+    try {
+      final madeRecipes = await _firestoreService.getMadeRecipes();
+      setState(() {
+        activityRecipes = madeRecipes;
+        isLoadingActivity = false;
+      });
+    } catch (e) {
+      print('Error loading activity data: $e');
+      setState(() {
+        isLoadingActivity = false;
+      });
+    }
   }
 
   Future<void> _loadUserData() async {
@@ -128,6 +154,20 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
         userData = {};
         isLoading = false;
       });
+    }
+  }
+
+  Future<void> _loadDailyNutritionData() async {
+    try {
+      final nutritionTotals = await _firestoreService.getDailyNutritionTotals();
+      setState(() {
+        dailyCalories = nutritionTotals['calories'] ?? 0;
+        dailyProtein = nutritionTotals['protein'] ?? 0;
+        dailyCarbs = nutritionTotals['carbs'] ?? 0;
+        dailyFat = nutritionTotals['fat'] ?? 0;
+      });
+    } catch (e) {
+      print('Error loading daily nutrition data: $e');
     }
   }
 
@@ -606,164 +646,219 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
   }
 
     Widget _buildActivityTab() {
-    if (isLoadingCreated) {
+    if (isLoadingActivity) {
       return const Center(child: CircularProgressIndicator(color: Colors.deepOrange));
     }
 
-    if (createdRecipes.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset(
-              'assets/images/no-activity.png',
-              width: 125,
-              height: 125,
-              fit: BoxFit.contain,
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'No activity yet',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 17,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: createdRecipes.length,
-      itemBuilder: (context, index) {
-        final recipe = createdRecipes[index];
-        final timeAgo = timeago.format(recipe.createdAt);
-        return Container(
-          margin: const EdgeInsets.only(bottom: 16),
-          decoration: BoxDecoration(
-            color: Colors.grey[900],
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // User Info Row
-              Padding(
-                padding: const EdgeInsets.all(12),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 20,
-                      backgroundImage: NetworkImage(userData?['profilePictureUrl'] ?? 'default_avatar_url'),
-                    ),
-                    const SizedBox(width: 12),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+    return RefreshIndicator(
+      onRefresh: _loadActivityData,
+      color: Colors.deepOrange,
+      child: activityRecipes.isEmpty && createdRecipes.isEmpty
+          ? ListView(
+              children: [
+                SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.465,
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
-                          _authService.currentUser?.displayName ?? 'User',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        Image.asset(
+                          'assets/images/no-activity.png',
+                          width: 125,
+                          height: 125,
+                          fit: BoxFit.contain,
                         ),
-                        Text(
-                          timeAgo, // TODO: Calculate actual time
+                        const SizedBox(height: 16),
+                        const Text(
+                          'No activity yet',
                           style: TextStyle(
-                            color: Colors.grey[400],
-                            fontSize: 12,
+                            color: Colors.white,
+                            fontSize: 17,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],
                     ),
-                  ],
-                ),
-              ),
-              // Recipe Image
-              GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => RecipeDetailPage(recipe: recipe),
-                    ),
-                  );
-                },
-                child: Stack(
-                  children: [
-                    Image.network(
-                      recipe.image,
-                      width: double.infinity,
-                      height: 200,
-                      fit: BoxFit.cover,
-                    ),
-                    Positioned(
-                      top: 12,
-                      right: 12,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.7),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: const Text(
-                          'Made it ✨',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              // Recipe Info
-              Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      recipe.title.toUpperCase(),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      recipe.category ?? 'Custom Recipe',
-                      style: TextStyle(
-                        color: Colors.grey[400],
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              // Save Button
-              Padding(
-                padding: const EdgeInsets.only(right: 12, bottom: 12),
-                child: Align(
-                  alignment: Alignment.centerRight,
-                  child: IconButton(
-                    icon: const Icon(Icons.bookmark_border, color: Colors.white),
-                    onPressed: () {
-                      // TODO: Implement save functionality
-                    },
                   ),
                 ),
-              ),
-            ],
-          ),
-        );
-      },
+              ],
+            )
+          : ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: activityRecipes.length + createdRecipes.length,
+              itemBuilder: (context, index) {
+                bool isMadeRecipe = index < activityRecipes.length;
+                final recipe = isMadeRecipe 
+                    ? activityRecipes[index]
+                    : createdRecipes[index - activityRecipes.length];
+                
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[900],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // User Info Row
+                      Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Row(
+                          children: [
+                            CircleAvatar(
+                              radius: 20,
+                              backgroundImage: NetworkImage(userData?['profilePictureUrl'] ?? 'default_avatar_url'),
+                            ),
+                            const SizedBox(width: 12),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  _authService.currentUser?.displayName ?? 'User',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                Text(
+                                  'a moment ago',
+                                  style: TextStyle(
+                                    color: Colors.grey[400],
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Recipe Image
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => RecipeDetailPage(recipe: recipe),
+                            ),
+                          );
+                        },
+                        child: Stack(
+                          children: [
+                            Image.network(
+                              recipe.image,
+                              width: double.infinity,
+                              height: 200,
+                              fit: BoxFit.cover,
+                            ),
+                            Positioned(
+                              top: 12,
+                              right: 12,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withOpacity(0.7),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  isMadeRecipe ? 'Made it ✨' : 'Created ✍️',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Recipe Info
+                      Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              recipe.title.toUpperCase(),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              recipe.category ?? 'My Recipe',
+                              style: TextStyle(
+                                color: Colors.grey[400],
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Action Buttons
+                      Padding(
+                        padding: const EdgeInsets.only(right: 12, bottom: 12),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            if (!isMadeRecipe) // Only show edit/delete for created recipes
+                              IconButton(
+                                icon: const Icon(Icons.edit, color: Colors.white),
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => EditRecipePage(recipe: recipe),
+                                    ),
+                                  ).then((_) => _loadCreatedRecipes());
+                                },
+                              ),
+                            if (!isMadeRecipe)
+                              IconButton(
+                                icon: const Icon(Icons.delete, color: Colors.white),
+                                onPressed: () async {
+                                  final confirm = await showDialog<bool>(
+                                    context: context,
+                                    builder: (context) => AlertDialog(
+                                      backgroundColor: Colors.grey[900],
+                                      title: const Text('Delete Recipe?', style: TextStyle(color: Colors.white)),
+                                      content: const Text('This action cannot be undone.', style: TextStyle(color: Colors.white70)),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () => Navigator.pop(context, false),
+                                          child: const Text('Cancel'),
+                                        ),
+                                        TextButton(
+                                          onPressed: () => Navigator.pop(context, true),
+                                          child: const Text('Delete', style: TextStyle(color: Colors.red)),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+
+                                  if (confirm == true) {
+                                    await _firestoreService.deleteUserRecipe(recipe.id);
+                                    _loadCreatedRecipes();
+                                  }
+                                },
+                              ),
+                            IconButton(
+                              icon: const Icon(Icons.bookmark_border, color: Colors.white),
+                              onPressed: () {
+                                // TODO: Implement save functionality
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
     );
   }
 }

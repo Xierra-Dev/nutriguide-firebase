@@ -172,6 +172,7 @@ class NutritionInfo {
   final double protein;
   final int sodium;
   final double fiber;
+  final double fat;
 
   NutritionInfo({
     required this.calories,
@@ -182,6 +183,7 @@ class NutritionInfo {
     required this.protein,
     required this.sodium,
     required this.fiber,
+    required this.fat,
   });
 
   factory NutritionInfo.generateRandom() {
@@ -195,6 +197,7 @@ class NutritionInfo {
       protein: random.nextDouble() * 30,
       sodium: random.nextInt(500) + 50,
       fiber: random.nextDouble() * 10,
+      fat: random.nextDouble() * 20,
     );
   }
 }

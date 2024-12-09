@@ -55,7 +55,15 @@ class _PlannerPageState extends State<PlannerPage> {
   @override
   void initState() {
     super.initState();
-    _loadPlannedMeals();
+    _loadPlannedMeals().then((_) => _loadMadeStatus());
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (weeklyMeals.isNotEmpty) {
+      _loadMadeStatus(); // Reload made status when page becomes visible
+    }
   }
 
   void _viewRecipe(Recipe recipe) async {
@@ -65,6 +73,30 @@ class _PlannerPageState extends State<PlannerPage> {
         context,
         SlideUpRoute(page: RecipeDetailPage(recipe: recipe)),
       );
+    }
+  }
+
+  Future<void> _loadMadeStatus() async {
+    try {
+      print('Loading made status...');
+      Map<String, bool> status = {};
+      
+      // Iterate through all meals in weeklyMeals
+      weeklyMeals.forEach((date, meals) {
+        for (var meal in meals) {
+          final mealKey = '${meal.recipe.id}_${meal.mealType}_${meal.dateKey}';
+          _firestoreService.isRecipeMade(mealKey).then((isMade) {
+            if (mounted) {
+              setState(() {
+                madeStatus[mealKey] = isMade;
+                print('Made status for $mealKey: $isMade');
+              });
+            }
+          });
+        }
+      });
+    } catch (e) {
+      print('Error loading made status: $e');
     }
   }
 
@@ -92,65 +124,64 @@ class _PlannerPageState extends State<PlannerPage> {
 
   Future<void> _toggleMade(PlannedMeal plannedMeal) async {
     try {
-      // Generate a unique identifier for this specific planned meal
       final String mealKey = '${plannedMeal.recipe.id}_${plannedMeal.mealType}_${plannedMeal.dateKey}';
-
+      print('Toggling made status for meal: ${plannedMeal.recipe.title}');
+      print('Meal key: $mealKey');
+      
       final bool currentStatus = madeStatus[mealKey] ?? false;
+      print('Current made status: $currentStatus');
 
-      if (madeStatus[mealKey] == true) {
-        // Remove the specific planned meal from made recipes
-        await _firestoreService.removeMadeRecipe(mealKey);
+      if (!currentStatus) {
+        print('Adding recipe to made recipes...');
+        // Add to made recipes
+        await _firestoreService.madeRecipe(
+          plannedMeal.recipe,
+          additionalKey: mealKey,
+          mealType: plannedMeal.mealType,
+          plannedDate: plannedMeal.date,
+        );
+        print('Successfully added to made recipes');
       } else {
-        // Add this specific planned meal as a made recipe
-        await _firestoreService.madeRecipe(plannedMeal.recipe, additionalKey: mealKey);
+        print('Removing recipe from made recipes...');
+        // Remove from made recipes
+        await _firestoreService.removeMadeRecipe(mealKey);
+        print('Successfully removed from made recipes');
       }
 
+      // Update local state
       setState(() {
         madeStatus[mealKey] = !currentStatus;
+        print('Updated local made status to: ${madeStatus[mealKey]}');
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              Icon(
-                  madeStatus[mealKey] == true
-                      ? Icons.bookmark_added
-                      : Icons.delete_rounded,
-                  color: madeStatus[mealKey] == true
-                      ? Colors.white
-                      : Colors.red
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  madeStatus[mealKey] == true
-                      ? 'Recipe: "${plannedMeal.recipe.title}" made'
-                      : 'Recipe: "${plannedMeal.recipe.title}" unmade',
+      // Show feedback
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(
+                  !currentStatus ? Icons.check_circle : Icons.remove_circle,
+                  color: Colors.white,
                 ),
-              ),
-            ],
+                const SizedBox(width: 8),
+                Text(!currentStatus 
+                  ? 'Recipe marked as made' 
+                  : 'Recipe marked as not made'
+                ),
+              ],
+            ),
+            backgroundColor: !currentStatus ? Colors.green : Colors.red,
           ),
-          backgroundColor: Colors.green,
-        ),
-      );
+        );
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.error, color: Colors.white),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text('Error made recipe: ${e.toString()}'),
-              ),
-            ],
-          ),
-          backgroundColor: Colors.red,
-        ),
-      );
+      print('Error in _toggleMade: $e');
+      print('Stack trace: ${StackTrace.current}');
+      // Show error message
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -361,7 +392,7 @@ class _PlannerPageState extends State<PlannerPage> {
                                   Icons.check_circle,
                                   color: madeStatus[mealKey] ?? false
                                       ? Colors.green
-                                      : Colors.white,
+                                      : Colors.white.withOpacity(0.6),
                                 ),
                                 onPressed: () => _toggleMade(meal),
                               ),
