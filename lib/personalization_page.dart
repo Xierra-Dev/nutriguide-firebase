@@ -38,7 +38,8 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
   Future<void> _loadUserData() async {
     setState(() => _isLoading = true);
     try {
-      Map<String, dynamic>? userData = await _firestoreService.getUserPersonalization();
+      Map<String, dynamic>? userData =
+          await _firestoreService.getUserPersonalization();
       if (userData != null) {
         setState(() {
           gender = userData['gender'];
@@ -61,7 +62,8 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
   Future<void> _loadRandomMealImage() async {
     try {
       final imageUrl = await _mealService.getRandomMealImage();
-      if (mounted) { // Check if widget is still mounted before setting state
+      if (mounted) {
+        // Check if widget is still mounted before setting state
         setState(() {
           _backgroundImageUrl = imageUrl;
           _isLoading = false;
@@ -87,16 +89,16 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
             width: double.infinity,
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center, // Center content vertically
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Padding(
                   padding: EdgeInsets.all(24.0),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center, // Center text horizontally
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Text(
                         "Don't Want Our Health\nFeatures?",
-                        textAlign: TextAlign.center, // Ensure text is centered
+                        textAlign: TextAlign.center,
                         style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
@@ -106,84 +108,104 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
                       SizedBox(height: 16.0),
                       Text(
                         "To receive personalized meal and recipe recommendations, you need to complete the questionnaire to use Health Features.",
-                        textAlign: TextAlign.center, // Ensure text is centered
-                        style: TextStyle(
-                            fontSize: 16.0,
-                            color: Colors.white
-                        ),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 16.0, color: Colors.white),
                       ),
                       SizedBox(height: 16.0),
-                      Text(
-                        "You can set up later in Settings > Preferences.",
-                        textAlign: TextAlign.center, // Ensure text is centered
-                        style: TextStyle(
-                          fontSize: 16.0,
-                          color: Colors.white,
+                      TextButton(
+                        onPressed: () {
+                          print("Navigating to HomePage");
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const HomePage()),
+                          );
+                        },
+                        style: TextButton.styleFrom(
+                          minimumSize: const Size(double.infinity, 50),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(50),
+                          ),
+                          side: BorderSide(color: Colors.white),
+                          padding: EdgeInsets.symmetric(vertical: 13.5),
+                        ),
+                        child: const Text(
+                          'SET UP LATER',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18.5,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+                // Action Buttons
+                Container(
+                  padding: const EdgeInsets.only(
+                    bottom: 30,
+                    left: 30,
+                    right: 30,
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Skip Questionnaire Button
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const HomePage(),
+                            ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 16,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(50.0),
+                          ),
+                        ),
+                        child: Text(
+                          "Skip Questionnaire",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 17.5),
+                      // Return to Questionnaire Button
+                      OutlinedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 16,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(50.0),
+                          ),
+                        ),
+                        child: Text(
+                          "Return to Questionnaire",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ),
-                 Container(
-                   padding: const EdgeInsets.only(
-                     bottom: 30,
-                     left: 30,
-                     right: 30,
-                   ),
-                   child: Column(
-                     mainAxisAlignment: MainAxisAlignment.center,
-                     crossAxisAlignment: CrossAxisAlignment.stretch,// Center buttons horizontally
-                      children: [
-                          ElevatedButton(
-                              onPressed: () {
-                                // Navigate to HomePage
-                                Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(builder: (context) => const HomePage()),
-                                );
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.red,
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 16,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(50.0),
-                                ),
-                              ),
-                              child: Text("Skip Questionnaire",
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                            ),
-                        SizedBox(height: 17.5,),
-                        OutlinedButton(
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 16,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(50.0),
-                                ),
-                              ),
-                              child: Text(
-                                "Return to Questionnaire",
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                            ),
-                      ],
-                    ),
-                 ),
               ],
             ),
           ),
@@ -200,54 +222,45 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
         decoration: BoxDecoration(
           image: _backgroundImageUrl != null
               ? DecorationImage(
-            image: NetworkImage(_backgroundImageUrl!),
-            fit: BoxFit.cover,
-            colorFilter: ColorFilter.mode(
-              Colors.black.withOpacity(0.3),
-              BlendMode.darken,
-            ),
-          )
+                  image: NetworkImage(_backgroundImageUrl!),
+                  fit: BoxFit.cover,
+                  colorFilter: ColorFilter.mode(
+                    Colors.black.withOpacity(0.3),
+                    BlendMode.darken,
+                  ),
+                )
               : const DecorationImage(
-            image: AssetImage('assets/images/landing_page.jpg'),
-            fit: BoxFit.cover,
-          ),
+                  image: AssetImage('assets/images/landing_page.jpg'),
+                  fit: BoxFit.cover,
+                ),
         ),
         child: Stack(
           children: [
-            // Background ima
-
-            // Main content
             SafeArea(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  const SizedBox(height: 110,),
-                  // Gradient container
-                  // Gradient container
-                  _buildGradientContainer(),
-                  const SizedBox(height: 8,),
-                  Positioned(
-                    top: 109,
-                    left: 0,
-                    right: 0,
-                    child: LinearProgressBar(
-                      maxSteps: 3,
-                      progressType: LinearProgressBar.progressTypeDots,
-                      currentStep: currentStep,
-                      progressColor: kPrimaryColor,
-                      backgroundColor: kColorsGrey400,
-                      dotsAxis: Axis.horizontal,
-                      dotsActiveSize: 10,
-                      dotsInactiveSize: 10,
-                      dotsSpacing: const EdgeInsets.only(right: 10),
-                      valueColor: const AlwaysStoppedAnimation<Color>(Colors.red),
-                      semanticsLabel: "Label",
-                      semanticsValue: "Value",
-                      minHeight: 10,
-                    ),
+                  const SizedBox(
+                    height: 110,
                   ),
-                  // Buttons container
+                  _buildGradientContainer(),
+                  const SizedBox(
+                    height: 8,
+                  ),
+                  LinearProgressBar(
+                    maxSteps: 4, // Adjust for the total steps
+                    progressType: LinearProgressBar.progressTypeDots,
+                    currentStep: currentStep,
+                    progressColor: Colors.red,
+                    backgroundColor: Colors.grey[400]!,
+                    dotsAxis: Axis.horizontal,
+                    dotsActiveSize: 10,
+                    dotsInactiveSize: 10,
+                    dotsSpacing: const EdgeInsets.only(right: 10),
+                    valueColor: const AlwaysStoppedAnimation<Color>(Colors.red),
+                    minHeight: 10,
+                  ),
                   const Spacer(),
                   _buildButtons(),
                 ],
@@ -303,10 +316,20 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
           ),
           const SizedBox(height: 20),
           _buildField('Sex', gender, _showGenderDialog),
-          _buildField('Year of Birth', birthYear?.toString(), _showBirthYearDialog),
-          _buildField('Height', height != null ? '$height ${heightUnit == 'cm' ? 'cm' : 'ft'}' : null, _showHeightDialog),
-          _buildField('Weight', weight != null ? '$weight kg' : null, _showWeightDialog),
-          _buildField('Activity Level', activityLevel, _showActivityLevelDialog),
+          _buildField(
+              'Year of Birth', birthYear?.toString(), _showBirthYearDialog),
+          _buildField(
+              'Height',
+              height != null
+                  ? '$height $heightUnit'
+                  : 'Please provide your height',
+              _showHeightDialog),
+          _buildField(
+              'Weight',
+              weight != null ? '$weight kg' : 'Please provide your weight',
+              _showWeightDialog),
+          _buildField(
+              'Activity Level', activityLevel, _showActivityLevelDialog),
         ],
       ),
     );
@@ -331,31 +354,41 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
             ),
             child: _isLoading
                 ? const CircularProgressIndicator(color: Colors.white)
-                : const Text('SAVE', style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w800,
-              color: Colors.black,
-            ),),
+                : const Text(
+                    'SAVE',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.black,
+                    ),
+                  ),
           ),
           const SizedBox(height: 16),
           TextButton(
-            onPressed:  _showSetUpLaterDialog,
+            onPressed: () {
+              print("Navigating to HomePage");
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const HomePage()),
+              );
+            },
             style: TextButton.styleFrom(
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 16),
+              minimumSize: const Size(double.infinity, 50),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(25),
-                side: const BorderSide(color: Colors.white),
+                borderRadius: BorderRadius.circular(50),
               ),
+              side: BorderSide(color: Colors.white),
+              padding: EdgeInsets.symmetric(vertical: 13.5),
             ),
             child: const Text(
               'SET UP LATER',
               style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
+                color: Colors.white,
+                fontSize: 18.5,
+                fontWeight: FontWeight.w700,
               ),
             ),
-          ),
+          )
         ],
       ),
     );
@@ -369,6 +402,7 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              // Label text
               Text(
                 label,
                 style: const TextStyle(
@@ -377,17 +411,21 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
                   fontWeight: FontWeight.w700,
                 ),
               ),
+              // Value and edit icon
               Row(
                 children: [
+                  // Value text
                   Text(
                     value ?? 'Not Set',
                     style: TextStyle(
                       color: value == null ? Colors.red : Colors.black,
                       fontSize: 18.5,
-                      fontWeight: value == null ? FontWeight.w600 : FontWeight.w800,
+                      fontWeight:
+                          value == null ? FontWeight.w600 : FontWeight.w800,
                     ),
                   ),
                   const SizedBox(width: 3),
+                  // Edit icon button
                   IconButton(
                     icon: const Icon(Icons.edit, color: Colors.red, size: 23),
                     onPressed: onTap,
@@ -400,6 +438,7 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
             ],
           ),
         ),
+        // Divider to separate each field
         const Divider(
           color: Colors.black,
           height: 3,
@@ -411,13 +450,15 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
   }
 
   void _showGenderDialog() {
-    Navigator.of(context).push(
+    Navigator.of(context)
+        .push(
       MaterialPageRoute(
         builder: (context) => CustomGenderPicker(
           initialValue: gender,
         ),
       ),
-    ).then((selectedGender) {
+    )
+        .then((selectedGender) {
       if (selectedGender != null) {
         setState(() {
           gender = selectedGender;
@@ -447,14 +488,15 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => CustomNumberPicker(
-          title: 'Your height',
-          unit: 'cm',
-          initialValue: height,
-          minValue: 0,
-          maxValue: 999,
-          showDecimals: true,
+          title: 'What is your height?',
+          unit: heightUnit == 'cm' ? 'cm' : 'ft',
+          initialValue: height ?? 170, // default value if height is null
+          minValue: 50, // reasonable minimum height
+          maxValue: 250, // reasonable maximum height
           onValueChanged: (value) {
-            setState(() => height = value);
+            setState(() {
+              height = value.toDouble();
+            });
           },
         ),
       ),
@@ -480,13 +522,15 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
   }
 
   void _showActivityLevelDialog() {
-    Navigator.of(context).push(
+    Navigator.of(context)
+        .push(
       MaterialPageRoute(
         builder: (context) => CustomActivityLevelPicker(
           initialValue: activityLevel,
         ),
       ),
-    ).then((selectedActivityLevel) {
+    )
+        .then((selectedActivityLevel) {
       if (selectedActivityLevel != null) {
         setState(() {
           activityLevel = selectedActivityLevel;
@@ -495,7 +539,7 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
     });
   }
 
-    Future<void> _saveData() async {
+  Future<void> _saveData() async {
     setState(() => _isLoading = true);
     try {
       await _firestoreService.saveUserPersonalization({

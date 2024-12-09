@@ -10,7 +10,6 @@ class AllergiesPage extends StatefulWidget {
 
   @override
   _AllergiesPageState createState() => _AllergiesPageState();
-
 }
 
 class SlideRightRoute extends PageRouteBuilder {
@@ -18,29 +17,33 @@ class SlideRightRoute extends PageRouteBuilder {
 
   SlideRightRoute({required this.page})
       : super(
-    pageBuilder: (
-        BuildContext context,
-        Animation<double> primaryAnimation,
-        Animation<double> secondaryAnimation,
-        ) => page,
-    transitionsBuilder: (
-        BuildContext context,
-        Animation<double> primaryAnimation,
-        Animation<double> secondaryAnimation,
-        Widget child,
-        ) {
-      return SlideTransition(
-        position: Tween<Offset>(
-          begin: const Offset(-1.0, 0.0),
-          end: Offset.zero,
-        ).animate(CurvedAnimation(
-          parent: primaryAnimation,
-          curve: Curves.easeOutQuad, // You can change the curve for different animation feels
-        ),),
-        child: child,
-      );
-    },
-  );
+          pageBuilder: (
+            BuildContext context,
+            Animation<double> primaryAnimation,
+            Animation<double> secondaryAnimation,
+          ) =>
+              page,
+          transitionsBuilder: (
+            BuildContext context,
+            Animation<double> primaryAnimation,
+            Animation<double> secondaryAnimation,
+            Widget child,
+          ) {
+            return SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(-1.0, 0.0),
+                end: Offset.zero,
+              ).animate(
+                CurvedAnimation(
+                  parent: primaryAnimation,
+                  curve: Curves
+                      .easeOutQuad, // You can change the curve for different animation feels
+                ),
+              ),
+              child: child,
+            );
+          },
+        );
 }
 
 class SlideLeftRoute extends PageRouteBuilder {
@@ -48,30 +51,30 @@ class SlideLeftRoute extends PageRouteBuilder {
 
   SlideLeftRoute({required this.page})
       : super(
-    pageBuilder: (
-        BuildContext context,
-        Animation<double> primaryAnimation,
-        Animation<double> secondaryAnimation,
-        ) =>
-    page,
-    transitionsBuilder: (
-        BuildContext context,
-        Animation<double> primaryAnimation,
-        Animation<double> secondaryAnimation,
-        Widget child,
-        ) {
-      return SlideTransition(
-        position: Tween<Offset>(
-          begin: const Offset(1.0, 0.0),
-          end: Offset.zero,
-        ).animate(CurvedAnimation(
-          parent: primaryAnimation,
-          curve: Curves.easeOutQuad,
-        )),
-        child: child,
-      );
-    },
-  );
+          pageBuilder: (
+            BuildContext context,
+            Animation<double> primaryAnimation,
+            Animation<double> secondaryAnimation,
+          ) =>
+              page,
+          transitionsBuilder: (
+            BuildContext context,
+            Animation<double> primaryAnimation,
+            Animation<double> secondaryAnimation,
+            Widget child,
+          ) {
+            return SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(1.0, 0.0),
+                end: Offset.zero,
+              ).animate(CurvedAnimation(
+                parent: primaryAnimation,
+                curve: Curves.easeOutQuad,
+              )),
+              child: child,
+            );
+          },
+        );
 }
 
 class _AllergiesPageState extends State<AllergiesPage> {
@@ -91,7 +94,8 @@ class _AllergiesPageState extends State<AllergiesPage> {
   Future<void> _loadRandomMealImage() async {
     try {
       final imageUrl = await _mealService.getRandomMealImage();
-      if (mounted) { // Check if widget is still mounted before setting state
+      if (mounted) {
+        // Check if widget is still mounted before setting state
         setState(() {
           _backgroundImageUrl = imageUrl;
           _isLoading = false;
@@ -117,12 +121,14 @@ class _AllergiesPageState extends State<AllergiesPage> {
             width: double.infinity,
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center, // Center content vertically
+              mainAxisAlignment:
+                  MainAxisAlignment.center, // Center content vertically
               children: [
                 Padding(
                   padding: EdgeInsets.all(24.0),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center, // Center text horizontally
+                    crossAxisAlignment:
+                        CrossAxisAlignment.center, // Center text horizontally
                     children: [
                       Text(
                         "Don't Want Our Health\nFeatures?",
@@ -137,10 +143,7 @@ class _AllergiesPageState extends State<AllergiesPage> {
                       Text(
                         "To receive personalized meal and recipe recommendations, you need to complete the questionnaire to use Health Features.",
                         textAlign: TextAlign.center, // Ensure text is centered
-                        style: TextStyle(
-                            fontSize: 16.0,
-                            color: Colors.white
-                        ),
+                        style: TextStyle(fontSize: 16.0, color: Colors.white),
                       ),
                       SizedBox(height: 16.0),
                       Text(
@@ -162,14 +165,16 @@ class _AllergiesPageState extends State<AllergiesPage> {
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,// Center buttons horizontally
+                    crossAxisAlignment: CrossAxisAlignment
+                        .stretch, // Center buttons horizontally
                     children: [
                       ElevatedButton(
                         onPressed: () {
                           // Navigate to HomePage
                           Navigator.pushReplacement(
                             context,
-                            MaterialPageRoute(builder: (context) => const HomePage()),
+                            MaterialPageRoute(
+                                builder: (context) => const HomePage()),
                           );
                         },
                         style: ElevatedButton.styleFrom(
@@ -182,13 +187,17 @@ class _AllergiesPageState extends State<AllergiesPage> {
                             borderRadius: BorderRadius.circular(50.0),
                           ),
                         ),
-                        child: Text("Skip Questionnaire", style: TextStyle(
+                        child: Text(
+                          "Skip Questionnaire",
+                          style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w800,
                           ),
                         ),
                       ),
-                      SizedBox(height: 17.5,),
+                      SizedBox(
+                        height: 17.5,
+                      ),
                       OutlinedButton(
                         onPressed: () {
                           Navigator.of(context).pop();
@@ -243,172 +252,186 @@ class _AllergiesPageState extends State<AllergiesPage> {
         decoration: BoxDecoration(
           image: _backgroundImageUrl != null
               ? DecorationImage(
-            image: NetworkImage(_backgroundImageUrl!),
-            fit: BoxFit.cover,
-            colorFilter: ColorFilter.mode(
-              Colors.black.withOpacity(0.3),
-              BlendMode.darken,
-            ),
-          )
+                  image: NetworkImage(_backgroundImageUrl!),
+                  fit: BoxFit.cover,
+                  colorFilter: ColorFilter.mode(
+                    Colors.black.withOpacity(0.3),
+                    BlendMode.darken,
+                  ),
+                )
               : const DecorationImage(
-            image: AssetImage('assets/images/landing_page.jpg'),
-            fit: BoxFit.cover,
-          ),
+                  image: AssetImage('assets/images/landing_page.jpg'),
+                  fit: BoxFit.cover,
+                ),
         ),
-          child: SafeArea(
-            child: Stack(
-              children: [
-
-                Align(
-                  alignment: Alignment.topLeft,
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: 17.5, top: 15),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.5),
-                        shape: BoxShape.circle,
-                      ),
-                      child: IconButton(
-                        icon: const Icon(Icons.arrow_back, color: Colors.white),
-                        onPressed: () {
-                          Navigator.of(context).pushReplacement(
-                            SlideRightRoute(
-                              page: const GoalsPage(), // Replace with the page you want to go back to
-                            ),
-                          );
-                        },
-                      ),
+        child: SafeArea(
+          child: Stack(
+            children: [
+              Align(
+                alignment: Alignment.topLeft,
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 17.5, top: 15),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.5),
+                      shape: BoxShape.circle,
+                    ),
+                    child: IconButton(
+                      icon: const Icon(Icons.arrow_back, color: Colors.white),
+                      onPressed: () {
+                        Navigator.of(context).pushReplacement(
+                          SlideRightRoute(
+                            page:
+                                const GoalsPage(), // Replace with the page you want to go back to
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ),
-                // Title at the top center
-                const Positioned(
-                  top: 50,
-                  left: 0,
-                  right: 0,
-                  child: Center(
-                    child: Text(
-                      'Allergies',
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 30,
-                        fontWeight: FontWeight.w700,
-                      ),
-                      textAlign: TextAlign.center,
+              ),
+              // Title at the top center
+              const Positioned(
+                top: 50,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: Text(
+                    'Allergies',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 30,
+                      fontWeight: FontWeight.w700,
                     ),
+                    textAlign: TextAlign.center,
                   ),
                 ),
+              ),
 
-                // Centered Gradient Container
-                Positioned(
-                  top: 105,
-                  left: 5,
-                  right: 5,
-                  child: Center(
-                    child: Container(
-                      width: MediaQuery.of(context).size.width * 0.975, // 90% of screen width
-                      height: MediaQuery.of(context).size.height * 0.65,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 30,
-                        vertical: 40,
-                      ),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(colors: [
+              // Centered Gradient Container
+              Positioned(
+                top: 105,
+                left: 5,
+                right: 5,
+                child: Center(
+                  child: Container(
+                    width: MediaQuery.of(context).size.width *
+                        0.975, // 90% of screen width
+                    height: MediaQuery.of(context).size.height * 0.65,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 30,
+                      vertical: 40,
+                    ),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
                           Colors.white.withOpacity(0.8),
                           const Color.fromARGB(255, 66, 66, 66),
                         ],
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                        ),
-                        borderRadius: BorderRadius.circular(50),
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
                       ),
-                      child: SingleChildScrollView(
-                        child: Column(
-                          children: allergies.map((allergy) => _buildAllergyOption(allergy)).toList(),
-                        ),
+                      borderRadius: BorderRadius.circular(50),
+                    ),
+                    child: SingleChildScrollView(
+                      child: Column(
+                        children: allergies
+                            .map((allergy) => _buildAllergyOption(allergy))
+                            .toList(),
                       ),
                     ),
                   ),
                 ),
+              ),
 
-                Positioned(
-                  bottom: 160, // Adjust this value as needed
-                  left: 0,
-                  right: 0,
-                  child: LinearProgressBar(
-                    maxSteps: 3,
-                    progressType: LinearProgressBar.progressTypeDots,
-                    currentStep: currentStep,
-                    progressColor: kPrimaryColor,
-                    backgroundColor: kColorsGrey400,
-                    dotsAxis: Axis.horizontal,
-                    dotsActiveSize: 13.5,
-                    dotsInactiveSize: 10,
-                    dotsSpacing: const EdgeInsets.only(right: 10),
-                    valueColor: const AlwaysStoppedAnimation<Color>(Colors.red),
-                    semanticsLabel: "Label",
-                    semanticsValue: "Value",
-                    minHeight: 10,
-                  ),
+              Positioned(
+                bottom: 160, // Adjust this value as needed
+                left: 0,
+                right: 0,
+                child: LinearProgressBar(
+                  maxSteps: 3,
+                  progressType: LinearProgressBar.progressTypeDots,
+                  currentStep: currentStep,
+                  progressColor: kPrimaryColor,
+                  backgroundColor: kColorsGrey400,
+                  dotsAxis: Axis.horizontal,
+                  dotsActiveSize: 13.5,
+                  dotsInactiveSize: 10,
+                  dotsSpacing: const EdgeInsets.only(right: 10),
+                  valueColor: const AlwaysStoppedAnimation<Color>(Colors.red),
+                  semanticsLabel: "Label",
+                  semanticsValue: "Value",
+                  minHeight: 10,
                 ),
+              ),
 
-                // Buttons at the bottom center
-                Positioned(
-                  bottom: 20,
-                  left: 0,
-                  right: 0,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Column(
-                      children: [
-                        ElevatedButton(
-                          onPressed: _saveAllergies,
-                          style: ElevatedButton.styleFrom(
+              // Buttons at the bottom center
+              Positioned(
+                bottom: 20,
+                left: 0,
+                right: 0,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Column(
+                    children: [
+                      ElevatedButton(
+                        onPressed: _saveAllergies,
+                        style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.deepOrange,
                             minimumSize: const Size(double.infinity, 50),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(50),
                             ),
-                            padding: EdgeInsets.symmetric(vertical: 13.5)
+                            padding: EdgeInsets.symmetric(vertical: 13.5)),
+                        child: _isLoading
+                            ? const CircularProgressIndicator(
+                                color: Colors.white)
+                            : const Text(
+                                'SAVE',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.black,
+                                ),
+                              ),
+                      ),
+                      const SizedBox(height: 16),
+                      // Untuk tombol "SET UP LATER"
+                      TextButton(
+                        onPressed: () {
+                          print("Navigating to HomePage");
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const HomePage()),
+                          );
+                        },
+                        style: TextButton.styleFrom(
+                          minimumSize: const Size(double.infinity, 50),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(50),
                           ),
-                          child: _isLoading
-                              ? const CircularProgressIndicator(color: Colors.white)
-                              : const Text('SAVE', style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.black,
-                          ),
+                          side: BorderSide(color: Colors.white),
+                          padding: EdgeInsets.symmetric(vertical: 13.5),
+                        ),
+                        child: const Text(
+                          'SET UP LATER',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18.5,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
-                        const SizedBox(height: 16),
-                        TextButton(
-                          onPressed: _showSetUpLaterDialog,
-                          style: TextButton.styleFrom(
-                            minimumSize: const Size(double.infinity, 50),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(50),
-                            ),
-                            side: BorderSide(color: Colors.white),
-                            padding: EdgeInsets.symmetric(vertical: 13.5)
-                          ),
-                          child: const Text(
-                            'SET UP LATER',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 18.5,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
-      );
+      ),
+    );
   }
 
   Widget _buildAllergyOption(String allergy) {
@@ -440,8 +463,7 @@ class _AllergiesPageState extends State<AllergiesPage> {
             ),
             Icon(
               isSelected ? Icons.check_circle : Icons.circle,
-              color: isSelected ? Colors.green : const Color.fromARGB(255, 124, 93, 93),
-              size: 27.5,
+              color: isSelected ? Colors.green : Colors.grey,
             ),
           ],
         ),
@@ -449,28 +471,14 @@ class _AllergiesPageState extends State<AllergiesPage> {
     );
   }
 
-  Future<void> _saveAllergies() async {
-    setState(() {
-      _isLoading = true;
-    });
+  void _saveAllergies() {
+    // Simulasi penyimpanan alergi
+    print("Allergies saved: $selectedAllergies");
 
-    try {
-      await _firestoreService.saveUserAllergies(selectedAllergies.toList());
-      // Navigate to HomePage
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const HomePage()),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error saving allergies: $e')),
-      );
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
+    // Setelah menyimpan alergi, arahkan ke HomePage
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const HomePage()),
+    );
   }
 }
-const kPrimaryColor = Colors.red;
-const kColorsGrey400 = Colors.orangeAccent;
