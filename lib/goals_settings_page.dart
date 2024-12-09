@@ -53,6 +53,18 @@ class _GoalsSettingsPageState extends State<GoalsSettingsPage> {
         isEditing = false;
         _hasChanges = false; // Reset perubahan setelah disimpan
       });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Colors.green,
+          content: Row(
+            children: [
+              Icon(Icons.check_circle_rounded, color: Colors.white),
+              SizedBox(width: 10), // Add some spacing between icon and text
+              Text('Health data saved successfully'),
+            ],
+          ),
+        ),
+      );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error saving goals: $e')),
@@ -262,20 +274,28 @@ class _GoalsSettingsPageState extends State<GoalsSettingsPage> {
               children: [
                 // Tombol 'Save' dipindahkan ke atas
                 ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: isEditing
-                        ? Colors.deepOrange
-                        : Colors.grey[900], // Jika tidak ada perubahan
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(25),
+                  style: ButtonStyle(
+                    backgroundColor: WidgetStateProperty.resolveWith<Color>((states) {
+                      if (states.contains(WidgetState.disabled)) {
+                        // Warna tombol saat nonaktif
+                        return Colors.grey.shade800;
+                      }
+                      // Warna tombol saat aktif
+                      return Colors.deepOrange;
+                    }),
+                    animationDuration: const Duration(milliseconds: 300),
+                    minimumSize: WidgetStateProperty.all(const Size(double.infinity, 50)),
+                    shape: WidgetStateProperty.all(
+                      RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(50),
+                      ),
                     ),
-                    padding: EdgeInsets.symmetric(vertical: 12)
                   ),
-                  onPressed: isLoading && isEditing && _hasChanges ? null : _saveGoals,
+                  onPressed: _hasChanges ? _saveGoals : null, // Aktif/nonaktif
                   child: Text(
                     'SAVE',
                     style: TextStyle(
-                      color: isEditing ? Colors.black : Colors.white,
+                      color: _hasChanges ? Colors.black : Colors.white,
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),

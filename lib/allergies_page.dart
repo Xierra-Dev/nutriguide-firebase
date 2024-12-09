@@ -182,8 +182,7 @@ class _AllergiesPageState extends State<AllergiesPage> {
                             borderRadius: BorderRadius.circular(50.0),
                           ),
                         ),
-                        child: Text("Skip Questionnaire",
-                          style: TextStyle(
+                        child: Text("Skip Questionnaire", style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w800,
                           ),
@@ -370,6 +369,7 @@ class _AllergiesPageState extends State<AllergiesPage> {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(50),
                             ),
+                            padding: EdgeInsets.symmetric(vertical: 13.5)
                           ),
                           child: _isLoading
                               ? const CircularProgressIndicator(color: Colors.white)
@@ -388,7 +388,8 @@ class _AllergiesPageState extends State<AllergiesPage> {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(50),
                             ),
-                            side: BorderSide(color: Colors.white.withOpacity(0.5)),
+                            side: BorderSide(color: Colors.white),
+                            padding: EdgeInsets.symmetric(vertical: 13.5)
                           ),
                           child: const Text(
                             'SET UP LATER',

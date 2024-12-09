@@ -47,6 +47,7 @@ class _PlannerPageState extends State<PlannerPage> {
   final FirestoreService _firestoreService = FirestoreService();
   Map<String, List<PlannedMeal>> weeklyMeals = {};
   bool isLoading = true;
+  Map<String, bool> madeStatus = {};
 
   // Track the current week
   DateTime currentSunday = DateTime.now().subtract(Duration(days: DateTime.now().weekday % 7));
@@ -87,6 +88,61 @@ class _PlannerPageState extends State<PlannerPage> {
     setState(() {
       currentSunday = currentSunday.add(Duration(days: delta * 7));
     });
+  }
+
+  Future<void> _toggleMade(Recipe recipe) async {
+    try {
+      final bool currentStatus = madeStatus[recipe.id] ?? false;
+
+      if (madeStatus[recipe.id] == true) {
+        await _firestoreService.removeMadeRecipe(recipe.id);
+      } else {
+        await _firestoreService.madeRecipe(recipe);
+      }
+      setState(() {
+        madeStatus[recipe.id] = !currentStatus;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              Icon(
+                  madeStatus[recipe.id] == true
+                      ? Icons.bookmark_added
+                      : Icons.delete_rounded,
+                  color: madeStatus[recipe.id] == true
+                      ? Colors.white
+                      : Colors.red
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  madeStatus[recipe.id] == true
+                      ? 'Recipe: "${recipe.title}" saved'
+                      : 'Recipe: "${recipe.title}" removed from saved',
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.error, color: Colors.white),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text('Error plan recipe: ${e.toString()}'),
+              ),
+            ],
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override
@@ -212,75 +268,95 @@ class _PlannerPageState extends State<PlannerPage> {
                     itemCount: meals.length,
                     itemBuilder: (context, mealIndex) {
                       final meal = meals[mealIndex];
+                      // Inside the horizontal ListView.builder
                       return GestureDetector(
                         onTap: () => _viewRecipe(meal.recipe),
-                        child: Container(
-                          width: 250,
-                          margin: const EdgeInsets.only(right: 16, bottom: 16),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(15),
-                            image: DecorationImage(
-                              image: NetworkImage(meal.recipe.image),
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12),
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [
-                                  Colors.transparent,
-                                  Colors.black.withOpacity(0.8),
-                                ],
-                              ),
-                            ),
-                            padding: const EdgeInsets.all(12),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                Text(
-                                  meal.recipe.title,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
+                        child: Stack(
+                          children: [
+                            Container(
+                              width: 250,
+                              margin: const EdgeInsets.only(right: 16, bottom: 16),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(15),
+                                image: DecorationImage(
+                                  image: NetworkImage(meal.recipe.image),
+                                  fit: BoxFit.cover,
                                 ),
-                                const SizedBox(height: 4),
-                                Row(
+                              ),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(12),
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                    colors: [
+                                      Colors.transparent,
+                                      Colors.black.withOpacity(0.8),
+                                    ],
+                                  ),
+                                ),
+                                padding: const EdgeInsets.all(12),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.end,
                                   children: [
-                                    Icon(
-                                      Icons.timer,
-                                      color: Colors.orange,
-                                      size: 16,
-                                    ),
-                                    const SizedBox(width: 4),
                                     Text(
-                                      '${meal.recipe.preparationTime} min',
-                                      style: TextStyle(
-                                        color: Colors.white70,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 16),
-                                    Text(
-                                      meal.mealType,
-                                      style: TextStyle(
-                                        color: Colors.orange,
-                                        fontSize: 14,
+                                      meal.recipe.title,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 15,
                                         fontWeight: FontWeight.bold,
                                       ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.timer,
+                                          color: Colors.orange,
+                                          size: 16,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          '${meal.recipe.preparationTime} min',
+                                          style: TextStyle(
+                                            color: Colors.white70,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 16),
+                                        Text(
+                                          meal.mealType,
+                                          style: TextStyle(
+                                            color: Colors.orange,
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),
-                              ],
+                              ),
                             ),
-                          ),
+                            // Simplified check circle icon
+                            Positioned(
+                              top: -3,
+                              right: 16,
+                              child: IconButton(
+                                iconSize: 30, // Reduced from 30 to 20
+                                icon: Icon(
+                                  Icons.check_circle,
+                                  color: madeStatus[meal.recipe.id] ?? false
+                                      ? Colors.green
+                                      : Colors.white,
+                                ),
+                                onPressed: () => _toggleMade(meal.recipe),
+                              ),
+                            ),
+                          ],
                         ),
                       );
                     },

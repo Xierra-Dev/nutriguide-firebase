@@ -243,7 +243,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           _isDialogShowing = false;
                         });
                         Navigator.of(context).pushReplacement(
-                          MaterialPageRoute(builder: (context) => const PersonalizationPage()),
+                          MaterialPageRoute(builder: (context) => const EmailVerificationPage()),
                         );
                       },
                     ),

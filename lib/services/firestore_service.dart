@@ -181,8 +181,7 @@ class FirestoreService {
             instructionSteps: data['instructions'].split('\n'),
             preparationTime: data['preparationTime'],
             healthScore: data['healthScore'].toDouble(),
-            nutritionInfo: NutritionInfo
-                .generateRandom(), // We'll regenerate this since it's not stored
+            nutritionInfo: NutritionInfo.generateRandom(), // We'll regenerate this since it's not stored
           );
         }).toList();
       } else {
@@ -261,8 +260,7 @@ class FirestoreService {
             instructionSteps: data['instructions'].split('\n'),
             preparationTime: data['preparationTime'],
             healthScore: data['healthScore'].toDouble(),
-            nutritionInfo: NutritionInfo
-                .generateRandom(), // We'll regenerate this since it's not stored
+            nutritionInfo: NutritionInfo.generateRandom(), // We'll regenerate this since it's not stored
           );
         }).toList();
       } else {
@@ -783,4 +781,22 @@ class FirestoreService {
     }
   }
 
+  Future<void> removeMadeRecipe(String recipeId) async {
+    try {
+      String? userId = _auth.currentUser?.uid;
+      if (userId != null) {
+        await _firestore
+            .collection('users')
+            .doc(userId)
+            .collection('made_recipes')
+            .doc(recipeId)
+            .delete();
+      } else {
+        throw Exception('No authenticated user found');
+      }
+    } catch (e) {
+      print('Error removing saved recipe: $e');
+      rethrow;
+    }
+  }
 }

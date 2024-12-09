@@ -381,6 +381,7 @@ class _GoalsPageState extends State<GoalsPage> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(50),
                           ),
+                            padding: EdgeInsets.symmetric(vertical: 13.5)
                         ),
                         child: _isLoading
                             ? const CircularProgressIndicator(color: Colors.deepOrange)
@@ -398,6 +399,7 @@ class _GoalsPageState extends State<GoalsPage> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(50),
                           ),
+                            padding: EdgeInsets.symmetric(vertical: 13.5)
                         ),
                         child: const Text(
                           'SET UP LATER',

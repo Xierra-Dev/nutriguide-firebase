@@ -16,6 +16,7 @@ class _HealthDataPageState extends State<HealthDataPage> {
   final FirestoreService _firestoreService = FirestoreService();
   bool isLoading = true;
 
+
   // Original values from Firestore
   String? originalGender;
   int? originalBirthYear;
@@ -29,7 +30,7 @@ class _HealthDataPageState extends State<HealthDataPage> {
   String? heightUnit = 'cm';
   double? height;
   double? weight;
-  String activityLevel = 'Not active';
+  String? activityLevel;
 
   @override
   void initState() {
@@ -51,10 +52,10 @@ class _HealthDataPageState extends State<HealthDataPage> {
 
           // Set current values
           gender = originalGender;
-          birthYear = originalBirthYear ?? 2000;
-          height = originalHeight ?? 170;
-          weight = originalWeight ?? 70;
-          activityLevel = originalActivityLevel ?? 'Not active';
+          birthYear = originalBirthYear;
+          height = originalHeight;
+          weight = originalWeight;
+          activityLevel = originalActivityLevel;
 
           isLoading = false;
         });
@@ -63,12 +64,11 @@ class _HealthDataPageState extends State<HealthDataPage> {
       print('Error loading health data: $e');
       if (mounted) {
         setState(() {
-          // Set default values if there's an error
           gender = null;
-          birthYear = 2000;
-          height = 170;
-          weight = 70;
-          activityLevel = 'Not active';
+          birthYear = null;
+          height = null;
+          weight = null;
+          activityLevel = null;
           isLoading = false;
         });
       }
@@ -190,138 +190,148 @@ class _HealthDataPageState extends State<HealthDataPage> {
         },
       );
 
-      return shouldExit ?? false; // Pastikan selalu mengembalikan bool
+      return shouldExit ?? false;
     } else {
-      // Jika tidak ada perubahan, langsung keluar
       return true;
     }
   }
 
   void _onBackPressed(BuildContext context) {
     if (_hasChanges) {
-      // Jika ada perubahan yang belum disimpan, panggil _onWillPop
       _onWillPop();
     } else {
-      Navigator.pop(context); // Jika tidak ada perubahan, cukup navigasi kembali
+      Navigator.pop(context);
     }
   }
 
   @override
-Widget build(BuildContext context) {
-  return WillPopScope(
-    onWillPop: _onWillPop,
-    child: Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
+  Widget build(BuildContext context) {
+    return WillPopScope(
+      onWillPop: _onWillPop,
+      child: Scaffold(
         backgroundColor: Colors.black,
-        title: const Text(
-          'Health Data',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
+        appBar: AppBar(
+          backgroundColor: Colors.black,
+          title: const Text(
+            'Health Data',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => _onBackPressed(context),
           ),
         ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => _onBackPressed(context),
+        body: isLoading
+            ? const Center(child: CircularProgressIndicator(color: Colors.deepOrange))
+            : Column(
+          children: [
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 5,
+                  vertical: 20,
+                ),
+                child: Column(
+                  children: [
+                    _buildDataItem('Sex', gender ?? 'Not Set', _editSex),
+                    _buildDataItem('Year of Birth', birthYear?.toString() ?? 'Not Set', _editYearOfBirth),
+                    _buildDataItem('Height', height != null ? '$height cm' : 'Not Set', _editHeight),
+                    _buildDataItem('Weight', weight != null ? '$weight kg' : 'Not Set', _editWeight),
+                    _buildDataItem('Activity Level', activityLevel ?? 'Not Set', _editActivityLevel),
+                  ],
+                ),
+              ),
+            ),
+            if (!isLoading)
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: ElevatedButton(
+                  style: ButtonStyle(
+                    backgroundColor: WidgetStateProperty.resolveWith<Color>((states) {
+                      if (states.contains(WidgetState.disabled)) {
+                        // Warna tombol saat nonaktif
+                        return Colors.grey.shade800;
+                      }
+                      // Warna tombol saat aktif
+                      return Colors.deepOrange;
+                    }),
+                    animationDuration: const Duration(milliseconds: 300),
+                    minimumSize: WidgetStateProperty.all(const Size(double.infinity, 50)),
+                    shape: WidgetStateProperty.all(
+                      RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(50),
+                      ),
+                    ),
+                  ),
+                  onPressed: _hasChanges ? _saveHealthData : null, // Aktif/nonaktif
+                  child: Text(
+                    'SAVE',
+                    style: TextStyle(
+                      color: _hasChanges ? Colors.black : Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                )
+              ),
+          ],
         ),
       ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator(color: Colors.deepOrange))
-          : Column(
-              children: [
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 5,
-                      vertical: 20,
-                    ),
-                    child: Column(
-                      children: [
-                        _buildDataItem('Sex', gender ?? 'Not set', _editSex),
-                        _buildDataItem('Year of Birth', birthYear.toString(), _editYearOfBirth),
-                        _buildDataItem('Height', '$height cm', _editHeight),
-                        _buildDataItem('Weight', '$weight kg', _editWeight),
-                        _buildDataItem('Activity Level', activityLevel, _editActivityLevel),
-                      ],
-                    ),
-                  ),
-                ),
-                if (!isLoading) // Only show save button when not loading
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _hasChanges ? Colors.deepOrange : Colors.grey,
-                        minimumSize: const Size(double.infinity, 50),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(50),
-                        ),
-                      ),
-                      onPressed: _hasChanges ? _saveHealthData : null,
-                      child: Text(
-                        'SAVE',
-                        style: TextStyle(
-                          color: _hasChanges ? Colors.black : Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-    ),
-  );
-}
+    );
+  }
 
+  Widget _buildDataItem(String label, String value, VoidCallback onEdit) {
+    // Check if the value is 'Not Set' to determine text color
+    final bool isNotSet = value == 'Not Set';
 
-
-  Widget _buildDataItem(String label, String? value, VoidCallback onEdit) {
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                label,
-                style: const TextStyle(
-                  color: Color.fromARGB(255, 37, 37, 37),
-                  fontSize: 21,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              Row(
-                children: [
-                  Text(
-                    value ?? 'Not Set',
+        ListTile(
+          title: Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          trailing: Container(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Flexible(
+                  child: Text(
+                    value,
                     style: TextStyle(
-                      color: value == null ? Colors.red : Colors.black,
-                      fontSize: 18.5,
-                      fontWeight: value == null ? FontWeight.w600 : FontWeight.w800,
+                      color: isNotSet ? Colors.red : Colors.white,
+                      fontSize: 16,
                     ),
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(width: 3),
-                  IconButton(
-                    icon: const Icon(Icons.edit, color: Colors.red, size: 23),
+                ),
+                const SizedBox(width: 8),
+                Transform.translate(
+                  offset: const Offset(16, 0),
+                  child: IconButton(
+                    icon: const Icon(Icons.edit, color: Colors.white, size: 20),
                     onPressed: onEdit,
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    splashRadius: 20,
                   ),
-                ],
-              ),
-            ],
+                ),
+              ],
+            ),
           ),
         ),
-        const Divider(
-          color: Colors.black,
-          height: 3,
-          indent: 0,
-          endIndent: 0,
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16.0),
+          child: Divider(
+            color: Colors.grey,
+            height: 1,
+          ),
         ),
       ],
     );
@@ -338,11 +348,18 @@ Widget build(BuildContext context) {
         'activityLevel': activityLevel,
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Health data saved successfully')),
-
+        SnackBar(
+          backgroundColor: Colors.green,
+          content: Row(
+            children: [
+              Icon(Icons.check_circle_rounded, color: Colors.white),
+              SizedBox(width: 10), // Add some spacing between icon and text
+              Text('Health data saved successfully'),
+            ],
+          ),
+        ),
       );
 
-      // Update original values after successful save
       setState(() {
         originalGender = gender;
         originalBirthYear = birthYear;
@@ -353,7 +370,6 @@ Widget build(BuildContext context) {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error saving health data: $e')),
-
       );
     } finally {
       setState(() => isLoading = false);
@@ -361,7 +377,6 @@ Widget build(BuildContext context) {
   }
 
   void _editSex() {
-    // Implement edit functionality
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => CustomGenderPicker(
@@ -378,7 +393,6 @@ Widget build(BuildContext context) {
   }
 
   void _editYearOfBirth() {
-    // Implement edit functionality
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => CustomNumberPicker(
@@ -396,25 +410,24 @@ Widget build(BuildContext context) {
   }
 
   void _editHeight() {
-    // Implement edit functionality
     Navigator.of(context).push(
-        MaterialPageRoute(
+      MaterialPageRoute(
         builder: (context) => CustomNumberPicker(
-        title: 'Your height',
-        unit: 'cm',
-        initialValue: height,
-        minValue: 0,
-        maxValue: 999,
-        showDecimals: true,
-        onValueChanged: (value) {            setState(() => height = value);
-        },
+          title: 'Your height',
+          unit: 'cm',
+          initialValue: height,
+          minValue: 0,
+          maxValue: 999,
+          showDecimals: true,
+          onValueChanged: (value) {
+            setState(() => height = value);
+          },
         ),
-        ),
+      ),
     );
   }
 
   void _editWeight() {
-    // Implement edit functionality
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => CustomNumberPicker(
@@ -433,7 +446,6 @@ Widget build(BuildContext context) {
   }
 
   void _editActivityLevel() {
-    // Implement edit functionality
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => CustomActivityLevelPicker(
@@ -449,5 +461,3 @@ Widget build(BuildContext context) {
     });
   }
 }
-
-

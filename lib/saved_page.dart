@@ -106,7 +106,7 @@ class _SavedPageState extends State<SavedPage> {
           SnackBar(
             content: Row(
               children: [
-                Icon(Icons.delete, color: Colors.red),
+                Icon(Icons.bookmark_remove_rounded, color: Colors.red),
                 SizedBox(width: 8),
                 Expanded(child: Text('Recipe: "${recipe.title}" removed from saved')),
               ],
