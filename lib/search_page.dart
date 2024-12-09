@@ -567,7 +567,7 @@ class _SearchPageState extends State<SearchPage> {
       isLoading = true;
     });
     try {
-      final recipes = await _mealDBService.getRandomRecipes(number: 10);
+      final recipes = await _mealDBService.getRandomRecipes(number: 30);
       setState(() {
         this.recipes = recipes;
         _sortRecipes();

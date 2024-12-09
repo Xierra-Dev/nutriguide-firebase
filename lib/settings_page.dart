@@ -186,7 +186,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
                 trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 24),
                 onTap: () {
-                  Navigator.of(context).pushReplacement(
+                  Navigator.of(context).push(
                     SlideLeftRoute(page: const NotificationsPage()),
                   );
                 },
@@ -199,7 +199,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
                 trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 24),
                 onTap: () {
-                  Navigator.push(
+                  Navigator.pushReplacement(
                     context,
                     SlideLeftRoute(
                       page:  const PreferencePage(),

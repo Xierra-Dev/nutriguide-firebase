@@ -109,7 +109,7 @@ class PreferencePage extends StatelessWidget {
                 () => Navigator.push(
                   context,
                   SlideLeftRoute(
-                    page:  const HealthDataPage(),
+                    page: const HealthDataPage(),
                   ),
                 ),
               ),

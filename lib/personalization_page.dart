@@ -31,7 +31,6 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
   @override
   void initState() {
     super.initState();
-    _loadRandomMealImage();
     _loadUserData();
   }
 
@@ -55,24 +54,6 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
       );
     } finally {
       setState(() => _isLoading = false);
-    }
-  }
-
-  Future<void> _loadRandomMealImage() async {
-    try {
-      final imageUrl = await _mealService.getRandomMealImage();
-      if (mounted) { // Check if widget is still mounted before setting state
-        setState(() {
-          _backgroundImageUrl = imageUrl;
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
     }
   }
 

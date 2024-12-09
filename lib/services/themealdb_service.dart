@@ -1,9 +1,14 @@
 import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 import '../models/recipe.dart';
 
 class TheMealDBService {
   static const String baseUrl = 'https://www.themealdb.com/api/json/v1/1';
+
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   Future<String?> getRandomMealImage() async {
     try {
@@ -21,20 +26,48 @@ class TheMealDBService {
     }
   }
 
-  Future<List<Recipe>> getRandomRecipes({int number = 10}) async {
+  Future<List<String>> getUserAllergies() async {
+    try {
+      String? userId = _auth.currentUser?.uid;
+      if (userId != null) {
+        DocumentSnapshot doc =
+        await _firestore.collection('users').doc(userId).get();
+        if (doc.exists && doc.data() != null) {
+          final data = doc.data() as Map<String, dynamic>;
+          return List<String>.from(data['allergies'] ?? []);
+        }
+      }
+      return [];
+    } catch (e) {
+      print('Error getting user allergies: $e');
+      return [];
+    }
+  }
+
+  Future<List<Recipe>> getRandomRecipes({int number = 300}) async {
+    // Get user's allergies
+    List<String> userAllergies = await getUserAllergies();
+
     List<Recipe> recipes = [];
-    for (int i = 0; i < number; i++) {
+    int attempts = 0;
+    int maxAttempts = number * 3; // Prevent infinite loop
+
+    while (recipes.length < number && attempts < maxAttempts) {
+      attempts++;
+
       try {
         final response = await http.get(Uri.parse('$baseUrl/random.php'));
         if (response.statusCode == 200) {
           final data = json.decode(response.body);
           if (data['meals'] != null && data['meals'].isNotEmpty) {
             final recipe = Recipe.fromTheMealDB(data['meals'][0]);
-            if (_isRecipeComplete(recipe)) {
+
+            // Check if recipe is complete and doesn't contain allergic ingredients
+            if (_isRecipeComplete(recipe) && !_containsAllergicIngredients(recipe, userAllergies)) {
               recipes.add(recipe);
               print('Added random recipe: ${recipe.title} with health score: ${recipe.healthScore}');
             } else {
-              print('Skipped incomplete random recipe: ${recipe.title}');
+              print('Skipped recipe due to incompleteness or allergic ingredients: ${recipe.title}');
             }
           }
         } else {
@@ -44,7 +77,35 @@ class TheMealDBService {
         print('Error fetching random recipe: $e');
       }
     }
+
+    // If not enough recipes found, log a warning
+    if (recipes.length < number) {
+      print('Warning: Could only find ${recipes.length} non-allergic recipes out of $number requested');
+    }
+
     return recipes;
+  }
+
+// New method to check for allergic ingredients
+  bool _containsAllergicIngredients(Recipe recipe, List<String> allergies) {
+    if (allergies.isEmpty) return false;
+
+    // Convert allergies to lowercase for case-insensitive matching
+    final lowerCaseAllergies = allergies.map((allergy) => allergy.toLowerCase()).toList();
+
+    // Check each ingredient in the recipe
+    for (var ingredient in recipe.ingredients) {
+      // Convert ingredient to lowercase for case-insensitive matching
+      final lowerCaseIngredient = ingredient.toLowerCase();
+
+      // Check if any allergy matches the ingredient
+      if (lowerCaseAllergies.any((allergy) => lowerCaseIngredient.contains(allergy))) {
+        print('Recipe contains allergic ingredient: $ingredient');
+        return true;
+      }
+    }
+
+    return false;
   }
 
   Future<List<Recipe>> getRecipesByCategory(String category) async {

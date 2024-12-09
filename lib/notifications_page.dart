@@ -15,7 +15,10 @@ class NotificationsPage extends StatelessWidget {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            // Navigasi kembali ke tempat awal
+            Navigator.of(context).pop();
+          },
         ),
         title: const Text(
           'Notifications',

@@ -34,7 +34,10 @@ class FirestoreService {
       String? userId = _auth.currentUser?.uid;
       if (userId != null) {
         DocumentSnapshot doc =
-            await _firestore.collection('users').doc(userId).get();
+            await _firestore
+                .collection('users')
+                .doc(userId)
+                .get();
         return doc.data() as Map<String, dynamic>?;
       } else {
         throw Exception('No authenticated user found');
@@ -174,8 +177,7 @@ class FirestoreService {
             instructionSteps: data['instructions'].split('\n'),
             preparationTime: data['preparationTime'],
             healthScore: data['healthScore'].toDouble(),
-            nutritionInfo: NutritionInfo
-                .generateRandom(), // We'll regenerate this since it's not stored
+            nutritionInfo: NutritionInfo.generateRandom(), // We'll regenerate this since it's not stored
           );
         }).toList();
       } else {
@@ -254,8 +256,7 @@ class FirestoreService {
             instructionSteps: data['instructions'].split('\n'),
             preparationTime: data['preparationTime'],
             healthScore: data['healthScore'].toDouble(),
-            nutritionInfo: NutritionInfo
-                .generateRandom(), // We'll regenerate this since it's not stored
+            nutritionInfo: NutritionInfo.generateRandom(), // We'll regenerate this since it's not stored
           );
         }).toList();
       } else {
@@ -649,7 +650,7 @@ class FirestoreService {
     }
   }
 
-    Future<void> saveUserCreatedRecipe(Recipe recipe) async {
+  Future<void> saveUserCreatedRecipe(Recipe recipe) async {
     try {
       String? userId = _auth.currentUser?.uid;
       if (userId == null) throw Exception('User not authenticated');
@@ -712,36 +713,6 @@ class FirestoreService {
     } catch (e) {
       print('Error updating recipe: $e');
       rethrow;
-    }
-  }
-
-    Future<List<Recipe>> getRandomRecipes({int number = 10}) async {
-    try {
-      final snapshot = await _firestore
-          .collectionGroup('created_recipes')
-          .limit(number)
-          .get();
-
-      return snapshot.docs.map((doc) {
-        final data = doc.data();
-        return Recipe(
-          id: doc.id,
-          title: data['title'],
-          image: data['image'],
-          ingredients: List<String>.from(data['ingredients']),
-          measurements: List<String>.from(data['measurements']),
-          instructions: data['instructions'],
-          instructionSteps: data['instructions'].split('\n'),
-          preparationTime: data['preparationTime'],
-          healthScore: data['healthScore'].toDouble(),
-          nutritionInfo: NutritionInfo.generateRandom(),
-          createdAt: (data['createdAt'] as Timestamp).toDate(),
-          popularity: data['popularity'] ?? 0,
-        );
-      }).toList();
-    } catch (e) {
-      print('Error getting random recipes: $e');
-      return [];
     }
   }
 
