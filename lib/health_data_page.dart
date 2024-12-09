@@ -25,10 +25,10 @@ class _HealthDataPageState extends State<HealthDataPage> {
 
   // Editable values
   String? gender;
-  int birthYear = 2000;
-  String heightUnit = 'cm';
-  double height = 170;
-  double weight = 70;
+  int? birthYear;
+  String? heightUnit = 'cm';
+  double? height;
+  double? weight;
   String activityLevel = 'Not active';
 
   @override
@@ -278,51 +278,50 @@ Widget build(BuildContext context) {
 
 
 
-  Widget _buildDataItem(String label, String value, VoidCallback onEdit) {
+  Widget _buildDataItem(String label, String? value, VoidCallback onEdit) {
     return Column(
       children: [
-        ListTile(
-          title: Text(
-            label,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          trailing: Container(
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.end, // Align content to the end
-              children: [
-                Flexible(
-                  child: Text(
-                    value,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                label,
+                style: const TextStyle(
+                  color: Color.fromARGB(255, 37, 37, 37),
+                  fontSize: 21,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              Row(
+                children: [
+                  Text(
+                    value ?? 'Not Set',
+                    style: TextStyle(
+                      color: value == null ? Colors.red : Colors.black,
+                      fontSize: 18.5,
+                      fontWeight: value == null ? FontWeight.w600 : FontWeight.w800,
                     ),
-                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-                const SizedBox(width: 8),
-                Transform.translate(
-                  offset: const Offset(16, 0), // Shift edit icon to the right
-                  child: IconButton(
-                    icon: const Icon(Icons.edit, color: Colors.white, size: 20),
+                  const SizedBox(width: 3),
+                  IconButton(
+                    icon: const Icon(Icons.edit, color: Colors.red, size: 23),
                     onPressed: onEdit,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    splashRadius: 20,
                   ),
-                ),
-              ],
-            ),
+                ],
+              ),
+            ],
           ),
         ),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16.0),
-          child: Divider(
-            color: Colors.grey,
-            height: 1,
-          ),
+        const Divider(
+          color: Colors.black,
+          height: 3,
+          indent: 0,
+          endIndent: 0,
         ),
       ],
     );
@@ -385,7 +384,7 @@ Widget build(BuildContext context) {
         builder: (context) => CustomNumberPicker(
           title: 'What year were you born in?',
           unit: '',
-          initialValue: birthYear.toDouble(),
+          initialValue: birthYear?.toDouble(),
           minValue: 1900,
           maxValue: 2045,
           onValueChanged: (value) {
@@ -404,8 +403,9 @@ Widget build(BuildContext context) {
         title: 'Your height',
         unit: 'cm',
         initialValue: height,
-        minValue: 100,
-        maxValue: 250,
+        minValue: 0,
+        maxValue: 999,
+        showDecimals: true,
         onValueChanged: (value) {            setState(() => height = value);
         },
         ),
@@ -421,8 +421,8 @@ Widget build(BuildContext context) {
           title: 'Your weight',
           unit: 'kg',
           initialValue: weight,
-          minValue: 30,
-          maxValue: 200,
+          minValue: 0,
+          maxValue: 999,
           showDecimals: true,
           onValueChanged: (value) {
             setState(() => weight = value);

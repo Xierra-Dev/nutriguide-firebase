@@ -432,7 +432,7 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
         builder: (context) => CustomNumberPicker(
           title: 'What year were you born in?',
           unit: '',
-          initialValue: birthYear?.toDouble() ?? 2000.0,
+          initialValue: birthYear?.toDouble(),
           minValue: 1900,
           maxValue: 2045,
           onValueChanged: (value) {
