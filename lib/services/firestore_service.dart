@@ -770,9 +770,7 @@ class FirestoreService {
         'preparationTime': recipe.preparationTime,
         'healthScore': recipe.healthScore,
         'madeAt': FieldValue.serverTimestamp(),
-        'madeDate': Timestamp.fromDate, // Gunakan tanggal yang dinormalisasi
         // Add any other relevant recipe details
-        'timestamp': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     } catch (e) {
       print('Error marking recipe as made: $e');

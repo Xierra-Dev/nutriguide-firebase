@@ -618,7 +618,6 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
                   ],
                 ),
             ],
-
           ),
           SliverToBoxAdapter(
             child: Padding(
