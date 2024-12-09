@@ -842,7 +842,17 @@ class FirestoreService {
             instructionSteps: (data['instructions'] ?? '').split('\n'),
             preparationTime: (data['preparationTime'] ?? 0).toInt(),
             healthScore: (data['healthScore'] ?? 0).toDouble(),
-            nutritionInfo: NutritionInfo.generateRandom(), // Gunakan generateRandom() sementara
+            nutritionInfo: NutritionInfo(
+              calories: (nutritionData['calories'] ?? 0).toInt(),
+              protein: (nutritionData['protein'] ?? 0).toDouble(),
+              carbs: (nutritionData['carbs'] ?? 0).toDouble(),
+              fat: (nutritionData['fat'] ?? 0).toDouble(),
+              fiber: (nutritionData['fiber'] ?? 0).toDouble(), 
+              saturatedFat: (nutritionData['saturatedFat'] ?? 0).toDouble(),
+              sugars: (nutritionData['sugars'] ?? 0).toDouble(),
+              sodium: (nutritionData['sodium'] ?? 0).toInt(),
+              totalFat: (nutritionData['totalFat'] ?? 0).toDouble(),
+            ),
           );
         }).toList();
       } else {
@@ -964,6 +974,60 @@ class FirestoreService {
         'carbs': 0,
         'fat': 0,
       };
+    }
+  }
+
+  Future<Map<String, List<double>>> getWeeklyNutrition(int weekNumber) async {
+    try {
+      String? userId = _auth.currentUser?.uid;
+      if (userId == null) return {};
+
+      // Calculate start and end dates for the selected week
+      final now = DateTime.now();
+      final startOfWeek = now.subtract(Duration(days: now.weekday - 1 + (7 * (weekNumber - 1))));
+      final endOfWeek = startOfWeek.add(const Duration(days: 6));
+
+      print('Fetching nutrition data for week $weekNumber');
+      print('Start date: $startOfWeek');
+      print('End date: $endOfWeek');
+
+      final snapshot = await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('made_recipes')
+          .where('madeAt', isGreaterThanOrEqualTo: startOfWeek)
+          .where('madeAt', isLessThanOrEqualTo: endOfWeek)
+          .get();
+
+      // Initialize daily totals
+      Map<String, List<double>> weeklyNutrition = {
+        'calories': List.filled(7, 0),
+        'carbs': List.filled(7, 0),
+        'fiber': List.filled(7, 0),
+        'protein': List.filled(7, 0),
+        'fat': List.filled(7, 0),
+      };
+
+      // Calculate daily totals
+      for (var doc in snapshot.docs) {
+        final data = doc.data();
+        final madeAt = (data['madeAt'] as Timestamp).toDate();
+        final dayIndex = madeAt.difference(startOfWeek).inDays;
+        
+        if (dayIndex >= 0 && dayIndex < 7) {
+          final nutrition = data['nutrition'] as Map<String, dynamic>;
+          weeklyNutrition['calories']![dayIndex] += (nutrition['calories'] ?? 0).toDouble();
+          weeklyNutrition['carbs']![dayIndex] += (nutrition['carbs'] ?? 0).toDouble();
+          weeklyNutrition['fiber']![dayIndex] += (nutrition['fiber'] ?? 0).toDouble();
+          weeklyNutrition['protein']![dayIndex] += (nutrition['protein'] ?? 0).toDouble();
+          weeklyNutrition['fat']![dayIndex] += (nutrition['fat'] ?? 0).toDouble();
+        }
+      }
+
+      return weeklyNutrition;
+    } catch (e) {
+      print('Error getting weekly nutrition: $e');
+      return {};
     }
   }
 

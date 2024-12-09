@@ -9,6 +9,7 @@ import 'models/recipe.dart';
 import 'recipe_detail_page.dart';
 import 'edit_recipe_page.dart';
 import 'package:timeago/timeago.dart' as timeago;
+import 'widgets/nutrition_tracker.dart';
 
 
 class ProfilePage extends StatefulWidget {
@@ -118,14 +119,16 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
 
   Future<void> _loadActivityData() async {
     try {
-      final madeRecipes = await _firestoreService.getMadeRecipes();
+      setState(() => isLoadingActivity = true);
+      final recipes = await _firestoreService.getMadeRecipes();
       setState(() {
-        activityRecipes = madeRecipes;
+        activityRecipes = recipes;
         isLoadingActivity = false;
       });
     } catch (e) {
       print('Error loading activity data: $e');
       setState(() {
+        activityRecipes = [];
         isLoadingActivity = false;
       });
     }
@@ -376,62 +379,81 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
   }
 
   Widget _buildInsightsTab() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(
-              vertical: 25,
-              horizontal: 17.5,
-            ),
-            decoration: BoxDecoration(
-              color: Colors.grey[900],
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Your daily nutrition goals',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 7.5,),
-                const Text(
-                  'Balanced macros',
-                  style: TextStyle(
-                    color: Colors.grey,
-                    fontSize: 14,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _buildNutritionItem('Cal', '1766', Colors.blue),
-                    _buildNutritionItem('Carbs', '274g', Colors.orange),
-                    _buildNutritionItem('Fiber', '30g', Colors.green),
-                    _buildNutritionItem('Protein', '79g', Colors.pink),
-                    _buildNutritionItem('Fat', '39g', Colors.purple),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
+  // Calculate total nutrition from made recipes
+  double totalCalories = 0;
+  double totalCarbs = 0;
+  double totalFiber = 0;
+  double totalProtein = 0;
+  double totalFat = 0;
+
+  // Sum up nutrition values from all made recipes
+  for (var recipe in activityRecipes) {
+    totalCalories += recipe.nutritionInfo.calories.toDouble();
+    totalCarbs += recipe.nutritionInfo.carbs.toDouble();
+    totalFiber += recipe.nutritionInfo.fiber.toDouble();
+    totalProtein += recipe.nutritionInfo.protein.toDouble();
+    totalFat += recipe.nutritionInfo.fat.toDouble();
   }
+  
+  
+  return SingleChildScrollView(
+    padding: const EdgeInsets.all(16),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(
+            vertical: 25,
+            horizontal: 17.5,
+          ),
+          decoration: BoxDecoration(
+            color: Colors.grey[900],
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Your daily nutrition goals',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 7.5,),
+              const Text(
+                'Balanced macros',
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _buildNutritionItem('Cal', '${totalCalories.toStringAsFixed(0)}', Colors.blue),
+                  _buildNutritionItem('Carbs', '${totalCarbs.toStringAsFixed(0)}g', Colors.orange),
+                  _buildNutritionItem('Fiber', '${totalFiber.toStringAsFixed(0)}g', Colors.green),
+                  _buildNutritionItem('Protein', '${totalProtein.toStringAsFixed(0)}g', Colors.pink),
+                  _buildNutritionItem('Fat', '${totalFat.toStringAsFixed(0)}g', Colors.purple),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 24),
+        const NutritionTracker(),
+      ],
+    ),
+  );
+}
 
 
   Widget _buildNutritionItem(String label, String value, Color color) {
@@ -480,6 +502,57 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
         isLoadingCreated = false;
       });
     }
+  }
+
+  Widget _buildNutrientIndicator(String label, Color color) {
+    return Row(
+      children: [
+        Container(
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+          ),
+        ),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: const TextStyle(
+            color: Colors.grey,
+            fontSize: 12,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDayColumn(String day, bool isSelected, double height) {
+    return Column(
+      children: [
+        Container(
+          width: 30,
+          height: 120,
+          alignment: Alignment.bottomCenter,
+          child: Container(
+            width: 30,
+            height: height,
+            decoration: BoxDecoration(
+              color: isSelected ? Colors.orange : Colors.grey[800],
+              borderRadius: BorderRadius.circular(15),
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          day,
+          style: TextStyle(
+            color: isSelected ? Colors.orange : Colors.grey,
+            fontSize: 12,
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _buildCreatedTab() {
@@ -846,9 +919,31 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                                 },
                               ),
                             IconButton(
-                              icon: const Icon(Icons.bookmark_border, color: Colors.white),
-                              onPressed: () {
-                                // TODO: Implement save functionality
+                              icon: Icon(
+                                Icons.bookmark_border,
+                                color: Colors.white,
+                              ),
+                              onPressed: () async {
+                                try {
+                                  await _firestoreService.saveRecipe(recipe);
+                                  if (mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('Recipe saved to bookmarks'),
+                                        backgroundColor: Colors.green,
+                                      ),
+                                    );
+                                  }
+                                } catch (e) {
+                                  if (mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('Failed to save recipe'),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
+                                  }
+                                }
                               },
                             ),
                           ],
