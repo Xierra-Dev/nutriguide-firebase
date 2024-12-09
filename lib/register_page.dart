@@ -4,6 +4,7 @@ import 'services/auth_service.dart';
 import 'landing_page.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'email_verification_page.dart';
+import 'personalization_page.dart';
 
 class SlideRightRoute extends PageRouteBuilder {
   final Widget page;
@@ -242,7 +243,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           _isDialogShowing = false;
                         });
                         Navigator.of(context).pushReplacement(
-                          MaterialPageRoute(builder: (context) => const EmailVerificationPage()),
+                          MaterialPageRoute(builder: (context) => const PersonalizationPage()),
                         );
                       },
                     ),

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class CustomNumberPicker extends StatefulWidget {
   final String title;
   final String unit;
-  final double initialValue;
+  final double? initialValue;
   final double minValue;
   final double maxValue;
   final bool showDecimals;
@@ -13,7 +13,7 @@ class CustomNumberPicker extends StatefulWidget {
     super.key,
     required this.title,
     required this.unit,
-    required this.initialValue,
+    this.initialValue,
     required this.minValue,
     required this.maxValue,
     this.showDecimals = false,
@@ -30,9 +30,10 @@ class _CustomNumberPickerState extends State<CustomNumberPicker> {
   late double _currentValue;
 
   @override
+  @override
   void initState() {
     super.initState();
-    _currentValue = widget.initialValue;
+    _currentValue = widget.initialValue ?? widget.minValue; // Menggunakan operator ?? untuk memberikan nilai default
     _mainController = FixedExtentScrollController(
       initialItem: _currentValue.floor() - widget.minValue.floor(),
     );

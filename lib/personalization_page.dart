@@ -18,11 +18,11 @@ class PersonalizationPage extends StatefulWidget {
 class _PersonalizationPageState extends State<PersonalizationPage> {
   final FirestoreService _firestoreService = FirestoreService();
   String? gender;
-  int birthYear = 2000;
+  int? birthYear;
   String heightUnit = 'cm';
-  double height = 170;
-  double weight = 70;
-  String activityLevel = 'Not active';
+  double? height;
+  double? weight;
+  String? activityLevel;
   bool _isLoading = false;
   int currentStep = 0;
   final TheMealDBService _mealService = TheMealDBService();
@@ -31,6 +31,7 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
   @override
   void initState() {
     super.initState();
+    _loadRandomMealImage();
     _loadUserData();
   }
 
@@ -54,6 +55,24 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
       );
     } finally {
       setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _loadRandomMealImage() async {
+    try {
+      final imageUrl = await _mealService.getRandomMealImage();
+      if (mounted) { // Check if widget is still mounted before setting state
+        setState(() {
+          _backgroundImageUrl = imageUrl;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -283,10 +302,10 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 20),
-          _buildField('Sex', gender ?? 'Male', _showGenderDialog),
-          _buildField('Year of Birth', birthYear.toString(), _showBirthYearDialog),
-          _buildField('Height', '$height ${heightUnit == 'cm' ? 'cm' : 'ft'}', _showHeightDialog),
-          _buildField('Weight', '$weight kg', _showWeightDialog),
+          _buildField('Sex', gender, _showGenderDialog),
+          _buildField('Year of Birth', birthYear?.toString(), _showBirthYearDialog),
+          _buildField('Height', height != null ? '$height ${heightUnit == 'cm' ? 'cm' : 'ft'}' : null, _showHeightDialog),
+          _buildField('Weight', weight != null ? '$weight kg' : null, _showWeightDialog),
           _buildField('Activity Level', activityLevel, _showActivityLevelDialog),
         ],
       ),
@@ -342,7 +361,7 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
     );
   }
 
-  Widget _buildField(String label, String value, VoidCallback onTap) {
+  Widget _buildField(String label, String? value, VoidCallback onTap) {
     return Column(
       children: [
         Padding(
@@ -361,11 +380,11 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
               Row(
                 children: [
                   Text(
-                    value,
-                    style: const TextStyle(
-                      color: Colors.black,
+                    value ?? 'Not Set',
+                    style: TextStyle(
+                      color: value == null ? Colors.red : Colors.black,
                       fontSize: 18.5,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: value == null ? FontWeight.w600 : FontWeight.w800,
                     ),
                   ),
                   const SizedBox(width: 3),
@@ -413,7 +432,7 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
         builder: (context) => CustomNumberPicker(
           title: 'What year were you born in?',
           unit: '',
-          initialValue: birthYear.toDouble(),
+          initialValue: birthYear?.toDouble() ?? 2000.0,
           minValue: 1900,
           maxValue: 2045,
           onValueChanged: (value) {
@@ -431,8 +450,9 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
           title: 'Your height',
           unit: 'cm',
           initialValue: height,
-          minValue: 100,
-          maxValue: 250,
+          minValue: 0,
+          maxValue: 999,
+          showDecimals: true,
           onValueChanged: (value) {
             setState(() => height = value);
           },
@@ -448,8 +468,8 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
           title: 'Your weight',
           unit: 'kg',
           initialValue: weight,
-          minValue: 30,
-          maxValue: 200,
+          minValue: 0,
+          maxValue: 999,
           showDecimals: true,
           onValueChanged: (value) {
             setState(() => weight = value);
