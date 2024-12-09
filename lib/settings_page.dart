@@ -4,7 +4,6 @@ import 'package:nutriguide/notifications_page.dart';
 import 'account_page.dart';
 import '/profile_page.dart';
 import 'services/auth_service.dart';
-import 'services/firestore_service.dart';
 import 'profile_edit_page.dart';
 import 'preference_page.dart';
 
@@ -89,7 +88,6 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Future<void> _fetchUserData() async {
     final authService = AuthService();
-    final firestoreService = FirestoreService();
 
     email = authService.getCurrentUserEmail();
     username = authService.getCurrentUsername();
@@ -140,10 +138,10 @@ class _SettingsPageState extends State<SettingsPage> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      email ?? 'Loading...',
+                      (email != null && email!.length > 17) ? '${email!.substring(0, 17)}...' : (email ?? 'Loading...'),
                       style: const TextStyle(color: Colors.white, fontSize: 18),
                     ),
-                    const SizedBox(width: 16),  // Add space between email and arrow
+                    const SizedBox(width: 16),
                     const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 24),
                   ],
                 ),
@@ -163,19 +161,18 @@ class _SettingsPageState extends State<SettingsPage> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      username ?? 'Loading...',
+                      (username != null && username!.length > 17) ? '${username!.substring(0, 17)}...' : (username ?? 'Loading...'),
                       style: const TextStyle(color: Colors.white, fontSize: 18),
                     ),
-                    const SizedBox(width: 16),  // Add space between username and arrow
+                    const SizedBox(width: 16),
                     const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 24),
                   ],
                 ),
                 onTap: () {
-                  // Navigate to Profile page
                   Navigator.push(
-                      context,
-                      SlideLeftRoute(page: const ProfileEditPage()),
-                    );
+                    context,
+                    SlideLeftRoute(page: const ProfileEditPage()),
+                  );
                 },
               ),
               const SizedBox(height: 24),
@@ -202,7 +199,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   Navigator.pushReplacement(
                     context,
                     SlideLeftRoute(
-                      page:  const PreferencePage(),
+                      page: const PreferencePage(),
                     ),
                   );
                 },
@@ -218,7 +215,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   Navigator.push(
                     context,
                     SlideLeftRoute(
-                      page:  const AboutNutriguidePage(),
+                      page: const AboutNutriguidePage(),
                     ),
                   );
                 },
@@ -229,4 +226,6 @@ class _SettingsPageState extends State<SettingsPage> {
       ),
     );
   }
+
+
 }

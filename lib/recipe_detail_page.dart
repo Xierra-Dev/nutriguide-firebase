@@ -19,6 +19,7 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
   bool isLoadingSave = false;
   bool isLoadingPlan = false;
   bool showTitle = false;
+  bool _isScrolledToThreshold = false;
   bool _isTemporarilyPlanned = false;
 
   DateTime _selectedDate = DateTime.now();
@@ -524,207 +525,208 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
     }
   }
 
-
-
   @override
   Widget build(BuildContext context) {
+    double appBarHeight = MediaQuery.of(context).size.height * 0.375;
+    double threshold = appBarHeight * 0.75;
+
     return Scaffold(
       backgroundColor: Colors.black,
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            backgroundColor: Colors.black,
-            surfaceTintColor: Colors.transparent,
-            expandedHeight: MediaQuery.of(context).size.height * 0.375,
-            pinned: true,
-            flexibleSpace: FlexibleSpaceBar(
-              centerTitle: true,
-              title: Text(
-                widget.recipe.title,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              background: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Image.network(
-                    widget.recipe.image,
-                    fit: BoxFit.cover,
+      body: NotificationListener<ScrollNotification>(
+        onNotification: (ScrollNotification scrollInfo) {
+          setState(() {
+            _isScrolledToThreshold = scrollInfo.metrics.pixels >= threshold;
+          });
+          return true;
+        },
+        child: CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              backgroundColor: Colors.black,
+              surfaceTintColor: Colors.transparent,
+              expandedHeight: appBarHeight,
+              pinned: true,
+              flexibleSpace: FlexibleSpaceBar(
+                centerTitle: true,
+                title: Text(
+                  _isScrolledToThreshold
+                      ? (widget.recipe.title.length > 15
+                      ? '${widget.recipe.title.substring(0, 15)}...'
+                      : widget.recipe.title)
+                      : widget.recipe.title,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
                   ),
-                  Positioned.fill(
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.bottomCenter,
-                          end: Alignment.topCenter,
-                          colors: [
-                            Colors.black.withOpacity(0.45),
-                            Colors.transparent,
-                            Colors.black.withOpacity(0.45),
-                          ],
-                          stops: const [0.0, 0.35, 1.0],
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                background: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Image.network(
+                      widget.recipe.image,
+                      fit: BoxFit.cover,
+                    ),
+                    Positioned.fill(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.bottomCenter,
+                            end: Alignment.topCenter,
+                            colors: [
+                              Colors.black.withOpacity(0.45),
+                              Colors.transparent,
+                              Colors.black.withOpacity(0.45),
+                            ],
+                            stops: const [0.0, 0.35, 1.0],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.white),
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.white),
                 onPressed: () async {
-                await _firestoreService.addToRecentlyViewed(widget.recipe);
-                Navigator.pop(context);
+                  await _firestoreService.addToRecentlyViewed(widget.recipe);
+                  Navigator.pop(context);
                 },
-            ),
-            actions: [
+              ),
+              actions: [
                 Row(
                   children: [
                     Container(
-                      margin: EdgeInsets.only(
-                        top: 5,
-                      ),
-                      padding: EdgeInsets.only(
-                        bottom: 2,
-                      ),
+                      margin: const EdgeInsets.only(top: 5),
+                      padding: const EdgeInsets.only(bottom: 2),
                       child: IconButton(
-                        icon: Icon(
+                        icon: const Icon(
                           Icons.calendar_today,
                           color: Colors.white,
-                          size: 20, // Reduced icon size
-                        ), // Reduced padding
+                          size: 20,
+                        ),
                         onPressed: isLoadingPlan ? null : () => _togglePlan(widget.recipe),
                       ),
                     ),
                     Container(
-                      margin: EdgeInsets.only(
-                        top: 5,
-                        right: 10,
-                      ),
+                      margin: const EdgeInsets.only(top: 5, right: 10),
                       child: IconButton(
                         icon: Icon(
                           isSaved ? Icons.bookmark : Icons.bookmark_border,
                           color: isSaved ? Colors.deepOrange : Colors.white,
-                          size: 22.5, // Reduced icon size
-                        ), // Reduced padding
+                          size: 22.5,
+                        ),
                         onPressed: isLoadingSave ? null : () => _toggleSave(widget.recipe),
                       ),
                     ),
                   ],
                 ),
-            ],
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                vertical: 24,
-                horizontal: 20,
-              ),
-              child: Column(
-                children: [
-                  // Removed the Text widget that displayed the recipe title
-                  const SizedBox(height: 8),
-                  _buildInfoSection(),
-                  const SizedBox(height: 24),
-                  _buildIngredientsList(),
-                  const SizedBox(height: 24),
-                  _buildInstructions(),
-                  const SizedBox(height: 24),
-                  _buildHealthScore(),
-                  const SizedBox(height: 24),
-                  _buildNutritionInfo(widget.recipe.nutritionInfo),
-                ],
+              ],
+            ),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 24,
+                  horizontal: 20,
+                ),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 8),
+                    _buildInfoSection(),
+                    const SizedBox(height: 24),
+                    _buildIngredientsList(),
+                    const SizedBox(height: 24),
+                    _buildInstructions(),
+                    const SizedBox(height: 24),
+                    _buildHealthScore(),
+                    const SizedBox(height: 24),
+                    _buildNutritionInfo(widget.recipe.nutritionInfo),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-        bottomNavigationBar: Container(
-          padding: const EdgeInsets.only(
-            top: 18,
-            bottom: 15,
-            right: 18,
-            left: 18,
-          ),
-          decoration: BoxDecoration(
-            color: Colors.black,
-            border: Border(
-              top: BorderSide(
-                color: Colors.white.withOpacity(0.1),
-              ),
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.only(
+          top: 18,
+          bottom: 15,
+          right: 18,
+          left: 18,
+        ),
+        decoration: BoxDecoration(
+          color: Colors.black,
+          border: Border(
+            top: BorderSide(
+              color: Colors.white.withOpacity(0.1),
             ),
           ),
-          child: Row(
-            children: [
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: isLoadingSave ? null : () => _toggleSave(widget.recipe),
-                  style: ElevatedButton.styleFrom(
-                    // Change background color based on save state
-                    backgroundColor: isSaved ? Colors.deepOrange : Colors.white,
-                    // Change text color based on save state
-                    foregroundColor: isSaved ? Colors.white : Colors.black,
-                    padding: const EdgeInsets.symmetric(vertical: 13),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(50),
-                    ),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: ElevatedButton(
+                onPressed: isLoadingSave ? null : () => _toggleSave(widget.recipe),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: isSaved ? Colors.deepOrange : Colors.white,
+                  foregroundColor: isSaved ? Colors.white : Colors.black,
+                  padding: const EdgeInsets.symmetric(vertical: 13),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(50),
                   ),
-                  child: isLoadingSave
-                      ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor:
-                      AlwaysStoppedAnimation<Color>(Colors.deepOrange),
-                    ),
-                  )
-                      : Text(isSaved ? 'Saved' : 'Save', style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700
-                  ),),
+                ),
+                child: isLoadingSave
+                    ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.deepOrange),
+                  ),
+                )
+                    : Text(
+                  isSaved ? 'Saved' : 'Save',
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
                 ),
               ),
-              SizedBox(width: 18,),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed:  () => _togglePlan(widget.recipe),
-                  style: ElevatedButton.styleFrom(
-                    // Change background color based on save state
-                    backgroundColor: Colors.white,
-                    // Change text color based on save state
-                    foregroundColor: Colors.black,
-                    padding: const EdgeInsets.symmetric(vertical: 13),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(50),
-                    ),
+            ),
+            const SizedBox(width: 18),
+            Expanded(
+              child: ElevatedButton(
+                onPressed: () => _togglePlan(widget.recipe),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.black,
+                  padding: const EdgeInsets.symmetric(vertical: 13),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(50),
                   ),
-                  child: isLoadingPlan
-                      ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor:
-                      AlwaysStoppedAnimation<Color>(Colors.deepOrange),
-                    ),
-                  )
-                      : Text('Plan', style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700
-                  ),),
+                ),
+                child: isLoadingPlan
+                    ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.deepOrange),
+                  ),
+                )
+                    : const Text(
+                  'Plan',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
                 ),
               ),
-            ],
-          ),
-        )
+            ),
+          ],
+        ),
+      ),
     );
   }
+
+
 
   // Rest of the widget methods remain the same...
   Widget _buildInfoButton(String label, String value, IconData icon) {
