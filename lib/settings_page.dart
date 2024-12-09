@@ -138,7 +138,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      (email != null && email!.length > 17) ? '${email!.substring(0, 17)}...' : (email ?? 'Loading...'),
+                      (email != null && email!.length > 21) ? '${email!.substring(0, 21)}...' : (email ?? 'Loading...'),
                       style: const TextStyle(color: Colors.white, fontSize: 18),
                     ),
                     const SizedBox(width: 16),
@@ -161,7 +161,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      (username != null && username!.length > 17) ? '${username!.substring(0, 17)}...' : (username ?? 'Loading...'),
+                      (username != null && username!.length > 21) ? '${username!.substring(0, 21)}...' : (username ?? 'Loading...'),
                       style: const TextStyle(color: Colors.white, fontSize: 18),
                     ),
                     const SizedBox(width: 16),

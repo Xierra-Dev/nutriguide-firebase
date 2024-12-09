@@ -81,6 +81,7 @@ class _AccountPageState extends State<AccountPage> {
   final TextEditingController _newEmailController = TextEditingController();
   final TextEditingController _currentPasswordController = TextEditingController();
   final TextEditingController _newPasswordController = TextEditingController();
+  final TextEditingController _confirmNewPasswordController = TextEditingController();
   bool _isPasswordVisible = false;
 
   @override
@@ -215,7 +216,7 @@ class _AccountPageState extends State<AccountPage> {
                 ),
                 style: const TextStyle(color: Colors.white),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 15),
               TextField(
                 controller: _currentPasswordController,
                 obscureText: !_isPasswordVisible,
@@ -303,37 +304,46 @@ class _AccountPageState extends State<AccountPage> {
 
   Future<void> changePassword() async {
     if (_currentPasswordController.text.isEmpty ||
-        _newPasswordController.text.isEmpty) {
+        _newPasswordController.text.isEmpty ||
+        _confirmNewPasswordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please fill in all fields')),
       );
       return;
     }
 
-    if (_newPasswordController.text.length < 6) {
+    if (_newPasswordController.text.length < 8) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Password must be at least 6 characters')),
+        const SnackBar(content: Text('Password must be at least 8 characters')),
+      );
+      return;
+    }
+
+    if (_newPasswordController.text != _confirmNewPasswordController.text) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('New password and confirmation do not match')),
       );
       return;
     }
 
     try {
-      User? currentUser = _auth.currentUser;
-      if (currentUser != null) {
+      User? currentUser  = _auth.currentUser ;
+      if (currentUser  != null) {
         // Reauthenticate user first
         AuthCredential credential = EmailAuthProvider.credential(
-            email: currentUser.email!,
+            email: currentUser .email!,
             password: _currentPasswordController.text
         );
 
-        await currentUser.reauthenticateWithCredential(credential);
+        await currentUser .reauthenticateWithCredential(credential);
 
         // Update password
-        await currentUser.updatePassword(_newPasswordController.text);
+        await currentUser .updatePassword(_newPasswordController.text);
 
         // Reset controllers
         _currentPasswordController.clear();
         _newPasswordController.clear();
+        _confirmNewPasswordController.clear();
 
         // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
@@ -351,10 +361,8 @@ class _AccountPageState extends State<AccountPage> {
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(
-            'An error occurred: $e',
-        ),
-          backgroundColor: Colors.red,
+        SnackBar(content: Text('An error occurred: $e',
+          ),
         ),
       );
     }
@@ -424,7 +432,7 @@ class _AccountPageState extends State<AccountPage> {
                 ),
                 style: const TextStyle(color: Colors.white),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 15),
               TextField(
                 controller: _newPasswordController,
                 obscureText: !_isPasswordVisible,
@@ -457,6 +465,42 @@ class _AccountPageState extends State<AccountPage> {
                       horizontal: 25,
                       vertical: 12,
                     )
+                ),
+                style: const TextStyle(color: Colors.white),
+              ),
+              const SizedBox(height: 15),
+              TextField(
+                controller: _confirmNewPasswordController,
+                obscureText: !_isPasswordVisible,
+                decoration: InputDecoration(
+                  labelText: 'Confirm New Password',
+                  labelStyle: const TextStyle(color: Colors.white),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(50),
+                    borderSide: const BorderSide(color: Colors.white),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(50),
+                    borderSide: const BorderSide(color: Colors.deepOrange),
+                  ),
+                  suffixIcon: Padding(
+                    padding: const EdgeInsets.only(right: 12.5),
+                    child: IconButton(
+                      icon: Icon(
+                        _isPasswordVisible ? MdiIcons.eyeOff : MdiIcons.eye,
+                        color: Colors.grey,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _isPasswordVisible = !_isPasswordVisible;
+                        });
+                      },
+                    ),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 25,
+                    vertical: 12,
+                  ),
                 ),
                 style: const TextStyle(color: Colors.white),
               ),
@@ -679,7 +723,7 @@ class _AccountPageState extends State<AccountPage> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      email ?? 'Loading...',
+                      (email != null && email!.length > 25) ? '${email!.substring(0, 25)}...' : (email ?? 'Loading...'),
                       style: const TextStyle(
                           color: Colors.white,
                           fontSize: 17
