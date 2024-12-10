@@ -4,7 +4,6 @@ import 'widgets/custom_number_picker.dart';
 import 'widgets/custom_gender_picker.dart';
 import 'widgets/custom_activitiyLevel_picker.dart';
 import 'preference_page.dart';
-import 'home_page.dart';
 
 class HealthDataPage extends StatefulWidget {
   const HealthDataPage({super.key});
@@ -16,6 +15,7 @@ class HealthDataPage extends StatefulWidget {
 class _HealthDataPageState extends State<HealthDataPage> {
   final FirestoreService _firestoreService = FirestoreService();
   bool isLoading = true;
+
 
   // Original values from Firestore
   String? originalGender;
@@ -41,8 +41,7 @@ class _HealthDataPageState extends State<HealthDataPage> {
   Future<void> _loadHealthData() async {
     try {
       final userData = await _firestoreService.getUserPersonalization();
-      if (mounted) {
-        // Check if widget is still mounted
+      if (mounted) {  // Check if widget is still mounted
         setState(() {
           // Save original values
           originalGender = userData?['gender'];
@@ -98,17 +97,15 @@ class _HealthDataPageState extends State<HealthDataPage> {
             child: Material(
               color: Colors.transparent,
               child: Container(
-                width: MediaQuery.of(context).size.width *
-                    0.9, // Lebar 90% dari layar
+                width: MediaQuery.of(context).size.width * 0.9, // Lebar 90% dari layar
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
                   color: const Color(0xFF1E1E1E), // Warna latar belakang gelap
-                  borderRadius:
-                      BorderRadius.circular(28), // Sudut yang lebih bulat
+                  borderRadius: BorderRadius.circular(28), // Sudut yang lebih bulat
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
-                  mainAxisSize: MainAxisSize.min,
+                  mainAxisSize: MainAxisSize.min ,
                   children: [
                     Padding(
                       padding: const EdgeInsets.only(top: 8),
@@ -140,7 +137,7 @@ class _HealthDataPageState extends State<HealthDataPage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const HomePage(),
+                            builder: (context) => const PreferencePage(),
                           ),
                         );
                       },
@@ -150,6 +147,7 @@ class _HealthDataPageState extends State<HealthDataPage> {
                         elevation: 0,
                         padding: const EdgeInsets.symmetric(
                           vertical: 12,
+
                         ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(25),
@@ -173,8 +171,7 @@ class _HealthDataPageState extends State<HealthDataPage> {
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(25),
-                          side:
-                              BorderSide(color: Colors.white.withOpacity(0.2)),
+                          side: BorderSide(color: Colors.white.withOpacity(0.2)),
                         ),
                       ),
                       child: const Text(
@@ -207,8 +204,6 @@ class _HealthDataPageState extends State<HealthDataPage> {
     }
   }
 
-  // ...
-
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -231,93 +226,63 @@ class _HealthDataPageState extends State<HealthDataPage> {
           ),
         ),
         body: isLoading
-            ? const Center(
-                child: CircularProgressIndicator(color: Colors.deepOrange))
+            ? const Center(child: CircularProgressIndicator(color: Colors.deepOrange))
             : Column(
-                children: [
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 5,
-                        vertical: 20,
-                      ),
-                      child: Column(
-                        children: [
-                          _buildDataItem('Sex', gender ?? 'Not Set', _editSex),
-                          _buildDataItem(
-                              'Year of Birth',
-                              birthYear?.toString() ?? 'Not Set',
-                              _editYearOfBirth),
-                          _buildDataItem(
-                              'Height',
-                              height != null ? '$height cm' : 'Not Set',
-                              _editHeight),
-                          _buildDataItem(
-                              'Weight',
-                              weight != null ? '$weight kg' : 'Not Set',
-                              _editWeight),
-                          _buildDataItem('Activity Level',
-                              activityLevel ?? 'Not Set', _editActivityLevel),
-                        ],
+          children: [
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 5,
+                  vertical: 20,
+                ),
+                child: Column(
+                  children: [
+                    _buildDataItem('Sex', gender ?? 'Not Set', _editSex),
+                    _buildDataItem('Year of Birth', birthYear?.toString() ?? 'Not Set', _editYearOfBirth),
+                    _buildDataItem('Height', height != null ? '$height cm' : 'Not Set', _editHeight),
+                    _buildDataItem('Weight', weight != null ? '$weight kg' : 'Not Set', _editWeight),
+                    _buildDataItem('Activity Level', activityLevel ?? 'Not Set', _editActivityLevel),
+                  ],
+                ),
+              ),
+            ),
+            if (!isLoading)
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: ElevatedButton(
+                  style: ButtonStyle(
+                    backgroundColor: WidgetStateProperty.resolveWith<Color>((states) {
+                      if (states.contains(WidgetState.disabled)) {
+                        // Warna tombol saat nonaktif
+                        return Colors.grey.shade800;
+                      }
+                      // Warna tombol saat aktif
+                      return Colors.deepOrange;
+                    }),
+                    animationDuration: const Duration(milliseconds: 300),
+                    minimumSize: WidgetStateProperty.all(const Size(double.infinity, 50)),
+                    shape: WidgetStateProperty.all(
+                      RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(50),
                       ),
                     ),
                   ),
-                  if (!isLoading)
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        children: [
-                          ElevatedButton(
-                            onPressed: _hasChanges ? _saveHealthData : null,
-                            style: ButtonStyle(
-                                // ... existing button styles
-                                ),
-                            child: Text(
-                              'SAVE',
-                              style: TextStyle(
-                                color:
-                                    _hasChanges ? Colors.black : Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          ElevatedButton(
-                            onPressed: () {
-                              // Navigate to Home Page without saving
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => const HomePage()),
-                              );
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.grey,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(50),
-                              ),
-                            ),
-                            child: const Text(
-                              'Set Up Later',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                  onPressed: _hasChanges ? _saveHealthData : null, // Aktif/nonaktif
+                  child: Text(
+                    'SAVE',
+                    style: TextStyle(
+                      color: _hasChanges ? Colors.black : Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
                     ),
-                ],
+                  ),
+                )
               ),
+          ],
+        ),
       ),
     );
   }
-
-// ...
 
   Widget _buildDataItem(String label, String value, VoidCallback onEdit) {
     // Check if the value is 'Not Set' to determine text color
@@ -412,15 +377,13 @@ class _HealthDataPageState extends State<HealthDataPage> {
   }
 
   void _editSex() {
-    Navigator.of(context)
-        .push(
+    Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => CustomGenderPicker(
           initialValue: gender,
         ),
       ),
-    )
-        .then((selectedGender) {
+    ).then((selectedGender) {
       if (selectedGender != null) {
         setState(() {
           gender = selectedGender;
@@ -483,15 +446,13 @@ class _HealthDataPageState extends State<HealthDataPage> {
   }
 
   void _editActivityLevel() {
-    Navigator.of(context)
-        .push(
+    Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => CustomActivityLevelPicker(
           initialValue: activityLevel,
         ),
       ),
-    )
-        .then((selectedActivityLevel) {
+    ).then((selectedActivityLevel) {
       if (selectedActivityLevel != null) {
         setState(() {
           activityLevel = selectedActivityLevel;
