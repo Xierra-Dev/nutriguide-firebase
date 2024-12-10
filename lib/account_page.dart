@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:nutriguide/landing_page.dart';
 import 'settings_page.dart';
-import 'login_page.dart';
 import 'services/auth_service.dart';
 
 class AccountPage extends StatefulWidget {
@@ -650,7 +650,7 @@ class _AccountPageState extends State<AccountPage> {
         await authService.signOut();
 
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const LoginPage()),
+          MaterialPageRoute(builder: (context) => const LandingPage()),
         );
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -661,6 +661,184 @@ class _AccountPageState extends State<AccountPage> {
           ),
         );
       }
+    }
+  }
+
+  Future<void> confirmDeleteAccount(BuildContext context) async {
+    bool? confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.black.withOpacity(0.25),
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15.0),
+        ),
+        backgroundColor: Colors.grey[800],
+        child: Container(
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width * 0.95,
+          ),
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 18),
+              const Text(
+                'Delete Account',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'Are you sure you want to delete your account? This action cannot be undone.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.white
+                ),
+              ),
+              const SizedBox(height: 24),
+              TextField(
+                controller: _currentPasswordController,
+                obscureText: !_isPasswordVisible,
+                decoration: InputDecoration(
+                    labelText: 'Enter Password to Confirm',
+                    labelStyle: const TextStyle(color: Colors.white),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(50),
+                      borderSide: const BorderSide(color: Colors.white),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(50),
+                      borderSide: const BorderSide(color: Colors.deepOrange),
+                    ),
+                    suffixIcon: Padding(
+                      padding: const EdgeInsets.only(right: 12.5),
+                      child: IconButton(
+                        icon: Icon(
+                          _isPasswordVisible ? MdiIcons.eyeOff : MdiIcons.eye,
+                          color: Colors.grey,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _isPasswordVisible = !_isPasswordVisible;
+                          });
+                        },
+                      ),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 25,
+                      vertical: 12,
+                    )
+                ),
+                style: const TextStyle(color: Colors.white),
+              ),
+              const SizedBox(height: 35),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton(
+                    onPressed: () => Navigator.of(context).pop(true),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      minimumSize: const Size(100, 40),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20.0),
+                      ),
+                    ),
+                    child: const Text(
+                      'Delete',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 20),
+                  OutlinedButton(
+                    onPressed: () {
+                      _currentPasswordController.clear();
+                      Navigator.of(context).pop(false);
+                    },
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size(100, 40),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20.0),
+                      ),
+                    ),
+                    child: const Text(
+                      'Cancel',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 7),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    if (confirmed ?? false) {
+      try {
+        User? currentUser = _auth.currentUser;
+        if (currentUser != null) {
+          // Re-authenticate user before deleting account
+          AuthCredential credential = EmailAuthProvider.credential(
+              email: currentUser.email!,
+              password: _currentPasswordController.text
+          );
+
+          await currentUser.reauthenticateWithCredential(credential);
+          await currentUser.delete();
+
+          _currentPasswordController.clear();
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => const LandingPage()),
+          );
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Account successfully deleted'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } on FirebaseAuthException catch (e) {
+        String errorMessage = 'Failed to delete account';
+
+        if (e.code == 'requires-recent-login') {
+          errorMessage = 'Authentication required. Please check your password and try again.';
+        } else if (e.code == 'wrong-password') {
+          errorMessage = 'Incorrect password. Please try again.';
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Colors.red,
+          ),
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('An error occurred: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } else {
+      _currentPasswordController.clear();
     }
   }
 
@@ -780,10 +958,28 @@ class _AccountPageState extends State<AccountPage> {
                 trailing: const Icon(
                     Icons.logout,
                     color: Colors.white,
-                    size: 28,
+                    size: 26,
                 ),
                 onTap: () {
                   confirmLogout(context);
+                },
+              ),
+              const SizedBox(height: 17.5),
+              ListTile(
+                leading: const Text(
+                  'Delete Account',
+                  style: TextStyle(
+                    color: Colors.red,
+                    fontSize: 18,
+                  ),
+                ),
+                trailing: const Icon(
+                  Icons.delete_forever,
+                  color: Colors.red,
+                  size: 30,
+                ),
+                onTap: () {
+                  confirmDeleteAccount(context);
                 },
               ),
             ],

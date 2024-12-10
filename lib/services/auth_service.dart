@@ -63,6 +63,33 @@ class AuthService {
     }
   }
 
+  Future<bool> waitForEmailVerification({Duration timeout = const Duration(minutes: 3)}) async {
+    User? user = _auth.currentUser;
+    if (user == null) {
+      throw Exception('No user is currently logged in.');
+    }
+
+    final Completer<bool> completer = Completer<bool>();
+    final Timer timer = Timer(timeout, () {
+      if (!completer.isCompleted) completer.complete(false);
+    });
+
+    // Listen to user changes
+    final subscription = _auth.userChanges().listen((User? updatedUser) {
+      if (updatedUser?.emailVerified ?? false) {
+        timer.cancel();
+        if (!completer.isCompleted) completer.complete(true);
+      }
+    });
+
+    try {
+      final result = await completer.future;
+      return result;
+    } finally {
+      subscription.cancel();
+      timer.cancel(); // Ensure the timer is always cancelled
+    }
+  }
 
   // Register with email and password
   Future<UserCredential> registerWithEmailAndPassword({
@@ -99,13 +126,24 @@ class AuthService {
         'emailVerified': false,
       });
 
-      // Jalankan timer untuk memeriksa status verifikasi
-      _startVerificationTimer(userCredential.user!);
+      // Tunggu hingga email diverifikasi atau timeout
+      bool isVerified = await waitForEmailVerification(timeout: Duration(minutes: 3));
+      if (!isVerified) {
+        // Jika tidak diverifikasi dalam 5 menit, hapus akun dari Firebase Auth dan Firestore
+        await _firestore.collection('users').doc(userCredential.user!.uid).delete();
+        await userCredential.user?.delete();
+        throw Exception('Email not verified within the allowed time. Account deleted.');
+      }
 
       return userCredential;
     } catch (e) {
       throw Exception('Registration failed: $e');
     }
+  }
+
+  // Sign out
+  Future<void> signOut() async {
+    await _auth.signOut();
   }
 
   // Updated method to retrieve first and last name
@@ -145,11 +183,6 @@ class AuthService {
     });
   }
 
-  // Sign out
-  Future<void> signOut() async {
-    await _auth.signOut();
-  }
-
   // Update user profile
   Future<void> updateUserProfile(String displayName) async {
     await _auth.currentUser?.updateDisplayName(displayName);
@@ -174,35 +207,6 @@ class AuthService {
       rethrow;
     }
   }
-
-  Future<bool> waitForEmailVerification({Duration timeout = const Duration(minutes: 3)}) async {
-    User? user = _auth.currentUser;
-    if (user == null) {
-      throw Exception('No user is currently logged in.');
-    }
-
-    final Completer<bool> completer = Completer<bool>();
-    final Timer timer = Timer(timeout, () {
-      if (!completer.isCompleted) completer.complete(false);
-    });
-
-    // Listen to user changes
-    final subscription = _auth.userChanges().listen((User? updatedUser) {
-      if (updatedUser?.emailVerified ?? false) {
-        timer.cancel();
-        if (!completer.isCompleted) completer.complete(true);
-      }
-    });
-
-    try {
-      final result = await completer.future;
-      return result;
-    } finally {
-      subscription.cancel();
-      timer.cancel(); // Ensure the timer is always cancelled
-    }
-  }
-
 
   // Check if email is verified
   bool isEmailVerified() {
