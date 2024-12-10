@@ -82,20 +82,19 @@ class _RegisterPageState extends State<RegisterPage> {
           password: _passwordController.text.trim(),
           displayName: _nameController.text.trim(),
         );
-        await _authService.updateUserProfile(_nameController.text);
 
         // Show success dialog
         _showRegistrationDialog(isSuccess: true);
       } catch (e) {
         // Check for specific error scenarios
         String? errorMessage;
-        String errorTitle = 'AN ERROR OCCUR WHEN REGISTERING TO YOR ACCOUNT';
+        String errorTitle = 'AN ERROR OCCUR WHEN REGISTERING TO YOUR ACCOUNT';
         String? specificImage;
 
         // Common Firebase Auth errors
         if (e.toString().contains('The email address is already in use')) {
           errorMessage = 'This email is already registered. Please use a different email or log in.';
-          errorTitle = 'ACCOUNT ALREADY REGISTERED'; // Set specific title for this error
+          errorTitle = 'ACCOUNT ALREADY REGISTERED';
           specificImage = 'assets/images/account-already-registered.png';
         } else if (e.toString().contains('network-request-failed')) {
           errorTitle = 'No Internet Connection';
@@ -107,8 +106,8 @@ class _RegisterPageState extends State<RegisterPage> {
         _showRegistrationDialog(
           isSuccess: false,
           message: errorMessage,
-          title: errorTitle, // Use the dynamic title
-          specificImage: specificImage, // Pass the specific image
+          title: errorTitle,
+          specificImage: specificImage,
         );
       } finally {
         setState(() {

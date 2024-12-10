@@ -78,7 +78,10 @@ class SlideLeftRoute extends PageRouteBuilder {
 
 class _SettingsPageState extends State<SettingsPage> {
   String? email;
-  String? username;
+  String? displayName;
+  String? firstName;
+  String? lastName;
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -89,10 +92,24 @@ class _SettingsPageState extends State<SettingsPage> {
   Future<void> _fetchUserData() async {
     final authService = AuthService();
 
-    email = authService.getCurrentUserEmail();
-    username = authService.getCurrentUsername();
+    try {
+      email = authService.getCurrentUserEmail();
 
-    setState(() {});
+      // Retrieve user names
+      Map<String, String?> userNames = await authService.getUserNames();
+      displayName = userNames['displayName'];
+      firstName = userNames['firstName'];
+      lastName = userNames['lastName'];
+
+      setState(() {
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('Error fetching user data: $e');
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -161,7 +178,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      (username != null && username!.length > 21) ? '${username!.substring(0, 21)}...' : (username ?? 'Loading...'),
+                      (displayName != null && displayName!.length > 21) ? '${displayName!.substring(0, 21)}...' : (displayName ?? 'Loading...'),
                       style: const TextStyle(color: Colors.white, fontSize: 18),
                     ),
                     const SizedBox(width: 16),

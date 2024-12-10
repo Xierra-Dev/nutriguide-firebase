@@ -18,8 +18,24 @@ class AuthService {
   }
 
   // Method to get current user's username (display name)
-  String? getCurrentUsername() {
-    return _auth.currentUser?.displayName;
+  Future<String?> getCurrentUsername() async {
+    // Try to get username from Firebase Auth first
+    String? authUsername = _auth.currentUser?.displayName;
+
+    if (authUsername != null) return authUsername;
+
+    // If not found in Auth, try Firestore
+    try {
+      User? user = _auth.currentUser;
+      if (user != null) {
+        var userDoc = await _firestore.collection('users').doc(user.uid).get();
+        return userDoc.data()?['displayName'];
+      }
+    } catch (e) {
+      print('Error retrieving username from Firestore: $e');
+    }
+
+    return null;
   }
 
   // Sign in with email and password
@@ -52,7 +68,7 @@ class AuthService {
   Future<UserCredential> registerWithEmailAndPassword({
     required String email,
     required String password,
-    String? displayName,
+    required String displayName,
   }) async {
     try {
       UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
@@ -60,18 +76,25 @@ class AuthService {
         password: password,
       );
 
-      // Update display name jika disediakan
-      if (displayName != null) {
-        await userCredential.user?.updateDisplayName(displayName);
-      }
+      // Split display name into first and last name
+      List<String> nameParts = displayName.trim().split(' ');
+      String firstName = nameParts.first;
+      String lastName = nameParts.length > 1
+          ? nameParts.sublist(1).join(' ')
+          : '';
+
+      // Update display name with full name
+      await userCredential.user?.updateDisplayName(displayName);
 
       // Kirim email verifikasi
       await userCredential.user?.sendEmailVerification();
 
-      // Simpan data pengguna ke Firestore
+      // Simpan data pengguna ke Firestore dengan first name dan last name terpisah
       await _firestore.collection('users').doc(userCredential.user!.uid).set({
         'email': email,
         'displayName': displayName,
+        'firstName': firstName,
+        'lastName': lastName,
         'timestamp': FieldValue.serverTimestamp(),
         'emailVerified': false,
       });
@@ -83,6 +106,24 @@ class AuthService {
     } catch (e) {
       throw Exception('Registration failed: $e');
     }
+  }
+
+  // Updated method to retrieve first and last name
+  Future<Map<String, String?>> getUserNames() async {
+    try {
+      User? user = _auth.currentUser;
+      if (user != null) {
+        var userDoc = await _firestore.collection('users').doc(user.uid).get();
+        return {
+          'displayName': userDoc.data()?['displayName'],
+          'firstName': userDoc.data()?['firstName'],
+          'lastName': userDoc.data()?['lastName']
+        };
+      }
+    } catch (e) {
+      print('Error retrieving user names: $e');
+    }
+    return {};
   }
 
   void _startVerificationTimer(User user) {
@@ -203,5 +244,21 @@ class AuthService {
 
     // Menggunakan metadata lastSignInTime untuk mengecek
     return user.metadata.lastSignInTime == user.metadata.creationTime;
+  }
+
+  Future<bool> checkUsernameUniqueness(String username) async {
+    try {
+      // Query Firestore to check if username exists
+      var querySnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .where('username', isEqualTo: username)
+          .limit(1)
+          .get();
+
+      return querySnapshot.docs.isNotEmpty;
+    } catch (e) {
+      print('Error checking username uniqueness: $e');
+      return false;
+    }
   }
 }

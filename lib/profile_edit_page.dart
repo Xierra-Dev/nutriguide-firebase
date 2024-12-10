@@ -105,17 +105,52 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
   Future<void> _saveProfile() async {
     if (!_formKey.currentState!.validate()) return;
 
+    // Additional specific validations
+    if (_usernameController.text.length < 3) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Username must be at least 3 characters long'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
 
     try {
+      // Check username uniqueness before saving
+      bool isUsernameTaken = !(await _authService.checkUsernameUniqueness(
+          _usernameController.text
+      ));
+
+      if (isUsernameTaken) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Username is already taken. Please choose another.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        setState(() {
+          _isLoading = false;
+        });
+        return;
+      }
+
+      // Sanitize and format names
+      String firstName = _firstNameController.text.trim();
+      String lastName = _lastNameController.text.trim();
+      String username = _usernameController.text.trim().toLowerCase();
+
       // Update profile data in Firestore
       await _firestoreService.updateUserProfile({
-        'firstName': _firstNameController.text,
-        'lastName': _lastNameController.text,
-        'username': _usernameController.text,
-        'bio': _bioController.text,
+        'firstName': firstName,
+        'lastName': lastName,
+        'username': username,
+        'bio': _bioController.text.trim(),
+        'displayName': '$firstName ${lastName ?? ''}',
       });
 
       // If there's a new profile picture, upload it
@@ -125,7 +160,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
 
       // Update display name in Firebase Auth
       await _authService.updateDisplayName(
-          '${_firstNameController.text} ${_lastNameController.text}'
+          '$firstName ${lastName ?? ''}'.trim()
       );
 
       // Navigate back to profile page
@@ -136,8 +171,10 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error updating profile: $e'),
-          backgroundColor: Colors.red,),
+        SnackBar(
+          content: Text('Error updating profile: $e'),
+          backgroundColor: Colors.red,
+        ),
       );
     } finally {
       setState(() {
