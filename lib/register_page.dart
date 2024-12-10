@@ -1,10 +1,10 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'login_page.dart';
 import 'services/auth_service.dart';
 import 'landing_page.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'email_verification_page.dart';
-import 'personalization_page.dart';
 
 class SlideRightRoute extends PageRouteBuilder {
   final Widget page;
@@ -78,8 +78,9 @@ class _RegisterPageState extends State<RegisterPage> {
       });
       try {
         await _authService.registerWithEmailAndPassword(
-          _emailController.text.trim(),
-          _passwordController.text,
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
+          displayName: _nameController.text.trim(),
         );
         await _authService.updateUserProfile(_nameController.text);
 
@@ -155,8 +156,8 @@ class _RegisterPageState extends State<RegisterPage> {
                 contentPadding: EdgeInsets.only(
                   left: 20,
                   right: 20,
-                  top: isSuccess ? 65 : 20,  // Increased top padding for success case
-                  bottom: isSuccess ? -0 : 20, // Reduced bottom padding for success case
+                  top: isSuccess ? 50 : 20,  // Increased top padding for success case
+                  bottom: isSuccess ? 20 : 20, // Reduced bottom padding for success case
                 ),
                 content: Stack(
                   clipBehavior: Clip.none,
@@ -174,7 +175,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           height: isSuccess ? 100 : 100,
                           width: isSuccess ? 100 : 100,
                         ),
-                        SizedBox(height: isSuccess ? 10 : 15),  // Reduced spacing for success case
+                        SizedBox(height: isSuccess ? 32 : 15),  // Reduced spacing for success case
                         Text(
                           title ?? (isSuccess ? 'ACCOUNT SUCCESSFULLY REGISTERED' : 'AN ERROR OCCURRED WHEN REGISTERING YOUR ACCOUNT'),
                           style: TextStyle(
@@ -184,7 +185,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           ),
                           textAlign: TextAlign.center,
                         ),
-                        const SizedBox(height: 25),
+                        SizedBox(height: isSuccess ? 8 : 25),
                         if (!isSuccess)
                           Text(
                             message ?? 'An error occurred during registration. Please try again.',

@@ -4,6 +4,7 @@ import 'home_page.dart';
 import 'register_page.dart';
 import 'services/auth_service.dart';
 import 'landing_page.dart';
+import 'personalization_page.dart';
 
 
 class LoginPage extends StatefulWidget {
@@ -65,46 +66,54 @@ class _LoginPageState extends State<LoginPage> {
         _isLoading = true;
       });
       try {
+        // Login dan cek verifikasi email
         await _authService.signInWithEmailAndPassword(
           _emailController.text.trim(),
           _passwordController.text,
         );
+
+        // Cek apakah ini first-time login
+        bool isFirstTime = await _authService.isFirstTimeLogin();
+
+        // Navigasi berdasarkan status first-time login
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const HomePage()),
+          MaterialPageRoute(
+            builder: (context) => isFirstTime
+                ? const PersonalizationPage()
+                : const HomePage(),
+          ),
         );
 
-        // Show success dialog
-        _showLoginDialog(isSuccess: true);
       } catch (e) {
         // Check for specific error scenarios
-        String? errorMessage; // Change to nullable
-        String errorTitle = 'AN ERROR OCCUR WHEN LOGGING IN TO YOUR ACCOUNT'; // Changed title
+        String? errorMessage;
+        String errorTitle = 'AN ERROR OCCUR WHEN LOGGING IN TO YOUR ACCOUNT';
         String? specificImage;
 
         // Common Firebase Auth errors
         if (e.toString().contains('The supplied auth credential is incorrect')) {
-          errorMessage = null; // Set errorMessage to null
-          errorTitle = 'Double Check Your Email and Password'; // Set specific title for this error
+          errorMessage = null;
+          errorTitle = 'Double Check Your Email and Password';
           specificImage = 'assets/images/double-check-password-email.png';
         } else if (e.toString().contains('A network error')) {
           errorTitle = 'No Internet Connection';
           errorMessage = 'Network error. Please check your internet connection.';
           specificImage = 'assets/images/no-internet.png';
-        } else if (e.toString().contains('user-not-found')) {
-          errorMessage = 'Please register your account first'; // Set errorMessage to null
-          errorTitle = 'ACCOUNT NOT REGISTERED'; // Set specific title for this error
-          specificImage = 'assets/images/account-not-registered.png';
+        } else if (e.toString().contains('email-not-verified')) {
+          errorMessage = 'Please verify your email first. Check your inbox for verification link.';
+          errorTitle = 'EMAIL NOT VERIFIED';
+          specificImage = 'assets/images/email-verification.png';
         } else {
-          errorMessage = 'Please try again later'; // Default error message
+          errorMessage = 'Please try again later';
         }
 
         // Show error dialog
         _showLoginDialog(
           isSuccess: false,
           message: errorMessage,
-          title: errorTitle, // Use the dynamic title
-          specificImage: specificImage, // Pass the specific image
+          title: errorTitle,
+          specificImage: specificImage,
         );
       } finally {
         setState(() {
