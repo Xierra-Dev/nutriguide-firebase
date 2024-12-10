@@ -5,6 +5,7 @@ import 'dart:io' show File;
 import 'storage_service.dart';
 import 'package:intl/intl.dart';
 import '../models/planned_recipe.dart';
+import '../models/nutrition_goals.dart';
 
 class FirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -1029,6 +1030,35 @@ class FirestoreService {
       print('Error getting weekly nutrition: $e');
       return {};
     }
+  }
+
+  Future<void> saveNutritionGoals(NutritionGoals goals) async {
+    final userId = _auth.currentUser?.uid;
+    if (userId != null) {
+      await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('nutrition')
+          .doc('goals')
+          .set(goals.toMap());
+    }
+  }
+
+  Future<NutritionGoals> getNutritionGoals() async {
+    final userId = _auth.currentUser?.uid;
+    if (userId != null) {
+      final doc = await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('nutrition')
+          .doc('goals')
+          .get();
+      
+      if (doc.exists) {
+        return NutritionGoals.fromMap(doc.data()!);
+      }
+    }
+    return NutritionGoals.recommended();
   }
 
 }

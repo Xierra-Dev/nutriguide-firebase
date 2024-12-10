@@ -6,10 +6,12 @@ import 'services/firestore_service.dart';
 import 'profile_edit_page.dart';
 import 'add_recipe_page.dart';
 import 'models/recipe.dart';
+import 'models/nutrition_goals.dart';
 import 'recipe_detail_page.dart';
 import 'edit_recipe_page.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'widgets/nutrition_tracker.dart';
+import 'widgets/nutrition_goals_dialog.dart';
 
 
 class ProfilePage extends StatefulWidget {
@@ -100,6 +102,8 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
   double dailyCarbs = 0;
   double dailyFat = 0;
 
+  NutritionGoals nutritionGoals = NutritionGoals.recommended();
+
   @override
   void initState() {
     super.initState();
@@ -108,12 +112,20 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
     _loadCreatedRecipes();
     _loadDailyNutritionData();
     _loadActivityData();
+    _loadNutritionGoals();
 
     // Add listener to update state when tab changes
     _tabController.addListener(() {
       if (_tabController.indexIsChanging) {
         setState(() {});
       }
+    });
+  }
+
+  Future<void> _loadNutritionGoals() async {
+    final goals = await _firestoreService.getNutritionGoals();
+    setState(() {
+      nutritionGoals = goals;
     });
   }
 
@@ -379,24 +391,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
   }
 
   Widget _buildInsightsTab() {
-  // Calculate total nutrition from made recipes
-  double totalCalories = 0;
-  double totalCarbs = 0;
-  double totalFiber = 0;
-  double totalProtein = 0;
-  double totalFat = 0;
-
-  // Sum up nutrition values from all made recipes
-  for (var recipe in activityRecipes) {
-    totalCalories += recipe.nutritionInfo.calories.toDouble();
-    totalCarbs += recipe.nutritionInfo.carbs.toDouble();
-    totalFiber += recipe.nutritionInfo.fiber.toDouble();
-    totalProtein += recipe.nutritionInfo.protein.toDouble();
-    totalFat += recipe.nutritionInfo.fat.toDouble();
-  }
-  
-  
-  return SingleChildScrollView(
+    return SingleChildScrollView(
     padding: const EdgeInsets.all(16),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -424,9 +419,19 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                       fontWeight: FontWeight.bold,
                     ),
                   ),
+                  IconButton(
+                    icon: const Icon(Icons.edit, color: Colors.white),
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => const NutritionGoalsDialog(),
+                      );
+                      _loadNutritionGoals();
+                    },
+                  ),
                 ],
               ),
-              const SizedBox(height: 7.5,),
+              const SizedBox(height: 7.5),
               const Text(
                 'Balanced macros',
                 style: TextStyle(
@@ -438,18 +443,18 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _buildNutritionItem('Cal', '${totalCalories.toStringAsFixed(0)}', Colors.blue),
-                  _buildNutritionItem('Carbs', '${totalCarbs.toStringAsFixed(0)}g', Colors.orange),
-                  _buildNutritionItem('Fiber', '${totalFiber.toStringAsFixed(0)}g', Colors.green),
-                  _buildNutritionItem('Protein', '${totalProtein.toStringAsFixed(0)}g', Colors.pink),
-                  _buildNutritionItem('Fat', '${totalFat.toStringAsFixed(0)}g', Colors.purple),
+                  _buildNutritionItem('Cal', '${nutritionGoals.calories.toStringAsFixed(0)}', Colors.blue),
+                  _buildNutritionItem('Carbs', '${nutritionGoals.carbs.toStringAsFixed(0)}g', Colors.orange),
+                  _buildNutritionItem('Fiber', '${nutritionGoals.fiber.toStringAsFixed(0)}g', Colors.green),
+                  _buildNutritionItem('Protein', '${nutritionGoals.protein.toStringAsFixed(0)}g', Colors.pink),
+                  _buildNutritionItem('Fat', '${nutritionGoals.fat.toStringAsFixed(0)}g', Colors.purple),
                 ],
               ),
             ],
           ),
         ),
         const SizedBox(height: 24),
-        const NutritionTracker(),
+        NutritionTracker(nutritionGoals: nutritionGoals),
       ],
     ),
   );
