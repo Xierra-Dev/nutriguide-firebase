@@ -1,17 +1,51 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../services/firestore_service.dart';
-
+import 'nutrition_goals_dialog.dart';
+import '../models/nutrition_goals.dart';
 class NutritionTracker extends StatefulWidget {
-  const NutritionTracker({Key? key}) : super(key: key);
+  final NutritionGoals nutritionGoals;
+
+  const NutritionTracker({
+    Key? key,
+    required this.nutritionGoals,
+  }) : super(key: key);
 
   @override
   _NutritionTrackerState createState() => _NutritionTrackerState();
 }
 
+class DashedLinePainter extends CustomPainter {
+  final Color color;
+  
+  DashedLinePainter({
+    required this.color,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    double dashWidth = 5, dashSpace = 5, startX = 0;
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 1;
+
+    while (startX < size.width) {
+      canvas.drawLine(
+        Offset(startX, 0),
+        Offset(startX + dashWidth, 0),
+        paint,
+      );
+      startX += dashWidth + dashSpace;
+    }
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
+}
+
 class _NutritionTrackerState extends State<NutritionTracker> {
   final FirestoreService _firestoreService = FirestoreService();
-  int selectedWeek = 2;
+  int selectedWeek = 1;
   String selectedNutrient = 'carbs';
   Map<String, List<double>> weeklyNutrition = {};
   bool isLoading = true;
@@ -42,7 +76,27 @@ class _NutritionTrackerState extends State<NutritionTracker> {
     if (weeklyNutrition.isEmpty || weeklyNutrition[selectedNutrient] == null) {
       return 0;
     }
-    return weeklyNutrition[selectedNutrient]!.reduce((a, b) => a > b ? a : b);
+    
+    // Use nutrition goals as maximum values
+    switch (selectedNutrient) {
+      case 'calories':
+        return widget.nutritionGoals.calories;
+      case 'carbs':
+        return widget.nutritionGoals.carbs;
+      case 'fiber':
+        return widget.nutritionGoals.fiber;
+      case 'protein':
+        return widget.nutritionGoals.protein;
+      case 'fat':
+        return widget.nutritionGoals.fat;
+      default:
+        return 0;
+    }
+  }
+
+  int _getCurrentDayIndex() {
+    // Mengambil hari saat ini dalam bentuk indeks (0 untuk Minggu, 1 untuk Senin, dst.)
+    return DateTime.now().weekday % 7;
   }
 
   @override
@@ -128,57 +182,85 @@ class _NutritionTrackerState extends State<NutritionTracker> {
           else
             SizedBox(
               height: 200,
-              child: BarChart(
-                BarChartData(
-                  alignment: BarChartAlignment.spaceAround,
-                  maxY: _getMaxValue(),
-                  minY: 0,
-                  barTouchData: BarTouchData(enabled: true),
-                  titlesData: FlTitlesData(
-                    show: true,
-                    topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    bottomTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        getTitlesWidget: (value, meta) {
-                          const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-                          return Padding(
-                            padding: const EdgeInsets.only(top: 8.0),
-                            child: Text(
-                              days[value.toInt()],
-                              style: TextStyle(
-                                color: selectedNutrient == 'carbs' && value.toInt() == 1 
-                                    ? nutrientColors[selectedNutrient] 
-                                    : Colors.grey,
-                                fontSize: 12,
-                              ),
-                            ),
-                          );
-                        },
+              child: Stack(
+                children: [
+                  // Garis putus-putus horizontal
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    child: Container(
+                      height: 1,
+                      decoration: BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(
+                            color: Colors.white.withOpacity(0.2),
+                            width: 1,
+                          ),
+                        ),
+                      ),
+                      child: CustomPaint(
+                        painter: DashedLinePainter(
+                          color: Colors.white.withOpacity(0.2),
+                        ),
+                        size: const Size(double.infinity, 1),
                       ),
                     ),
                   ),
-                  gridData: FlGridData(show: false),
-                  borderData: FlBorderData(show: false),
-                  barGroups: List.generate(
-                    7,
-                    (index) => BarChartGroupData(
-                      x: index,
-                      barRods: [
-                        BarChartRodData(
-                          toY: weeklyNutrition[selectedNutrient]?[index] ?? 0,
-                          color: selectedNutrient == 'carbs' && index == 1
-                              ? nutrientColors[selectedNutrient]
-                              : Colors.grey[800],
-                          width: 30,
-                          borderRadius: BorderRadius.circular(15),
+                  // Bar Chart
+                  BarChart(
+                    BarChartData(
+                      alignment: BarChartAlignment.spaceAround,
+                      maxY: _getMaxValue(),
+                      minY: 0,
+                      barTouchData: BarTouchData(enabled: true),
+                      titlesData: FlTitlesData(
+                        show: true,
+                        topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                        rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                        leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                        bottomTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            getTitlesWidget: (value, meta) {
+                              const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                              return Padding(
+                                padding: const EdgeInsets.only(top: 8.0),
+                                child: Text(
+                                  days[value.toInt()],
+                                  style: TextStyle(
+                                    color: selectedNutrient == 'carbs' && value.toInt() == _getCurrentDayIndex()
+                                        ? nutrientColors[selectedNutrient] 
+                                        : Colors.grey,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
                         ),
-                      ],
+                      ),
+                      gridData: FlGridData(show: false),
+                      borderData: FlBorderData(show: false),
+                      barGroups: List.generate(
+                        7,
+                        (index) => BarChartGroupData(
+                          x: index,
+                          barRods: [
+                            BarChartRodData(
+                              toY: weeklyNutrition[selectedNutrient]?[index] ?? 0,
+                              color: selectedNutrient == 'carbs' && index == _getCurrentDayIndex()
+                                  ? nutrientColors[selectedNutrient]
+                                  : Colors.grey[800],
+                              width: 30,
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
-                ),
+                ],
               ),
             ),
           const SizedBox(height: 20),
