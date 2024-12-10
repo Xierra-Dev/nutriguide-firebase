@@ -355,7 +355,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     left: 25,
                     child: GestureDetector(
                       onTap: () {
-                        Navigator.of(context).pushReplacement(
+                        Navigator.of(context).pop(
                           SlideRightRoute(
                             page: const LandingPage(), // Replace with the page you want to go back to
                           ),
