@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../services/firestore_service.dart';
-import 'nutrition_goals_dialog.dart';
 import '../models/nutrition_goals.dart';
 class NutritionTracker extends StatefulWidget {
   final NutritionGoals nutritionGoals;

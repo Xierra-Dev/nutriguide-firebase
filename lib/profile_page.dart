@@ -11,7 +11,6 @@ import 'recipe_detail_page.dart';
 import 'edit_recipe_page.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'widgets/nutrition_tracker.dart';
-import 'widgets/nutrition_goals_dialog.dart';
 
 
 class ProfilePage extends StatefulWidget {
@@ -416,16 +415,6 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.edit, color: Colors.white),
-                    onPressed: () {
-                      showDialog(
-                        context: context,
-                        builder: (context) => const NutritionGoalsDialog(),
-                      );
-                      _loadNutritionGoals();
-                    },
                   ),
                 ],
               ),
