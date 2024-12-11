@@ -445,6 +445,81 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                           ),
                         ),
+                        // Add these new widgets
+                        const SizedBox(height: 20),  // Spacing between buttons
+                        const Row(
+                          children: [
+                            Expanded(child: Divider(color: Colors.white70)),
+                            Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 16),
+                              child: Text(
+                                'OR',
+                                style: TextStyle(color: Colors.white70),
+                              ),
+                            ),
+                            Expanded(child: Divider(color: Colors.white70)),
+                          ],
+                        ),
+                        const SizedBox(height: 20),  // Spacing between divider and Google button
+                        ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            foregroundColor: Colors.black,
+                            minimumSize: const Size(double.infinity, 45),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(50),
+                            ),
+                          ),
+                          icon: Image.asset(
+                            'assets/images/google_logo.png',
+                            height: 24,
+                          ),
+                          label: const Text(
+                            'Continue with Google',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          onPressed: () async {
+                            try {
+                              final userCredential = await _authService.signInWithGoogle();
+                              if (userCredential != null && mounted) {
+                                // Check if this is first-time login
+                                bool isFirstTime = await _authService.isFirstTimeLogin();
+
+                                // Navigate based on first-time login status
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => isFirstTime
+                                        ? const PersonalizationPage()
+                                        : const HomePage(),
+                                  ),
+                                );
+                              }
+                            } catch (e) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Row(
+                                    children: [
+                                      const Icon(Icons.error, color: Colors.white),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text(
+                                          'Error signing in with Google: ${e.toString()}',
+                                          style: const TextStyle(color: Colors.white),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+                          },
+                        ),
+                        const SizedBox(height: 20),  // Spacing before "Already have an account?"
                         Align(
                           alignment: Alignment.center,
                           child: Row(

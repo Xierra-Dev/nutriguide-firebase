@@ -1,10 +1,17 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    scopes: [
+      'email',
+      'profile',
+    ],
+  );
 
   // Get current user
   User? get currentUser => _auth.currentUser;
@@ -265,4 +272,49 @@ class AuthService {
       return false;
     }
   }
+
+  // Add this method for Google Sign In
+  Future<UserCredential?> signInWithGoogle() async {
+    try {
+      // Hapus sign in yang mungkin masih ada
+      await _googleSignIn.signOut();
+      
+      print("Starting Google Sign In process");
+      final GoogleSignInAccount? gUser = await _googleSignIn.signIn();
+      
+      print("Google Sign In result: ${gUser?.email}");
+      
+      if (gUser == null) {
+        print("Google Sign In cancelled by user");
+        return null;
+      }
+
+      print("Getting Google auth details");
+      final GoogleSignInAuthentication gAuth = await gUser.authentication;
+      
+      print("Creating credential");
+      final credential = GoogleAuthProvider.credential(
+        accessToken: gAuth.accessToken,
+        idToken: gAuth.idToken,
+      );
+
+      print("Signing in to Firebase");
+      return await _auth.signInWithCredential(credential);
+    } catch (e) {
+      print('Detailed error in signInWithGoogle: $e');
+      rethrow;
+    }
+  }
+
+  // Add this method to sign out from Google
+  Future<void> signOutGoogle() async {
+    try {
+      await _googleSignIn.signOut();
+      await _auth.signOut();
+    } catch (e) {
+      print('Error signing out from Google: $e');
+      rethrow;
+    }
+  }
 }
+
