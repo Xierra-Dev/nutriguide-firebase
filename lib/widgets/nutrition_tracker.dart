@@ -249,9 +249,9 @@ class _NutritionTrackerState extends State<NutritionTracker> {
                           barRods: [
                             BarChartRodData(
                               toY: weeklyNutrition[selectedNutrient]?[index] ?? 0,
-                              color: selectedNutrient == 'carbs' && index == _getCurrentDayIndex()
-                                  ? nutrientColors[selectedNutrient]
-                                  : Colors.grey[800],
+                              color: index == _getCurrentDayIndex()
+                                  ? nutrientColors[selectedNutrient] // Warna untuk hari ini
+                                  : nutrientColors[selectedNutrient]?.withOpacity(1), // Warna untuk hari lain
                               width: 30,
                               borderRadius: BorderRadius.circular(15),
                             ),
