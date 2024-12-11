@@ -896,6 +896,8 @@ class _AccountPageState extends State<AccountPage> {
 
   @override
   Widget build(BuildContext context) {
+    bool isGoogle = isGoogleUser();
+    
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
@@ -908,9 +910,9 @@ class _AccountPageState extends State<AccountPage> {
                 children: [
                   IconButton(
                     icon: const Icon(
-                        Icons.arrow_back,
-                        color: Colors.white,
-                        size: 30
+                      Icons.arrow_back,
+                      color: Colors.white,
+                      size: 30
                     ),
                     onPressed: () {
                       Navigator.of(context).pushReplacement(
@@ -936,8 +938,8 @@ class _AccountPageState extends State<AccountPage> {
                 leading: const Text(
                   'Email',
                   style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 17
+                    color: Colors.white,
+                    fontSize: 17
                   ),
                 ),
                 trailing: Row(
@@ -946,27 +948,27 @@ class _AccountPageState extends State<AccountPage> {
                     Text(
                       (email != null && email!.length > 25) ? '${email!.substring(0, 25)}...' : (email ?? 'Loading...'),
                       style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 17
+                        color: Colors.white,
+                        fontSize: 17
                       ),
                     ),
                     const SizedBox(width: 16),
                     const Icon(
-                        Icons.arrow_forward_ios,
-                        color: Colors.white,
-                        size: 22
+                      Icons.arrow_forward_ios,
+                      color: Colors.white,
+                      size: 22
                     ),
                   ],
                 ),
-                onTap: _showChangeEmailDialog,
+                onTap: isGoogle ? null : _showChangeEmailDialog,
               ),
               const SizedBox(height: 10),
-              ListTile(
+              if (!isGoogle) ListTile(
                 leading: const Text(
                   'Password',
                   style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 17
+                    color: Colors.white,
+                    fontSize: 17
                   ),
                 ),
                 trailing: Row(
@@ -975,21 +977,21 @@ class _AccountPageState extends State<AccountPage> {
                     Text(
                       displayPassword,
                       style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 17
+                        color: Colors.white,
+                        fontSize: 17
                       ),
                     ),
                     const SizedBox(width: 16),
                     const Icon(
-                        Icons.arrow_forward_ios,
-                        color: Colors.white,
-                        size: 22
+                      Icons.arrow_forward_ios,
+                      color: Colors.white,
+                      size: 22
                     ),
                   ],
                 ),
                 onTap: _showChangePasswordDialog,
               ),
-              const SizedBox(height: 10),
+              if (!isGoogle) const SizedBox(height: 10),
               ListTile(
                 leading: const Text(
                   'Logout',
@@ -999,9 +1001,9 @@ class _AccountPageState extends State<AccountPage> {
                   ),
                 ),
                 trailing: const Icon(
-                    Icons.logout,
-                    color: Colors.white,
-                    size: 25,
+                  Icons.logout,
+                  color: Colors.white,
+                  size: 25,
                 ),
                 onTap: () {
                   confirmLogout(context);
