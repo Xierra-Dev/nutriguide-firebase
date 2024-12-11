@@ -84,6 +84,12 @@ class _AccountPageState extends State<AccountPage> {
   final TextEditingController _confirmNewPasswordController = TextEditingController();
   bool _isPasswordVisible = false;
 
+  bool isGoogleUser() {
+    User? user = _auth.currentUser;
+    return user?.providerData.any((userInfo) => 
+      userInfo.providerId == 'google.com') ?? false;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -665,6 +671,8 @@ class _AccountPageState extends State<AccountPage> {
   }
 
   Future<void> confirmDeleteAccount(BuildContext context) async {
+    bool isGoogle = isGoogleUser();
+    
     bool? confirmed = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
@@ -687,9 +695,9 @@ class _AccountPageState extends State<AccountPage> {
                 'Delete Account',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white
                 ),
               ),
               const SizedBox(height: 20),
@@ -697,16 +705,58 @@ class _AccountPageState extends State<AccountPage> {
                 'Are you sure you want to delete your account? This action cannot be undone.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.white
+                  fontSize: 16,
+                  color: Colors.white
                 ),
               ),
               const SizedBox(height: 24),
-              TextField(
+              if (!isGoogle) TextField(
                 controller: _currentPasswordController,
                 obscureText: !_isPasswordVisible,
                 decoration: InputDecoration(
-                    labelText: 'Enter Password to Confirm',
+                  labelText: 'Enter Password to Confirm',
+                  labelStyle: const TextStyle(color: Colors.white),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(50),
+                    borderSide: const BorderSide(color: Colors.white),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(50),
+                    borderSide: const BorderSide(color: Colors.deepOrange),
+                  ),
+                  suffixIcon: Padding(
+                    padding: const EdgeInsets.only(right: 12.5),
+                    child: IconButton(
+                      icon: Icon(
+                        _isPasswordVisible ? MdiIcons.eyeOff : MdiIcons.eye,
+                        color: Colors.grey,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _isPasswordVisible = !_isPasswordVisible;
+                        });
+                      },
+                    ),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 25,
+                    vertical: 12,
+                  )
+                ),
+                style: const TextStyle(color: Colors.white),
+              ),
+              if (isGoogle) 
+                const Text(
+                  'Type "DELETE" to confirm',
+                  style: TextStyle(color: Colors.white, fontSize: 16),
+                ),
+              if (isGoogle) 
+                const SizedBox(height: 10),
+              if (isGoogle)
+                TextField(
+                  controller: _currentPasswordController,
+                  decoration: InputDecoration(
+                    labelText: 'Confirmation',
                     labelStyle: const TextStyle(color: Colors.white),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(50),
@@ -716,27 +766,13 @@ class _AccountPageState extends State<AccountPage> {
                       borderRadius: BorderRadius.circular(50),
                       borderSide: const BorderSide(color: Colors.deepOrange),
                     ),
-                    suffixIcon: Padding(
-                      padding: const EdgeInsets.only(right: 12.5),
-                      child: IconButton(
-                        icon: Icon(
-                          _isPasswordVisible ? MdiIcons.eyeOff : MdiIcons.eye,
-                          color: Colors.grey,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _isPasswordVisible = !_isPasswordVisible;
-                          });
-                        },
-                      ),
-                    ),
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 25,
                       vertical: 12,
                     )
+                  ),
+                  style: const TextStyle(color: Colors.white),
                 ),
-                style: const TextStyle(color: Colors.white),
-              ),
               const SizedBox(height: 35),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -793,16 +829,29 @@ class _AccountPageState extends State<AccountPage> {
       try {
         User? currentUser = _auth.currentUser;
         if (currentUser != null) {
-          // Re-authenticate user before deleting account
-          AuthCredential credential = EmailAuthProvider.credential(
+          if (isGoogle) {
+            // For Google users, check if they typed "DELETE"
+            if (_currentPasswordController.text != "DELETE") {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Please type "DELETE" to confirm account deletion'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+              return;
+            }
+          } else {
+            // For email/password users, re-authenticate
+            AuthCredential credential = EmailAuthProvider.credential(
               email: currentUser.email!,
               password: _currentPasswordController.text
-          );
+            );
+            await currentUser.reauthenticateWithCredential(credential);
+          }
 
-          await currentUser.reauthenticateWithCredential(credential);
           await currentUser.delete();
-
           _currentPasswordController.clear();
+          
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => const LandingPage()),
           );
@@ -814,25 +863,19 @@ class _AccountPageState extends State<AccountPage> {
             ),
           );
         }
-      } on FirebaseAuthException catch (e) {
+      } catch (e) {
         String errorMessage = 'Failed to delete account';
-
-        if (e.code == 'requires-recent-login') {
-          errorMessage = 'Authentication required. Please check your password and try again.';
-        } else if (e.code == 'wrong-password') {
-          errorMessage = 'Incorrect password. Please try again.';
+        if (e is FirebaseAuthException) {
+          if (e.code == 'requires-recent-login') {
+            errorMessage = 'Please sign in again and retry';
+          } else if (e.code == 'wrong-password') {
+            errorMessage = 'Incorrect password. Please try again.';
+          }
         }
-
+        
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(errorMessage),
-            backgroundColor: Colors.red,
-          ),
-        );
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('An error occurred: $e'),
             backgroundColor: Colors.red,
           ),
         );
