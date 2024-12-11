@@ -223,12 +223,13 @@ class _NutritionTrackerState extends State<NutritionTracker> {
                             showTitles: true,
                             getTitlesWidget: (value, meta) {
                               const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                              final currentDayIndex = _getCurrentDayIndex();
                               return Padding(
                                 padding: const EdgeInsets.only(top: 8.0),
                                 child: Text(
-                                  days[value.toInt()],
+                                  value.toInt() == currentDayIndex ? 'Today' : days[value.toInt()],
                                   style: TextStyle(
-                                    color: selectedNutrient == 'carbs' && value.toInt() == _getCurrentDayIndex()
+                                    color: selectedNutrient == 'carbs' && value.toInt() == currentDayIndex
                                         ? nutrientColors[selectedNutrient] 
                                         : Colors.grey,
                                     fontSize: 12,
