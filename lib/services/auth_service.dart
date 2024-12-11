@@ -110,42 +110,43 @@ class AuthService {
         password: password,
       );
 
-      // Update display name
+      // Split display name into first and last name
+      List<String> nameParts = displayName.trim().split(' ');
+      String firstName = nameParts.first;
+      String lastName = nameParts.length > 1
+          ? nameParts.sublist(1).join(' ')
+          : '';
+
+      // Update display name with full name
       await userCredential.user?.updateDisplayName(displayName);
 
-      // Send verification email immediately
+      // Kirim email verifikasi
       await userCredential.user?.sendEmailVerification();
 
-      // Save user data to Firestore
+      // Simpan data pengguna ke Firestore dengan first name dan last name terpisah
       await _firestore.collection('users').doc(userCredential.user!.uid).set({
         'email': email,
         'displayName': displayName,
-        'firstName': displayName.split(' ').first,
-        'lastName': displayName.split(' ').length > 1 ? displayName.split(' ').last : '',
+        'firstName': firstName,
+        'lastName': lastName,
         'timestamp': FieldValue.serverTimestamp(),
         'emailVerified': false,
       });
 
       // Tunggu hingga email diverifikasi atau timeout
-      bool isVerified = await waitForEmailVerification(timeout: Duration(minutes: 5));
+      bool isVerified = await waitForEmailVerification(timeout: Duration(minutes: 3));
       if (!isVerified) {
         // Jika tidak diverifikasi dalam 5 menit, hapus akun dari Firebase Auth dan Firestore
         await _firestore.collection('users').doc(userCredential.user!.uid).delete();
         await userCredential.user?.delete();
-        throw FirebaseAuthException(
-          code: 'verification-timeout',
-          message: 'Email verification timeout. Please register again.',
-        );
+        throw Exception('Email not verified within the allowed time. Account deleted.');
       }
 
       return userCredential;
     } catch (e) {
-      print('Registration error: $e');
-      rethrow;
+      throw Exception('Registration failed: $e');
     }
   }
-
-  
 
   // Sign out
   Future<void> signOut() async {
@@ -248,6 +249,13 @@ class AuthService {
     }
   }
 
+  Future<bool> isFirstTimeLogin() async {
+    User? user = _auth.currentUser;
+    if (user == null) return true;
+
+    // Menggunakan metadata lastSignInTime untuk mengecek
+    return user.metadata.lastSignInTime == user.metadata.creationTime;
+  }
 
   Future<bool> checkUsernameUniqueness(String username) async {
     try {
@@ -268,62 +276,33 @@ class AuthService {
   // Add this method for Google Sign In
   Future<UserCredential?> signInWithGoogle() async {
     try {
-      // Google Sign In Flow
-      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-      if (googleUser == null) return null;
-
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-
-      // Sign in to Firebase with Google credential
-      final UserCredential userCredential = await _auth.signInWithCredential(credential);
-
-      // Cek apakah ini first-time login dengan memeriksa dokumen personalization
-      bool isFirstTime = await isFirstTimeLogin();
-
-      // Jika first time, buat dokumen user baru
-      if (isFirstTime) {
-        await _firestore.collection('users').doc(userCredential.user!.uid).set({
-          'email': userCredential.user!.email,
-          'displayName': userCredential.user!.displayName,
-          'photoURL': userCredential.user!.photoURL,
-          'createdAt': FieldValue.serverTimestamp(),
-          'lastLogin': FieldValue.serverTimestamp(),
-        }, SetOptions(merge: true));
-      } else {
-        // Update lastLogin untuk existing user
-        await _firestore.collection('users').doc(userCredential.user!.uid).update({
-          'lastLogin': FieldValue.serverTimestamp(),
-        });
+      // Hapus sign in yang mungkin masih ada
+      await _googleSignIn.signOut();
+      
+      print("Starting Google Sign In process");
+      final GoogleSignInAccount? gUser = await _googleSignIn.signIn();
+      
+      print("Google Sign In result: ${gUser?.email}");
+      
+      if (gUser == null) {
+        print("Google Sign In cancelled by user");
+        return null;
       }
 
-      return userCredential;
+      print("Getting Google auth details");
+      final GoogleSignInAuthentication gAuth = await gUser.authentication;
+      
+      print("Creating credential");
+      final credential = GoogleAuthProvider.credential(
+        accessToken: gAuth.accessToken,
+        idToken: gAuth.idToken,
+      );
+
+      print("Signing in to Firebase");
+      return await _auth.signInWithCredential(credential);
     } catch (e) {
-      print('Error signing in with Google: $e');
+      print('Detailed error in signInWithGoogle: $e');
       rethrow;
-    }
-  }
-
-  Future<bool> isFirstTimeLogin() async {
-    try {
-      String? userId = _auth.currentUser?.uid;
-      if (userId == null) return true;
-
-      // Cek apakah dokumen personalization sudah ada
-      final personalizationDoc = await _firestore
-          .collection('users')
-          .doc(userId)
-          .collection('profile')
-          .doc('personalization')
-          .get();
-
-      return !personalizationDoc.exists;
-    } catch (e) {
-      print('Error checking first time login: $e');
-      return true; // Assume first time if error occurs
     }
   }
 

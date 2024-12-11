@@ -41,23 +41,20 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
       Map<String, dynamic>? userData = await _firestoreService.getUserPersonalization();
       if (userData != null) {
         setState(() {
-          gender = userData['gender'] as String?;
-          birthYear = userData['birthYear'] as int?;
-          heightUnit = userData['heightUnit'] as String? ?? 'cm';
-          height = (userData['height'] as num?)?.toDouble();
-          weight = (userData['weight'] as num?)?.toDouble();
-          activityLevel = userData['activityLevel'] as String?;
+          gender = userData['gender'];
+          birthYear = userData['birthYear'];
+          heightUnit = userData['heightUnit'];
+          height = userData['height'];
+          weight = userData['weight'];
+          activityLevel = userData['activityLevel'];
         });
       }
     } catch (e) {
-      print('Error loading user data: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error loading user data: $e')),
       );
     } finally {
-      if (mounted) { // Tambahkan mounted check
-        setState(() => _isLoading = false);
-      }
+      setState(() => _isLoading = false);
     }
   }
 
@@ -198,60 +195,72 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea( // Tambahkan SafeArea
-        child: SingleChildScrollView( // Tambahkan SingleChildScrollView
-          child: Container(
-            height: MediaQuery.of(context).size.height, // Set height sesuai layar
-            decoration: BoxDecoration(
-              image: _backgroundImageUrl != null
-                  ? DecorationImage(
-                image: NetworkImage(_backgroundImageUrl!),
-                fit: BoxFit.cover,
-                colorFilter: ColorFilter.mode(
-                  Colors.black.withOpacity(0.3),
-                  BlendMode.darken,
-                ),
-              )
-                  : const DecorationImage(
-                image: AssetImage('assets/images/landing_page.jpg'),
-                fit: BoxFit.cover,
+      body: AnimatedContainer(
+        duration: const Duration(milliseconds: 100), // Add smooth transition
+        decoration: BoxDecoration(
+          image: _backgroundImageUrl != null
+              ? DecorationImage(
+            image: NetworkImage(_backgroundImageUrl!),
+            fit: BoxFit.cover,
+            colorFilter: ColorFilter.mode(
+              Colors.black.withOpacity(0.3),
+              BlendMode.darken,
+            ),
+          )
+              : const DecorationImage(
+            image: AssetImage('assets/images/landing_page.jpg'),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: Stack(
+          children: [
+            // Background ima
+
+            // Main content
+            SafeArea(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const SizedBox(height: 110,),
+                  // Gradient container
+                  // Gradient container
+                  _buildGradientContainer(),
+                  const SizedBox(height: 8,),
+                  Positioned(
+                    top: 109,
+                    left: 0,
+                    right: 0,
+                    child: LinearProgressBar(
+                      maxSteps: 3,
+                      progressType: LinearProgressBar.progressTypeDots,
+                      currentStep: currentStep,
+                      progressColor: kPrimaryColor,
+                      backgroundColor: kColorsGrey400,
+                      dotsAxis: Axis.horizontal,
+                      dotsActiveSize: 10,
+                      dotsInactiveSize: 10,
+                      dotsSpacing: const EdgeInsets.only(right: 10),
+                      valueColor: const AlwaysStoppedAnimation<Color>(Colors.red),
+                      semanticsLabel: "Label",
+                      semanticsValue: "Value",
+                      minHeight: 10,
+                    ),
+                  ),
+                  // Buttons container
+                  const Spacer(),
+                  _buildButtons(),
+                ],
               ),
             ),
-            child: Column(
-              children: [
-                const SizedBox(height: 20),
-                // Gradient container
-                _buildGradientContainer(),
-                const SizedBox(height: 8),
-                LinearProgressBar(
-                  maxSteps: 3,
-                  progressType: LinearProgressBar.progressTypeDots,
-                  currentStep: currentStep,
-                  progressColor: kPrimaryColor,
-                  backgroundColor: kColorsGrey400,
-                  dotsAxis: Axis.horizontal,
-                  dotsActiveSize: 10,
-                  dotsInactiveSize: 10,
-                  dotsSpacing: const EdgeInsets.only(right: 10),
-                  valueColor: const AlwaysStoppedAnimation<Color>(Colors.red),
-                  semanticsLabel: "Label",
-                  semanticsValue: "Value",
-                  minHeight: 10,
-                ),
-                const Spacer(),
-                _buildButtons(),
-              ],
-              ),
-            ),
+          ],
         ),
       ),
     );
   }
 
   Widget _buildGradientContainer() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-    child: Container(
+    return Container(
       width: double.infinity,
       margin: const EdgeInsets.symmetric(horizontal: 2.5),
       padding: const EdgeInsets.symmetric(
@@ -300,8 +309,7 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
           _buildField('Activity Level', activityLevel, _showActivityLevelDialog),
         ],
       ),
-    ),
-   );
+    );
   }
 
   Widget _buildButtons() {
