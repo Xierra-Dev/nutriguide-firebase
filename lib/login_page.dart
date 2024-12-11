@@ -6,26 +6,6 @@ import 'services/auth_service.dart';
 import 'landing_page.dart';
 import 'personalization_page.dart';
 
-// Add ErrorDetails and LoginPageStrings classes
-class ErrorDetails {
-  final String title;
-  final String? message;
-  final String? imagePath;
-
-  ErrorDetails({
-    required this.title,
-    this.message,
-    this.imagePath,
-  });
-}
-
-class LoginPageStrings {
-  static const String networkErrorTitle = 'No Internet Connection';
-  static const String networkErrorMessage = 'Network error. Please check your internet connection.';
-  static const String invalidCredentialsTitle = 'Double Check Your Email and Password';
-  static const String emailNotVerifiedTitle = 'EMAIL NOT VERIFIED';
-  static const String emailNotVerifiedMessage = 'Please verify your email first. Check your inbox for verification link.';
-}
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -35,7 +15,6 @@ class LoginPage extends StatefulWidget {
 }
 
 class SlideRightRoute extends PageRouteBuilder {
-  // Keep your existing SlideRightRoute implementation
   final Widget page;
 
   SlideRightRoute({required this.page})
@@ -44,8 +23,7 @@ class SlideRightRoute extends PageRouteBuilder {
         BuildContext context,
         Animation<double> primaryAnimation,
         Animation<double> secondaryAnimation,
-        ) =>
-    page,
+        ) => page,
     transitionsBuilder: (
         BuildContext context,
         Animation<double> primaryAnimation,
@@ -58,8 +36,8 @@ class SlideRightRoute extends PageRouteBuilder {
           end: Offset.zero,
         ).animate(CurvedAnimation(
           parent: primaryAnimation,
-          curve: Curves.easeOutQuad,
-        )),
+          curve: Curves.easeOutQuad, // You can change the curve for different animation feels
+        ),),
         child: child,
       );
     },
@@ -81,157 +59,70 @@ class _LoginPageState extends State<LoginPage> {
   bool _isPasswordFocused = false;
   bool _isLoading = false;
   bool _isDialogShowing = false;
-  String _loadingMessage = '';
-  DateTime? _lastLoginAttempt;
 
-  // Add new helper methods
-  ErrorDetails _getErrorDetails(dynamic error) {
-    final errorStr = error.toString();
-
-    if (errorStr.contains('The supplied auth credential is incorrect')) {
-      return ErrorDetails(
-        title: LoginPageStrings.invalidCredentialsTitle,
-        message: null,
-        imagePath: 'assets/images/double-check-password-email.png',
-      );
-    } else if (errorStr.contains('A network error')) {
-      return ErrorDetails(
-        title: LoginPageStrings.networkErrorTitle,
-        message: LoginPageStrings.networkErrorMessage,
-        imagePath: 'assets/images/no-internet.png',
-      );
-    } else if (errorStr.contains('email-not-verified')) {
-      return ErrorDetails(
-        title: LoginPageStrings.emailNotVerifiedTitle,
-        message: LoginPageStrings.emailNotVerifiedMessage,
-        imagePath: 'assets/images/email-verification.png',
-      );
-    }
-
-    return ErrorDetails(
-      title: 'AN ERROR OCCUR WHEN LOGGING IN TO YOUR ACCOUNT',
-      message: 'Please try again later',
-      imagePath: 'assets/images/error-occur.png',
-    );
-  }
-
-  bool _validateInput() {
-    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
-      _showLoginDialog(
-        isSuccess: false,
-        title: 'Invalid Input',
-        message: 'Please fill in all fields',
-      );
-      return false;
-    }
-
-    if (!_emailController.text.contains('@')) {
-      _showLoginDialog(
-        isSuccess: false,
-        title: 'Invalid Email',
-        message: 'Please enter a valid email address',
-      );
-      return false;
-    }
-
-    return true;
-  }
-
-  void _navigateBasedOnLoginStatus(bool isFirstTime) {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) =>
-        isFirstTime ? const PersonalizationPage() : const HomePage(),
-      ),
-    );
-  }
-
-  void _updateLoadingState(bool isLoading, [String message = '']) {
-    setState(() {
-      _isLoading = isLoading;
-      _loadingMessage = message;
-    });
-  }
-
-  // Update the _login method
   Future<void> _login() async {
-    final now = DateTime.now();
-    if (_lastLoginAttempt != null &&
-        now.difference(_lastLoginAttempt!) < const Duration(seconds: 2)) {
-      return;
-    }
-    _lastLoginAttempt = now;
-
-    if (!_formKey.currentState!.validate() || !_validateInput()) return;
-
-    try {
-      _updateLoadingState(true, 'Signing in...');
-
-      await _authService.signInWithEmailAndPassword(
-        _emailController.text.trim(),
-        _passwordController.text,
-      );
-
-      final isFirstTime = await _authService.isFirstTimeLogin();
-
-      _navigateBasedOnLoginStatus(isFirstTime);
-
-    } catch (e) {
-      final errorDetails = _getErrorDetails(e);
-      _showLoginDialog(
-        isSuccess: false,
-        message: errorDetails.message,
-        title: errorDetails.title,
-        specificImage: errorDetails.imagePath,
-      );
-    } finally {
-      _updateLoadingState(false);
-    }
-  }
-
-  // Keep your existing methods and overrides
-  @override
-  void initState() {
-    super.initState();
-    _emailController.addListener(_updateEmailEmpty);
-    _passwordController.addListener(_updatePasswordEmpty);
-
-    _emailFocusNode.addListener(() {
+    if (_formKey.currentState!.validate()) {
       setState(() {
-        _isEmailFocused = _emailFocusNode.hasFocus;
+        _isLoading = true;
       });
-    });
+      try {
+        // Login dan cek verifikasi email
+        await _authService.signInWithEmailAndPassword(
+          _emailController.text.trim(),
+          _passwordController.text,
+        );
 
-    _passwordFocusNode.addListener(() {
-      setState(() {
-        _isPasswordFocused = _passwordFocusNode.hasFocus;
-      });
-    });
+        // Cek apakah ini first-time login
+        bool isFirstTime = await _authService.isFirstTimeLogin();
+
+        // Navigasi berdasarkan status first-time login
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => isFirstTime
+                ? const PersonalizationPage()
+                : const HomePage(),
+          ),
+        );
+
+      } catch (e) {
+        // Check for specific error scenarios
+        String? errorMessage;
+        String errorTitle = 'AN ERROR OCCUR WHEN LOGGING IN TO YOUR ACCOUNT';
+        String? specificImage;
+
+        // Common Firebase Auth errors
+        if (e.toString().contains('The supplied auth credential is incorrect')) {
+          errorMessage = null;
+          errorTitle = 'Double Check Your Email and Password';
+          specificImage = 'assets/images/double-check-password-email.png';
+        } else if (e.toString().contains('A network error')) {
+          errorTitle = 'No Internet Connection';
+          errorMessage = 'Network error. Please check your internet connection.';
+          specificImage = 'assets/images/no-internet.png';
+        } else if (e.toString().contains('email-not-verified')) {
+          errorMessage = 'Please verify your email first. Check your inbox for verification link.';
+          errorTitle = 'EMAIL NOT VERIFIED';
+          specificImage = 'assets/images/email-verification.png';
+        } else {
+          errorMessage = 'Please try again later';
+        }
+
+        // Show error dialog
+        _showLoginDialog(
+          isSuccess: false,
+          message: errorMessage,
+          title: errorTitle,
+          specificImage: specificImage,
+        );
+      } finally {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
-  void _updateEmailEmpty() {
-    setState(() {
-      _isEmailEmpty = _emailController.text.isEmpty;
-    });
-  }
-
-  void _updatePasswordEmpty() {
-    setState(() {
-      _isPasswordEmpty = _passwordController.text.isEmpty;
-    });
-  }
-
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    _emailFocusNode.dispose();
-    _passwordFocusNode.dispose();
-    super.dispose();
-  }
-
-  // Keep your existing _showLoginDialog method and build method
   void _showLoginDialog({
     required bool isSuccess,
     String? message,
@@ -239,6 +130,7 @@ class _LoginPageState extends State<LoginPage> {
     String? specificImage,
   }) {
     if (isSuccess) {
+      // Directly navigate to login page without showing a dialog
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (context) => const HomePage()),
       );
@@ -256,6 +148,7 @@ class _LoginPageState extends State<LoginPage> {
       builder: (BuildContext context) {
         return Stack(
           children: [
+            // Semi-transparent overlay
             Positioned.fill(
               child: GestureDetector(
                 onTap: () {},
@@ -264,6 +157,7 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
             ),
+            // Dialog
             Center(
               child: AlertDialog(
                 backgroundColor: Colors.white,
@@ -294,8 +188,8 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                           textAlign: TextAlign.center,
                         ),
-                        const SizedBox(height: 25),
-                        if (message != null)
+                        const SizedBox(height: 25), // Increased from 20 to 35 for more spacing
+                        if (message != null) // Only show if message exists
                           Text(
                             message,
                             textAlign: TextAlign.center,
@@ -303,7 +197,7 @@ class _LoginPageState extends State<LoginPage> {
                               fontSize: 18,
                             ),
                           ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 20), // Added bottom padding
                       ],
                     ),
                     Positioned(
@@ -344,6 +238,40 @@ class _LoginPageState extends State<LoginPage> {
           _isDialogShowing = false;
         });
       }
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    // Add listeners to all controllers
+    _emailController.addListener(_updateEmailEmpty);
+    _passwordController.addListener(_updatePasswordEmpty);
+
+    // Add focus listeners
+    _emailFocusNode.addListener(() {
+      setState(() {
+        _isEmailFocused = _emailFocusNode.hasFocus;
+      });
+    });
+
+    _passwordFocusNode.addListener(() {
+      setState(() {
+        _isPasswordFocused = _passwordFocusNode.hasFocus;
+      });
+    });
+  }
+
+  // Methods to update empty states
+  void _updateEmailEmpty() {
+    setState(() {
+      _isEmailEmpty = _emailController.text.isEmpty;
+    });
+  }
+
+  void _updatePasswordEmpty() {
+    setState(() {
+      _isPasswordEmpty = _passwordController.text.isEmpty;
     });
   }
 

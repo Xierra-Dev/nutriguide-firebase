@@ -110,20 +110,20 @@ class AuthService {
         password: password,
       );
 
-      // Split display name
+      // Split display name into first and last name
       List<String> nameParts = displayName.trim().split(' ');
       String firstName = nameParts.first;
       String lastName = nameParts.length > 1
           ? nameParts.sublist(1).join(' ')
           : '';
 
-      // Update display name
+      // Update display name with full name
       await userCredential.user?.updateDisplayName(displayName);
 
-      // Send verification email
+      // Kirim email verifikasi
       await userCredential.user?.sendEmailVerification();
 
-      // Save user data to Firestore
+      // Simpan data pengguna ke Firestore dengan first name dan last name terpisah
       await _firestore.collection('users').doc(userCredential.user!.uid).set({
         'email': email,
         'displayName': displayName,
@@ -131,15 +131,22 @@ class AuthService {
         'lastName': lastName,
         'timestamp': FieldValue.serverTimestamp(),
         'emailVerified': false,
-        'verificationSentAt': FieldValue.serverTimestamp(),
       });
+
+      // Tunggu hingga email diverifikasi atau timeout
+      bool isVerified = await waitForEmailVerification(timeout: Duration(minutes: 3));
+      if (!isVerified) {
+        // Jika tidak diverifikasi dalam 5 menit, hapus akun dari Firebase Auth dan Firestore
+        await _firestore.collection('users').doc(userCredential.user!.uid).delete();
+        await userCredential.user?.delete();
+        throw Exception('Email not verified within the allowed time. Account deleted.');
+      }
 
       return userCredential;
     } catch (e) {
       throw Exception('Registration failed: $e');
     }
   }
-
 
   // Sign out
   Future<void> signOut() async {
@@ -162,6 +169,25 @@ class AuthService {
       print('Error retrieving user names: $e');
     }
     return {};
+  }
+
+  void _startVerificationTimer(User user) {
+    Timer(Duration(minutes: 3), () async {
+      // Reload user untuk mendapatkan status terbaru
+      await user.reload();
+
+      // Periksa apakah email telah diverifikasi
+      if (user.emailVerified) {
+        // Update status di Firestore
+        await _firestore.collection('users').doc(user.uid).update({
+          'emailVerified': true,
+        });
+      } else {
+        // Jika belum diverifikasi, hapus user dari Firestore dan Firebase Auth
+        await _firestore.collection('users').doc(user.uid).delete();
+        await user.delete();
+      }
+    });
   }
 
   // Update user profile

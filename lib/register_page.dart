@@ -77,17 +77,14 @@ class _RegisterPageState extends State<RegisterPage> {
         _isLoading = true;
       });
       try {
-        UserCredential credential = await _authService.registerWithEmailAndPassword(
+        await _authService.registerWithEmailAndPassword(
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
           displayName: _nameController.text.trim(),
         );
 
         // Show success dialog
-        _showRegistrationDialog(
-            isSuccess: true,
-            credential: credential
-        );
+        _showRegistrationDialog(isSuccess: true);
       } catch (e) {
         // Check for specific error scenarios
         String? errorMessage;
@@ -120,12 +117,12 @@ class _RegisterPageState extends State<RegisterPage> {
     }
   }
 
+// Modify _showRegistrationDialog to accept specificImage
   void _showRegistrationDialog({
     required bool isSuccess,
     String? message,
     String? title,
     String? specificImage,
-    UserCredential? credential,
   }) {
     setState(() {
       _isDialogShowing = true;
@@ -158,26 +155,26 @@ class _RegisterPageState extends State<RegisterPage> {
                 contentPadding: EdgeInsets.only(
                   left: 20,
                   right: 20,
-                  top: isSuccess ? 50 : 20,
-                  bottom: isSuccess ? 20 : 20,
+                  top: isSuccess ? 50 : 20,  // Increased top padding for success case
+                  bottom: isSuccess ? 20 : 20, // Reduced bottom padding for success case
                 ),
                 content: Stack(
                   clipBehavior: Clip.none,
                   children: [
                     Column(
                       mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,  // Center alignment
                       children: [
-                        SizedBox(height: isSuccess ? 0 : 30),
+                        SizedBox(height: isSuccess ? 0 : 30),  // Removed initial spacing for success case
                         Image.asset(
                           specificImage ??
                               (isSuccess
                                   ? 'assets/images/register-success.png'
                                   : 'assets/images/error-occur.png'),
-                          height: 100,
-                          width: 100,
+                          height: isSuccess ? 100 : 100,
+                          width: isSuccess ? 100 : 100,
                         ),
-                        SizedBox(height: isSuccess ? 32 : 15),
+                        SizedBox(height: isSuccess ? 32 : 15),  // Reduced spacing for success case
                         Text(
                           title ?? (isSuccess ? 'ACCOUNT SUCCESSFULLY REGISTERED' : 'AN ERROR OCCURRED WHEN REGISTERING YOUR ACCOUNT'),
                           style: TextStyle(
@@ -246,12 +243,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           _isDialogShowing = false;
                         });
                         Navigator.of(context).pushReplacement(
-                          MaterialPageRoute(
-                            builder: (context) => EmailVerificationPage(
-                              email: _emailController.text.trim(),
-                              user: credential?.user,
-                            ),
-                          ),
+                          MaterialPageRoute(builder: (context) => const EmailVerificationPage()),
                         );
                       },
                     ),
