@@ -16,16 +16,16 @@ class FirestoreService {
   Future<void> saveUserPersonalization(Map<String, dynamic> data) async {
     try {
       String? userId = _auth.currentUser?.uid;
-      if (userId != null) {
-        await _firestore
-            .collection('users')
-            .doc(userId)
-            .set(data, SetOptions(merge: true));
-      } else {
-        throw Exception('No authenticated user found');
-      }
+      if (userId == null) throw 'User not authenticated';
+
+      await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('profile')
+          .doc('personalization')
+          .set(data, SetOptions(merge: true));
     } catch (e) {
-      print('Error saving user personalization: $e');
+      print('Error in saveUserPersonalization: $e');
       rethrow;
     }
   }
@@ -33,23 +33,31 @@ class FirestoreService {
   Future<Map<String, dynamic>?> getUserPersonalization() async {
     try {
       String? userId = _auth.currentUser?.uid;
-      if (userId != null) {
-        DocumentSnapshot doc = await _firestore
-            .collection('users')
-            .doc(userId)
-            .get();
+      if (userId == null) return null;
 
-        if (doc.exists) {
-          return doc.data() as Map<String, dynamic>;
-        } else {
-          // Return null if no data exists
-          return null;
-        }
+      DocumentSnapshot doc = await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('profile')
+          .doc('personalization')
+          .get();
+
+      if (doc.exists) {
+        return doc.data() as Map<String, dynamic>;
       }
-      return null;
+      
+      // Return empty map with default values if document doesn't exist
+      return {
+        'gender': null,
+        'birthYear': null,
+        'heightUnit': 'cm',
+        'height': null,
+        'weight': null,
+        'activityLevel': null,
+      };
     } catch (e) {
-      print('Error getting user personalization: $e');
-      rethrow;
+      print('Error in getUserPersonalization: $e');
+      return null;
     }
   }
 

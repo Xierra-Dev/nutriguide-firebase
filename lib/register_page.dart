@@ -77,22 +77,31 @@ class _RegisterPageState extends State<RegisterPage> {
         _isLoading = true;
       });
       try {
+        // Tampilkan dialog sukses terlebih dahulu
+        await _showRegistrationDialog(
+          isSuccess: true,
+          title: 'ACCOUNT SUCCESSFULLY REGISTERED',
+          message: 'Please verify your email within 5 minutes or your account will be deleted.',
+          specificImage: 'assets/images/register-success.png',
+        );
+
+        // Setelah user menekan Continue, lakukan registrasi dan kirim email verifikasi
         await _authService.registerWithEmailAndPassword(
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
           displayName: _nameController.text.trim(),
         );
 
-        // Show success dialog
-        _showRegistrationDialog(isSuccess: true);
       } catch (e) {
-        // Check for specific error scenarios
         String? errorMessage;
         String errorTitle = 'AN ERROR OCCUR WHEN REGISTERING TO YOUR ACCOUNT';
         String? specificImage;
 
-        // Common Firebase Auth errors
-        if (e.toString().contains('The email address is already in use')) {
+        if (e.toString().contains('verification-timeout')) {
+          errorMessage = 'Email verification timeout. Please register again.';
+          errorTitle = 'VERIFICATION TIMEOUT';
+          specificImage = 'assets/images/verification-timeout.png';
+        } else if (e.toString().contains('email-already-in-use')) {
           errorMessage = 'This email is already registered. Please use a different email or log in.';
           errorTitle = 'ACCOUNT ALREADY REGISTERED';
           specificImage = 'assets/images/account-already-registered.png';
@@ -102,10 +111,9 @@ class _RegisterPageState extends State<RegisterPage> {
           specificImage = 'assets/images/no-internet.png';
         }
 
-        // Show error dialog
         _showRegistrationDialog(
           isSuccess: false,
-          message: errorMessage,
+          message: errorMessage ?? 'An error occurred during registration. Please try again.',
           title: errorTitle,
           specificImage: specificImage,
         );
@@ -118,17 +126,17 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
 // Modify _showRegistrationDialog to accept specificImage
-  void _showRegistrationDialog({
+  Future<void> _showRegistrationDialog({
     required bool isSuccess,
     String? message,
     String? title,
     String? specificImage,
-  }) {
+  }) async {
     setState(() {
       _isDialogShowing = true;
     });
 
-    showDialog(
+    await showDialog(
       context: context,
       barrierDismissible: false,
       barrierColor: Colors.transparent,
@@ -155,17 +163,17 @@ class _RegisterPageState extends State<RegisterPage> {
                 contentPadding: EdgeInsets.only(
                   left: 20,
                   right: 20,
-                  top: isSuccess ? 50 : 20,  // Increased top padding for success case
-                  bottom: isSuccess ? 20 : 20, // Reduced bottom padding for success case
+                  top: isSuccess ? 50 : 20,
+                  bottom: isSuccess ? 20 : 20,
                 ),
                 content: Stack(
                   clipBehavior: Clip.none,
                   children: [
                     Column(
                       mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.center,  // Center alignment
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        SizedBox(height: isSuccess ? 0 : 30),  // Removed initial spacing for success case
+                        SizedBox(height: isSuccess ? 0 : 30),
                         Image.asset(
                           specificImage ??
                               (isSuccess
@@ -174,9 +182,9 @@ class _RegisterPageState extends State<RegisterPage> {
                           height: isSuccess ? 100 : 100,
                           width: isSuccess ? 100 : 100,
                         ),
-                        SizedBox(height: isSuccess ? 32 : 15),  // Reduced spacing for success case
+                        SizedBox(height: isSuccess ? 32 : 15),
                         Text(
-                          title ?? (isSuccess ? 'ACCOUNT SUCCESSFULLY REGISTERED' : 'AN ERROR OCCURRED WHEN REGISTERING YOUR ACCOUNT'),
+                          title ?? (isSuccess ? 'ACCOUNT SUCCESSFULLY REGISTERED' : 'AN ERROR OCCURRED'),
                           style: TextStyle(
                             color: isSuccess ? Colors.green : Colors.red,
                             fontWeight: FontWeight.bold,
@@ -184,19 +192,20 @@ class _RegisterPageState extends State<RegisterPage> {
                           ),
                           textAlign: TextAlign.center,
                         ),
-                        SizedBox(height: isSuccess ? 8 : 25),
-                        if (!isSuccess)
-                          Text(
-                            message ?? 'An error occurred during registration. Please try again.',
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              fontSize: 18,
-                            ),
+                        const SizedBox(height: 15),
+                        Text(
+                          message ?? (isSuccess 
+                              ? 'Please check your email for verification.'
+                              : 'An error occurred during registration. Please try again.'),
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 18,
                           ),
+                        ),
                         const SizedBox(height: 20),
                       ],
                     ),
-                    if(!isSuccess)
+                    if (!isSuccess)
                       Positioned(
                         top: -2,
                         right: 7,
@@ -242,8 +251,13 @@ class _RegisterPageState extends State<RegisterPage> {
                         setState(() {
                           _isDialogShowing = false;
                         });
+                        Navigator.of(context).pop();
                         Navigator.of(context).pushReplacement(
-                          MaterialPageRoute(builder: (context) => const EmailVerificationPage()),
+                          MaterialPageRoute(
+                            builder: (context) => EmailVerificationPage(
+                              email: _emailController.text.trim(),
+                            ),
+                          ),
                         );
                       },
                     ),
@@ -254,13 +268,13 @@ class _RegisterPageState extends State<RegisterPage> {
           ],
         );
       },
-    ).then((_) {
-      if (mounted) {
-        setState(() {
-          _isDialogShowing = false;
-        });
-      }
-    });
+    );
+
+    if (mounted) {
+      setState(() {
+        _isDialogShowing = false;
+      });
+    }
   }
 
 
