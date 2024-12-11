@@ -230,7 +230,7 @@ class _NutritionTrackerState extends State<NutritionTracker> {
                                   value.toInt() == currentDayIndex ? 'Today' : days[value.toInt()],
                                   style: TextStyle(
                                     color: selectedNutrient == 'carbs' && value.toInt() == currentDayIndex
-                                        ? nutrientColors[selectedNutrient] 
+                                        ? Colors.white
                                         : Colors.grey,
                                     fontSize: 12,
                                   ),
