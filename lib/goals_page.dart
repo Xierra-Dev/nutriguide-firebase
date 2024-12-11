@@ -369,48 +369,51 @@ class _GoalsPageState extends State<GoalsPage> {
                   bottom: 25,
                   left: 20,
                   right: 20,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if(selectedGoals.isNotEmpty)
-                      ElevatedButton(
-                        onPressed: selectedGoals.isNotEmpty ? _saveGoals : null,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.deepOrange,
-                          minimumSize: const Size(double.infinity, 50),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(50),
+                  child: Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if(selectedGoals.isNotEmpty)
+                        ElevatedButton(
+                          onPressed: selectedGoals.isNotEmpty ? _saveGoals : null,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.deepOrange,
+                            minimumSize: const Size(double.infinity, 50),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(50),
+                            ),
+                              padding: EdgeInsets.symmetric(vertical: 13.5)
                           ),
-                            padding: EdgeInsets.symmetric(vertical: 13.5)
+                          child: _isLoading
+                              ? const CircularProgressIndicator(color: Colors.deepOrange)
+                              : const Text('SAVE', style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.black,
+                          ),),
                         ),
-                        child: _isLoading
-                            ? const CircularProgressIndicator(color: Colors.deepOrange)
-                            : const Text('SAVE', style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.black,
-                        ),),
-                      ),
-                      const SizedBox(height: 16),
-                      OutlinedButton(
-                        onPressed: _showSetUpLaterDialog,
-                        style: OutlinedButton.styleFrom(
-                          minimumSize: const Size(double.infinity, 50),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(50),
+                        const SizedBox(height: 16),
+                        OutlinedButton(
+                          onPressed: _showSetUpLaterDialog,
+                          style: OutlinedButton.styleFrom(
+                            minimumSize: const Size(double.infinity, 50),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(50),
+                            ),
+                              padding: EdgeInsets.symmetric(vertical: 13.5)
                           ),
-                            padding: EdgeInsets.symmetric(vertical: 13.5)
-                        ),
-                        child: const Text(
-                          'SET UP LATER',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18.5,
-                            fontWeight: FontWeight.w700,
+                          child: const Text(
+                            'SET UP LATER',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18.5,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ],

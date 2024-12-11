@@ -219,7 +219,7 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
                     borderRadius: BorderRadius.circular(30),
                   ),
                 ),
-                onPressed: canResendEmail ? resendVerificationEmail : null,
+                onPressed: canResendEmail ? resendVerificationEmail : (){},
                 child: Text(
                   canResendEmail
                       ? 'Resend Email'

@@ -572,7 +572,7 @@ class _LoginPageState extends State<LoginPage> {
                     color: Colors.transparent,
                     child: InkWell(
                       onTap: () {
-                        Navigator.of(context).pushReplacement(
+                        Navigator.of(context).pop(
                           SlideRightRoute(
                             page: const LandingPage(), // Replace with the page you want to go back to
                           ),

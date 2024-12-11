@@ -958,25 +958,25 @@ class _AccountPageState extends State<AccountPage> {
                 trailing: const Icon(
                     Icons.logout,
                     color: Colors.white,
-                    size: 26,
+                    size: 25,
                 ),
                 onTap: () {
                   confirmLogout(context);
                 },
               ),
-              const SizedBox(height: 17.5),
+              const SizedBox(height: 10),
               ListTile(
                 leading: const Text(
                   'Delete Account',
                   style: TextStyle(
                     color: Colors.red,
-                    fontSize: 18,
+                    fontSize: 17,
                   ),
                 ),
                 trailing: const Icon(
                   Icons.delete_forever,
                   color: Colors.red,
-                  size: 30,
+                  size: 28,
                 ),
                 onTap: () {
                   confirmDeleteAccount(context);

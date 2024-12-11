@@ -41,12 +41,12 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
       Map<String, dynamic>? userData = await _firestoreService.getUserPersonalization();
       if (userData != null) {
         setState(() {
-          gender = userData['gender'];
-          birthYear = userData['birthYear'];
-          heightUnit = userData['heightUnit'];
-          height = userData['height'];
-          weight = userData['weight'];
-          activityLevel = userData['activityLevel'];
+          gender = userData['gender'] as String?;
+          birthYear = userData['birthYear'] as int?;
+          heightUnit = userData['heightUnit'] as String? ?? 'cm';
+          height = (userData['height'] as num?)?.toDouble();
+          weight = (userData['weight'] as num?)?.toDouble();
+          activityLevel = userData['activityLevel'] as String?;
         });
       }
     } catch (e) {
@@ -54,7 +54,9 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
         SnackBar(content: Text('Error loading user data: $e')),
       );
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) { // Tambahkan mounted check
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -124,66 +126,66 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
                     ],
                   ),
                 ),
-                 Container(
-                   padding: const EdgeInsets.only(
-                     bottom: 30,
-                     left: 30,
-                     right: 30,
-                   ),
-                   child: Column(
-                     mainAxisAlignment: MainAxisAlignment.center,
-                     crossAxisAlignment: CrossAxisAlignment.stretch,// Center buttons horizontally
-                      children: [
-                          ElevatedButton(
-                              onPressed: () {
-                                // Navigate to HomePage
-                                Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(builder: (context) => const HomePage()),
-                                );
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.red,
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 16,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(50.0),
-                                ),
-                              ),
-                              child: Text("Skip Questionnaire",
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                            ),
-                        SizedBox(height: 17.5,),
-                        OutlinedButton(
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 16,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(50.0),
-                                ),
-                              ),
-                              child: Text(
-                                "Return to Questionnaire",
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                            ),
-                      ],
-                    ),
-                 ),
+                Container(
+                  padding: const EdgeInsets.only(
+                    bottom: 30,
+                    left: 30,
+                    right: 30,
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,// Center buttons horizontally
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          // Navigate to HomePage
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => const HomePage()),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 16,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(50.0),
+                          ),
+                        ),
+                        child: Text("Skip Questionnaire",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 17.5,),
+                      OutlinedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 16,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(50.0),
+                          ),
+                        ),
+                        child: Text(
+                          "Return to Questionnaire",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
@@ -212,151 +214,143 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
             fit: BoxFit.cover,
           ),
         ),
-        child: Stack(
-          children: [
-            // Background ima
-
-            // Main content
-            SafeArea(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const SizedBox(height: 110,),
-                  // Gradient container
-                  // Gradient container
-                  _buildGradientContainer(),
-                  const SizedBox(height: 8,),
-                  Positioned(
-                    top: 109,
-                    left: 0,
-                    right: 0,
-                    child: LinearProgressBar(
-                      maxSteps: 3,
-                      progressType: LinearProgressBar.progressTypeDots,
-                      currentStep: currentStep,
-                      progressColor: kPrimaryColor,
-                      backgroundColor: kColorsGrey400,
-                      dotsAxis: Axis.horizontal,
-                      dotsActiveSize: 10,
-                      dotsInactiveSize: 10,
-                      dotsSpacing: const EdgeInsets.only(right: 10),
-                      valueColor: const AlwaysStoppedAnimation<Color>(Colors.red),
-                      semanticsLabel: "Label",
-                      semanticsValue: "Value",
-                      minHeight: 10,
-                    ),
+        child: SafeArea(
+          child: Stack(
+            children: [
+              // Gradient box in center with goals
+              Positioned(
+                top: 128,  // Adjust this value as needed
+                left: 5,
+                right: 5,
+                child: Container(
+                  width: double.infinity,
+                  margin: const EdgeInsets.symmetric(horizontal: 2.5),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 45,
                   ),
-                  // Buttons container
-                  const Spacer(),
-                  _buildButtons(),
-                ],
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.white.withOpacity(0.875),
+                        const Color.fromARGB(255, 66, 66, 66)
+                      ],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                    ),
+                    borderRadius: BorderRadius.circular(50),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text(
+                        'REVIEW YOUR HEALTH DATA',
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 23.5,
+                          fontWeight: FontWeight.w800,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 5),
+                      const Text(
+                        'Your data will be used for your personalization.\nPlease review before proceeding',
+                        style: TextStyle(
+                          color: Colors.red,
+                          fontSize: 12.25,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 20),
+                      _buildField('Sex', gender, _showGenderDialog),
+                      _buildField('Year of Birth', birthYear?.toString(), _showBirthYearDialog),
+                      _buildField('Height', height != null ? '$height ${heightUnit == 'cm' ? 'cm' : 'ft'}' : null, _showHeightDialog),
+                      _buildField('Weight', weight != null ? '$weight kg' : null, _showWeightDialog),
+                      _buildField('Activity Level', activityLevel, _showActivityLevelDialog),
+                    ],
+                  ),
+                ),
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
-  Widget _buildGradientContainer() {
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.symmetric(horizontal: 2.5),
-      padding: const EdgeInsets.symmetric(
-        horizontal: 20,
-        vertical: 45,
-      ),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Colors.white.withOpacity(0.875),
-            const Color.fromARGB(255, 66, 66, 66)
-          ],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-        ),
-        borderRadius: BorderRadius.circular(50),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Text(
-            'REVIEW YOUR HEALTH DATA',
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: 23.5,
-              fontWeight: FontWeight.w800,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 5),
-          const Text(
-            'Your data will be used for your personalization.\nPlease review before proceeding',
-            style: TextStyle(
-              color: Colors.red,
-              fontSize: 12.25,
-              fontWeight: FontWeight.w600,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 20),
-          _buildField('Sex', gender, _showGenderDialog),
-          _buildField('Year of Birth', birthYear?.toString(), _showBirthYearDialog),
-          _buildField('Height', height != null ? '$height ${heightUnit == 'cm' ? 'cm' : 'ft'}' : null, _showHeightDialog),
-          _buildField('Weight', weight != null ? '$weight kg' : null, _showWeightDialog),
-          _buildField('Activity Level', activityLevel, _showActivityLevelDialog),
-        ],
-      ),
-    );
-  }
+              // Progress bar
+              Positioned(
+                bottom: 255, // Adjust this value as needed
+                left: 0,
+                right: 0,
+                child: LinearProgressBar(
+                  maxSteps: 3,
+                  progressType: LinearProgressBar.progressTypeDots,
+                  currentStep: currentStep,
+                  progressColor: kPrimaryColor,
+                  backgroundColor: kColorsGrey400,
+                  dotsAxis: Axis.horizontal,
+                  dotsActiveSize: 12.5,
+                  dotsInactiveSize: 10,
+                  dotsSpacing: const EdgeInsets.only(right: 10),
+                  valueColor: const AlwaysStoppedAnimation<Color>(Colors.red),
+                  semanticsLabel: "Label",
+                  semanticsValue: "Value",
+                  minHeight: 10,
+                ),
+              ),
 
-  Widget _buildButtons() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          ElevatedButton(
-            onPressed: _saveData,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.deepOrange,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              foregroundColor: Colors.black,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(50),
+              // Buttons at bottom
+              Positioned(
+                bottom: 25,
+                left: 20,
+                right: 20,
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      ElevatedButton(
+                        onPressed: _saveData,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.deepOrange,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          foregroundColor: Colors.black,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(50),
+                          ),
+                        ),
+                        child: _isLoading
+                            ? const CircularProgressIndicator(color: Colors.white)
+                            : const Text('SAVE', style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.black,
+                        ),),
+                      ),
+                      const SizedBox(height: 16),
+                      TextButton(
+                        onPressed:  _showSetUpLaterDialog,
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(25),
+                            side: const BorderSide(color: Colors.white),
+                          ),
+                        ),
+                        child: const Text(
+                          'SET UP LATER',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            ),
-            child: _isLoading
-                ? const CircularProgressIndicator(color: Colors.white)
-                : const Text('SAVE', style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w800,
-              color: Colors.black,
-            ),),
+            ],
           ),
-          const SizedBox(height: 16),
-          TextButton(
-            onPressed:  _showSetUpLaterDialog,
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(25),
-                side: const BorderSide(color: Colors.white),
-              ),
-            ),
-            child: const Text(
-              'SET UP LATER',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -432,9 +426,9 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
         builder: (context) => CustomNumberPicker(
           title: 'What year were you born in?',
           unit: '',
-          initialValue: birthYear?.toDouble(),
+          initialValue: 2000,
           minValue: 1900,
-          maxValue: 2045,
+          maxValue: 2099,
           onValueChanged: (value) {
             setState(() => birthYear = value.toInt());
           },
@@ -449,7 +443,7 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
         builder: (context) => CustomNumberPicker(
           title: 'Your height',
           unit: 'cm',
-          initialValue: height,
+          initialValue: 100,
           minValue: 0,
           maxValue: 999,
           showDecimals: true,
@@ -467,7 +461,7 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
         builder: (context) => CustomNumberPicker(
           title: 'Your weight',
           unit: 'kg',
-          initialValue: weight,
+          initialValue: 50,
           minValue: 0,
           maxValue: 999,
           showDecimals: true,
@@ -495,7 +489,7 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
     });
   }
 
-    Future<void> _saveData() async {
+  Future<void> _saveData() async {
     setState(() => _isLoading = true);
     try {
       await _firestoreService.saveUserPersonalization({
