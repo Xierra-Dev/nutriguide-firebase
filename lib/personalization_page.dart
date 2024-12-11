@@ -41,7 +41,6 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
       Map<String, dynamic>? userData = await _firestoreService.getUserPersonalization();
       if (userData != null) {
         setState(() {
-          // Tambahkan null check dan default value untuk setiap field
           gender = userData['gender'] as String?;
           birthYear = userData['birthYear'] as int?;
           heightUnit = userData['heightUnit'] as String? ?? 'cm';
@@ -51,7 +50,7 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
         });
       }
     } catch (e) {
-      print('Error loading user data: $e'); // Tambahkan print untuk debugging
+      print('Error loading user data: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error loading user data: $e')),
       );
@@ -206,17 +205,17 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
             decoration: BoxDecoration(
               image: _backgroundImageUrl != null
                   ? DecorationImage(
-                      image: NetworkImage(_backgroundImageUrl!),
-                      fit: BoxFit.cover,
-                      colorFilter: ColorFilter.mode(
-                        Colors.black.withOpacity(0.3),
-                        BlendMode.darken,
-                      ),
-                    )
+                image: NetworkImage(_backgroundImageUrl!),
+                fit: BoxFit.cover,
+                colorFilter: ColorFilter.mode(
+                  Colors.black.withOpacity(0.3),
+                  BlendMode.darken,
+                ),
+              )
                   : const DecorationImage(
-                      image: AssetImage('assets/images/landing_page.jpg'),
-                      fit: BoxFit.cover,
-                    ),
+                image: AssetImage('assets/images/landing_page.jpg'),
+                fit: BoxFit.cover,
+              ),
             ),
             child: Column(
               children: [
@@ -242,8 +241,8 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
                 const Spacer(),
                 _buildButtons(),
               ],
+              ),
             ),
-          ),
         ),
       ),
     );
@@ -251,7 +250,7 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
 
   Widget _buildGradientContainer() {
     return Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
     child: Container(
       width: double.infinity,
       margin: const EdgeInsets.symmetric(horizontal: 2.5),
@@ -301,13 +300,13 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
           _buildField('Activity Level', activityLevel, _showActivityLevelDialog),
         ],
       ),
-    )
-    );
+    ),
+   );
   }
 
   Widget _buildButtons() {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
+    return Container(
+      padding: const EdgeInsets.all(20),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -325,14 +324,14 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
             child: _isLoading
                 ? const CircularProgressIndicator(color: Colors.white)
                 : const Text('SAVE', style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.black,
-                  ),),
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+              color: Colors.black,
+            ),),
           ),
           const SizedBox(height: 16),
           TextButton(
-            onPressed: _showSetUpLaterDialog,
+            onPressed:  _showSetUpLaterDialog,
             style: TextButton.styleFrom(
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 16),
@@ -349,7 +348,6 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
               ),
             ),
           ),
-          const SizedBox(height: 16),
         ],
       ),
     );
