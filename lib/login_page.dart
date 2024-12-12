@@ -21,10 +21,13 @@ class ErrorDetails {
 
 class LoginPageStrings {
   static const String networkErrorTitle = 'No Internet Connection';
-  static const String networkErrorMessage = 'Network error. Please check your internet connection.';
-  static const String invalidCredentialsTitle = 'Double Check Your Email and Password';
+  static const String networkErrorMessage =
+      'Network error. Please check your internet connection.';
+  static const String invalidCredentialsTitle =
+      'Double Check Your Email and Password';
   static const String emailNotVerifiedTitle = 'EMAIL NOT VERIFIED';
-  static const String emailNotVerifiedMessage = 'Please verify your email first. Check your inbox for verification link.';
+  static const String emailNotVerifiedMessage =
+      'Please verify your email first. Check your inbox for verification link.';
 }
 
 class LoginPage extends StatefulWidget {
@@ -40,30 +43,30 @@ class SlideRightRoute extends PageRouteBuilder {
 
   SlideRightRoute({required this.page})
       : super(
-    pageBuilder: (
-        BuildContext context,
-        Animation<double> primaryAnimation,
-        Animation<double> secondaryAnimation,
-        ) =>
-    page,
-    transitionsBuilder: (
-        BuildContext context,
-        Animation<double> primaryAnimation,
-        Animation<double> secondaryAnimation,
-        Widget child,
-        ) {
-      return SlideTransition(
-        position: Tween<Offset>(
-          begin: const Offset(-1.0, 0.0),
-          end: Offset.zero,
-        ).animate(CurvedAnimation(
-          parent: primaryAnimation,
-          curve: Curves.easeOutQuad,
-        )),
-        child: child,
-      );
-    },
-  );
+          pageBuilder: (
+            BuildContext context,
+            Animation<double> primaryAnimation,
+            Animation<double> secondaryAnimation,
+          ) =>
+              page,
+          transitionsBuilder: (
+            BuildContext context,
+            Animation<double> primaryAnimation,
+            Animation<double> secondaryAnimation,
+            Widget child,
+          ) {
+            return SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(-1.0, 0.0),
+                end: Offset.zero,
+              ).animate(CurvedAnimation(
+                parent: primaryAnimation,
+                curve: Curves.easeOutQuad,
+              )),
+              child: child,
+            );
+          },
+        );
 }
 
 class _LoginPageState extends State<LoginPage> {
@@ -142,7 +145,7 @@ class _LoginPageState extends State<LoginPage> {
       context,
       MaterialPageRoute(
         builder: (context) =>
-        isFirstTime ? const PersonalizationPage() : const HomePage(),
+            isFirstTime ? const PersonalizationPage() : const HomePage(),
       ),
     );
   }
@@ -176,7 +179,6 @@ class _LoginPageState extends State<LoginPage> {
       final isFirstTime = await _authService.isFirstTimeLogin();
 
       _navigateBasedOnLoginStatus(isFirstTime);
-
     } catch (e) {
       final errorDetails = _getErrorDetails(e);
       _showLoginDialog(
@@ -270,7 +272,8 @@ class _LoginPageState extends State<LoginPage> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(50),
                 ),
-                insetPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 40),
+                insetPadding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 40),
                 contentPadding: const EdgeInsets.all(20),
                 content: Stack(
                   clipBehavior: Clip.none,
@@ -286,7 +289,8 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                         const SizedBox(height: 25),
                         Text(
-                          title ?? 'AN ERROR OCCUR WHEN LOGGING IN TO YOUR ACCOUNT',
+                          title ??
+                              'AN ERROR OCCUR WHEN LOGGING IN TO YOUR ACCOUNT',
                           style: const TextStyle(
                             color: Colors.red,
                             fontWeight: FontWeight.bold,
@@ -381,7 +385,7 @@ class _LoginPageState extends State<LoginPage> {
                 width: double.infinity,
                 height: 300,
                 decoration: BoxDecoration(
-                  color: Colors.lightGreen,
+                  color: Color(0xFFFEF3E2),
                   borderRadius: BorderRadius.circular(25),
                 ),
                 padding: const EdgeInsets.symmetric(vertical: 16),
@@ -404,7 +408,7 @@ class _LoginPageState extends State<LoginPage> {
               bottom: 0,
               child: Container(
                 decoration: const BoxDecoration(
-                  color: Colors.amber,
+                  color: Color(0xFFFAB12F),
                   borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(30),
                     topRight: Radius.circular(30),
@@ -413,7 +417,7 @@ class _LoginPageState extends State<LoginPage> {
                 child: Center(
                   child: SingleChildScrollView(
                     child: Padding(
-                      padding:  const EdgeInsets.fromLTRB(25, 0, 25, 0),
+                      padding: const EdgeInsets.fromLTRB(25, 0, 25, 0),
                       child: Form(
                         key: _formKey,
                         child: Column(
@@ -423,8 +427,11 @@ class _LoginPageState extends State<LoginPage> {
                             TextFormField(
                               controller: _emailController,
                               decoration: InputDecoration(
-                                  labelText: (_isEmailEmpty && !_isEmailFocused) ? 'Enter Your Email' : 'Email',
-                                  floatingLabelBehavior: FloatingLabelBehavior.auto,
+                                  labelText: (_isEmailEmpty && !_isEmailFocused)
+                                      ? 'Enter Your Email'
+                                      : 'Email',
+                                  floatingLabelBehavior:
+                                      FloatingLabelBehavior.auto,
                                   filled: true,
                                   fillColor: Colors.grey[100],
                                   border: OutlineInputBorder(
@@ -433,14 +440,14 @@ class _LoginPageState extends State<LoginPage> {
                                   ),
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(50),
-                                    borderSide: const BorderSide(color: Colors.deepOrange,
+                                    borderSide: const BorderSide(
+                                      color: Colors.deepOrange,
                                     ),
                                   ),
                                   contentPadding: const EdgeInsets.symmetric(
                                     horizontal: 25,
                                     vertical: 12,
-                                  )
-                              ),
+                                  )),
                               focusNode: _emailFocusNode, // Add this
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
@@ -453,7 +460,10 @@ class _LoginPageState extends State<LoginPage> {
                             TextFormField(
                               controller: _passwordController,
                               decoration: InputDecoration(
-                                  labelText: (_isPasswordEmpty && !_isPasswordFocused) ? 'Enter Your Password' : 'Password',
+                                  labelText:
+                                      (_isPasswordEmpty && !_isPasswordFocused)
+                                          ? 'Enter Your Password'
+                                          : 'Password',
                                   filled: true,
                                   fillColor: Colors.grey[100],
                                   border: OutlineInputBorder(
@@ -462,19 +472,23 @@ class _LoginPageState extends State<LoginPage> {
                                   ),
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(50),
-                                    borderSide: const BorderSide(color: Colors.deepOrange,
+                                    borderSide: const BorderSide(
+                                      color: Colors.deepOrange,
                                     ),
                                   ),
                                   suffixIcon: Padding(
                                     padding: const EdgeInsets.only(right: 12.5),
                                     child: IconButton(
                                       icon: Icon(
-                                        _isPasswordVisible ? MdiIcons.eyeOff : MdiIcons.eye,
+                                        _isPasswordVisible
+                                            ? MdiIcons.eyeOff
+                                            : MdiIcons.eye,
                                         color: Colors.grey,
                                       ),
                                       onPressed: () {
                                         setState(() {
-                                          _isPasswordVisible = !_isPasswordVisible;
+                                          _isPasswordVisible =
+                                              !_isPasswordVisible;
                                         });
                                       },
                                     ),
@@ -482,8 +496,7 @@ class _LoginPageState extends State<LoginPage> {
                                   contentPadding: const EdgeInsets.symmetric(
                                     horizontal: 25,
                                     vertical: 12,
-                                  )
-                              ),
+                                  )),
                               obscureText: !_isPasswordVisible,
                               focusNode: _passwordFocusNode, // Add this
                               validator: (value) {
@@ -500,21 +513,22 @@ class _LoginPageState extends State<LoginPage> {
                               child: ElevatedButton(
                                 onPressed: _isLoading ? null : _login,
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.blue[300],
+                                  backgroundColor: Color(0xFF00BFFF),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(50),
                                   ),
                                 ),
                                 child: _isLoading
-                                    ? const CircularProgressIndicator(color: Colors.deepOrange)
+                                    ? const CircularProgressIndicator(
+                                        color: Colors.deepOrange)
                                     : const Text(
-                                  'Login',
-                                  style: TextStyle(
-                                    fontSize: 18.5,
-                                    color: Colors.black,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
+                                        'Login',
+                                        style: TextStyle(
+                                          fontSize: 18.5,
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
                               ),
                             ),
                             Align(
@@ -528,14 +542,17 @@ class _LoginPageState extends State<LoginPage> {
                                       color: Colors.white,
                                     ),
                                   ),
-                                  const SizedBox(width: 0), // Added spacing between text and TextButton
+                                  const SizedBox(
+                                      width:
+                                          0), // Added spacing between text and TextButton
                                   TextButton(
                                     onPressed: () {
                                       // Navigate to Register Page
                                       Navigator.pushReplacement(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) => const RegisterPage(),
+                                          builder: (context) =>
+                                              const RegisterPage(),
                                         ),
                                       );
                                     },
@@ -574,7 +591,8 @@ class _LoginPageState extends State<LoginPage> {
                       onTap: () {
                         Navigator.of(context).pop(
                           SlideRightRoute(
-                            page: const LandingPage(), // Replace with the page you want to go back to
+                            page:
+                                const LandingPage(), // Replace with the page you want to go back to
                           ),
                         );
                       },
@@ -593,7 +611,10 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ),
             if (_isDialogShowing)
-              Positioned.fill(child: Container(color: Colors.black.withOpacity(0.4),))
+              Positioned.fill(
+                  child: Container(
+                color: Colors.black.withOpacity(0.4),
+              ))
           ],
         ),
       ),
