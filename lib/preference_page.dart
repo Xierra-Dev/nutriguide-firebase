@@ -71,71 +71,100 @@ class PreferencePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Get screen size
+    final size = MediaQuery.of(context).size;
+    final isSmallScreen = size.width < 360;
+
+    // Calculate dynamic padding and sizes
+    final horizontalPadding = size.width * 0.025;
+    final verticalPadding = size.height * 0.02;
+    final titleFontSize = isSmallScreen ? 20.0 : size.width * 0.055;
+    final itemFontSize = isSmallScreen ? 16.0 : size.width * 0.045;
+    final itemSpacing = size.height * 0.03;
+    final iconSize = isSmallScreen ? 20.0 : size.width * 0.055;
+
     return Padding(
-      padding: const EdgeInsets.all(15.0),
+      padding: EdgeInsets.all(horizontalPadding),
       child: Scaffold(
         backgroundColor: Colors.black,
-        appBar: AppBar(
-          backgroundColor: Colors.black,
-          title: const Text(
-            'Preferences',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
+        appBar: PreferredSize(
+          preferredSize: Size.fromHeight(size.height * 0.08),
+          child: AppBar(
+            backgroundColor: Colors.black,
+            title: Text(
+              'Preferences',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: titleFontSize,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            leading: IconButton(
+              icon: Icon(
+                Icons.arrow_back,
+                color: Colors.white,
+                size: iconSize,
+              ),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  SlideRightRoute(
+                    page: const SettingsPage(),
+                  ),
+                );
+              },
             ),
           ),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () {
-              Navigator.push(
-                context,
-                SlideRightRoute(
-                  page:  const SettingsPage(),
-                ),
-              );
-            },
-          ),
         ),
-        body: Padding(
-          padding: const EdgeInsets.only(
-            top: 32,
-          ),
-          child: Column(
-            children: [
-              _buildPreferenceItem(
-                context,
-                'Health Data',
-                () => Navigator.push(
+        body: SafeArea(
+          child: Padding(
+            padding: EdgeInsets.only(
+              top: verticalPadding * 1,
+              left: horizontalPadding,
+              right: horizontalPadding,
+            ),
+            child: Column(
+              children: [
+                _buildPreferenceItem(
                   context,
-                  SlideLeftRoute(
-                    page: const HealthDataPage(),
+                  'Health Data',
+                      () => Navigator.push(
+                    context,
+                    SlideLeftRoute(
+                      page: const HealthDataPage(),
+                    ),
                   ),
+                  itemFontSize,
+                  iconSize,
                 ),
-              ),
-              const SizedBox(height: 24),
-              _buildPreferenceItem(
-                context,
-                'Personalized Goals',
-                () => Navigator.push(
+                SizedBox(height: itemSpacing),
+                _buildPreferenceItem(
                   context,
-                  SlideLeftRoute(
-                    page:  const GoalsSettingsPage(),
+                  'Personalized Goals',
+                      () => Navigator.push(
+                    context,
+                    SlideLeftRoute(
+                      page: const GoalsSettingsPage(),
+                    ),
                   ),
+                  itemFontSize,
+                  iconSize,
                 ),
-              ),
-              const SizedBox(height: 24),
-              _buildPreferenceItem(
-                context,
-                'Allergies',
-                () => Navigator.push(
+                SizedBox(height: itemSpacing),
+                _buildPreferenceItem(
                   context,
-                  SlideLeftRoute(
-                    page:  const AllergiesSettingsPage(),
+                  'Allergies',
+                      () => Navigator.push(
+                    context,
+                    SlideLeftRoute(
+                      page: const AllergiesSettingsPage(),
+                    ),
                   ),
+                  itemFontSize,
+                  iconSize,
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -143,25 +172,32 @@ class PreferencePage extends StatelessWidget {
   }
 
   Widget _buildPreferenceItem(
-      BuildContext context, String title, VoidCallback onTap) {
+      BuildContext context,
+      String title,
+      VoidCallback onTap,
+      double fontSize,
+      double iconSize,
+      ) {
     return Column(
       children: [
         ListTile(
+          contentPadding: const EdgeInsets.symmetric(horizontal: 8),
           title: Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               color: Colors.white,
-              fontSize: 18,
+              fontSize: fontSize,
               fontWeight: FontWeight.w500,
             ),
           ),
-          trailing: const Icon(
+          trailing: Icon(
             Icons.chevron_right,
             color: Colors.white,
+            size: iconSize,
           ),
           onTap: onTap,
         ),
       ],
     );
   }
-} 
+}

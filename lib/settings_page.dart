@@ -114,135 +114,217 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Get screen size and orientation
+    final mediaQuery = MediaQuery.of(context);
+    final screenWidth = mediaQuery.size.width;
+    final screenHeight = mediaQuery.size.height;
+    final orientation = mediaQuery.orientation;
+
+    // Responsive font sizes
+    final double titleFontSize = screenWidth * 0.055; // Approximately 24 on most devices
+    final double listTileFontSize = screenWidth * 0.0435; // Approximately 18 on most devices
+
+    // Responsive padding and spacing
+    final double horizontalPadding = screenWidth * 0.04; // 15 on most devices
+    final double spaceBetweenItems = screenHeight * 0.03; // 32 on most devices
+
+    // Responsive icon sizes
+    final double backIconSize = screenWidth * 0.065; // 30 on most devices
+    final double trailingIconSize = screenWidth * 0.056; // 24 on most devices
+
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(15.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+          padding: EdgeInsets.all(horizontalPadding),
+          child: SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: screenHeight - (2 * horizontalPadding),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.white, size: 30),
-                    onPressed: () {
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: Icon(Icons.arrow_back, color: Colors.white, size: backIconSize),
+                        onPressed: () {
+                          Navigator.of(context).pushReplacement(
+                            SlideRightRoute(page: const ProfilePage()),
+                          );
+                        },
+                        splashColor: Colors.transparent,
+                        highlightColor: Colors.transparent,
+                      ),
+                      SizedBox(width: screenWidth * 0.04),
+                      Text(
+                        'Settings',
+                        style: TextStyle(
+                          fontSize: titleFontSize,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: spaceBetweenItems),
+                  _buildResponsiveSettingsListTile(
+                    context: context,
+                    leadingText: 'Account',
+                    trailingText: email ?? 'Loading...',
+                    fontSize: listTileFontSize,
+                    trailingIconSize: trailingIconSize,
+                    onTap: () {
                       Navigator.of(context).pushReplacement(
-                        SlideRightRoute(page: const ProfilePage()),
+                        SlideLeftRoute(page: const AccountPage()),
                       );
                     },
-                    splashColor: Colors.transparent,
-                    highlightColor: Colors.transparent,
                   ),
-                  const SizedBox(width: 16),
-                  const Text(
-                    'Settings',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
+                  SizedBox(height: spaceBetweenItems * 0.8),
+                  _buildResponsiveSettingsListTile(
+                    context: context,
+                    leadingText: 'Profile',
+                    trailingText: displayName ?? 'Loading...',
+                    fontSize: listTileFontSize,
+                    trailingIconSize: trailingIconSize,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        SlideLeftRoute(page: const ProfileEditPage()),
+                      );
+                    },
+                  ),
+                  SizedBox(height: spaceBetweenItems * 0.8),
+                  // Added the missing method
+                  _buildSettingsListTile(
+                    context: context,
+                    leadingText: 'Notifications',
+                    trailingText: '',
+                    fontSize: listTileFontSize,
+                    trailingIconSize: trailingIconSize,
+                    onTap: () {
+                      Navigator.of(context).push(
+                        SlideLeftRoute(page: const NotificationsPage()),
+                      );
+                    },
+                  ),
+                  SizedBox(height: spaceBetweenItems * 0.8),
+                  _buildSettingsListTile(
+                    context: context,
+                    leadingText: 'Preferences',
+                    trailingText: '',
+                    fontSize: listTileFontSize,
+                    trailingIconSize: trailingIconSize,
+                    onTap: () {
+                      Navigator.pushReplacement(
+                        context,
+                        SlideLeftRoute(
+                          page: const PreferencePage(),
+                        ),
+                      );
+                    },
+                  ),
+                  SizedBox(height: spaceBetweenItems * 0.8),
+                  _buildSettingsListTile(
+                    context: context,
+                    leadingText: 'About NutriGuide',
+                    trailingText: '',
+                    fontSize: listTileFontSize,
+                    trailingIconSize: trailingIconSize,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        SlideLeftRoute(
+                          page: const AboutNutriguidePage(),
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),
-              const SizedBox(height: 32),
-              ListTile(
-                leading: const Text(
-                  'Account',
-                  style: TextStyle(color: Colors.white, fontSize: 18),
-                ),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      (email != null && email!.length > 21) ? '${email!.substring(0, 21)}...' : (email ?? 'Loading...'),
-                      style: const TextStyle(color: Colors.white, fontSize: 18),
-                    ),
-                    const SizedBox(width: 16),
-                    const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 24),
-                  ],
-                ),
-                onTap: () {
-                  Navigator.of(context).pushReplacement(
-                    SlideLeftRoute(page: const AccountPage()),
-                  );
-                },
-              ),
-              const SizedBox(height: 24),
-              ListTile(
-                leading: const Text(
-                  'Profile',
-                  style: TextStyle(color: Colors.white, fontSize: 18),
-                ),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      (displayName != null && displayName!.length > 21) ? '${displayName!.substring(0, 21)}...' : (displayName ?? 'Loading...'),
-                      style: const TextStyle(color: Colors.white, fontSize: 18),
-                    ),
-                    const SizedBox(width: 16),
-                    const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 24),
-                  ],
-                ),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    SlideLeftRoute(page: const ProfileEditPage()),
-                  );
-                },
-              ),
-              const SizedBox(height: 24),
-              ListTile(
-                title: const Text(
-                  'Notifications',
-                  style: TextStyle(color: Colors.white, fontSize: 18),
-                ),
-                trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 24),
-                onTap: () {
-                  Navigator.of(context).push(
-                    SlideLeftRoute(page: const NotificationsPage()),
-                  );
-                },
-              ),
-              const SizedBox(height: 24),
-              ListTile(
-                title: const Text(
-                  'Preferences',
-                  style: TextStyle(color: Colors.white, fontSize: 18),
-                ),
-                trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 24),
-                onTap: () {
-                  Navigator.pushReplacement(
-                    context,
-                    SlideLeftRoute(
-                      page: const PreferencePage(),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 24),
-              ListTile(
-                title: const Text(
-                  'About NutriGuide',
-                  style: TextStyle(color: Colors.white, fontSize: 18),
-                ),
-                trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 24),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    SlideLeftRoute(
-                      page: const AboutNutriguidePage(),
-                    ),
-                  );
-                },
-              ),
-            ],
+            ),
           ),
         ),
       ),
     );
   }
 
+  // Helper method to create responsive list tiles with dynamic text overflow
+  Widget _buildResponsiveSettingsListTile({
+    required BuildContext context,
+    required String leadingText,
+    required String trailingText,
+    required double fontSize,
+    required double trailingIconSize,
+    required VoidCallback onTap,
+  }) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Calculate available width for trailing text
+        // Subtracting space for leading text, icon, and some padding
+        final availableWidth = constraints.maxWidth * 0.5;
 
+        return ListTile(
+          contentPadding: const EdgeInsets.symmetric(horizontal: 7.5),
+          leading: Text(
+            leadingText,
+            style: TextStyle(color: Colors.white, fontSize: fontSize),
+          ),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (trailingText.isNotEmpty)
+                ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: availableWidth),
+                  child: Text(
+                    trailingText,
+                    style: TextStyle(color: Colors.white, fontSize: fontSize),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                ),
+              if (trailingText.isNotEmpty)
+                SizedBox(width: MediaQuery.of(context).size.width * 0.04),
+              Icon(Icons.arrow_forward_ios, color: Colors.white, size: trailingIconSize),
+            ],
+          ),
+          onTap: onTap,
+        );
+      },
+    );
+  }
+
+  // Added the missing method without dynamic width calculation
+  Widget _buildSettingsListTile({
+    required BuildContext context,
+    required String leadingText,
+    required String trailingText,
+    required double fontSize,
+    required double trailingIconSize,
+    required VoidCallback onTap,
+  }) {
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 7.5),
+      leading: Text(
+        leadingText,
+        style: TextStyle(color: Colors.white, fontSize: fontSize),
+      ),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (trailingText.isNotEmpty)
+            Text(
+              trailingText,
+              style: TextStyle(color: Colors.white, fontSize: fontSize),
+            ),
+          if (trailingText.isNotEmpty)
+            SizedBox(width: MediaQuery.of(context).size.width * 0.04),
+          Icon(Icons.arrow_forward_ios, color: Colors.white, size: trailingIconSize),
+        ],
+      ),
+      onTap: onTap,
+    );
+  }
 }
