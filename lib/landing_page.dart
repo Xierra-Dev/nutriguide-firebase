@@ -274,7 +274,7 @@ class _LandingPageState extends State<LandingPage> with SingleTickerProviderStat
                               final userCredential = await _authService.signInWithGoogle();
                               if (userCredential != null && mounted) {
                                 // Check if this is first-time login
-                                bool isFirstTimeLogin = await _authService.isFirstTimeLoginGoogle();
+                                bool isFirstTimeLogin = await _authService.isFirstTimeLogin();
 
                                 // Check if email is verified
                                 bool isEmailVerified = _authService.isEmailVerified();
