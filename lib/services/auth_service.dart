@@ -24,27 +24,6 @@ class AuthService {
     return _auth.currentUser?.email;
   }
 
-  // Method to get current user's username (display name)
-  Future<String?> getCurrentUsername() async {
-    // Try to get username from Firebase Auth first
-    String? authUsername = _auth.currentUser?.displayName;
-
-    if (authUsername != null) return authUsername;
-
-    // If not found in Auth, try Firestore
-    try {
-      User? user = _auth.currentUser;
-      if (user != null) {
-        var userDoc = await _firestore.collection('users').doc(user.uid).get();
-        return userDoc.data()?['displayName'];
-      }
-    } catch (e) {
-      print('Error retrieving username from Firestore: $e');
-    }
-
-    return null;
-  }
-
   // Sign in with email and password
   Future<UserCredential> signInWithEmailAndPassword(String email, String password) async {
     try {

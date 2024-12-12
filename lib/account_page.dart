@@ -633,7 +633,7 @@ class _AccountPageState extends State<AccountPage> {
               // Logout Icon
               Icon(
                 Icons.logout,
-                size: size.width * 0.12,
+                size: size.width * 0.105,
                 color: Colors.deepOrange[800],
               ),
               SizedBox(height: size.height * 0.02),
@@ -643,7 +643,7 @@ class _AccountPageState extends State<AccountPage> {
                 'Log Out',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: size.width * 0.06 * textScaleFactor,
+                  fontSize: size.width * 0.058 * textScaleFactor,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
@@ -656,7 +656,7 @@ class _AccountPageState extends State<AccountPage> {
                 'Are you sure you want to log out of the application?',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: size.width * 0.045 * textScaleFactor,
+                  fontSize: size.width * 0.04 * textScaleFactor,
                   color: Colors.white,
                 ),
               ),
