@@ -452,7 +452,11 @@ class _AccountPageState extends State<AccountPage> {
                   // Password Fields Section
                   Expanded(
                     child: Padding(
-                      padding: EdgeInsets.all(25.0 * scaleFactor),
+                      padding: EdgeInsets.only(
+                        top: 30.0 * scaleFactor,
+                        left: 15.0 * scaleFactor,
+                        right: 15.0 * scaleFactor,
+                      ),
                       child: SingleChildScrollView(
                         child: Column(
                           children: [
