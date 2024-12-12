@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:nutriguide/account_page.dart';
-import 'package:nutriguide/home_page.dart'; // Assuming you have a HomePage
-import 'package:nutriguide/personalization_page.dart'; // Assuming you have a PersonalizationPage
+import 'email_verification_page.dart';
+import 'personalization_page.dart'; // Assuming you have a PersonalizationPage
 import 'dart:async';
 import 'login_page.dart';
 import 'register_page.dart';
@@ -275,17 +274,43 @@ class _LandingPageState extends State<LandingPage> with SingleTickerProviderStat
                               final userCredential = await _authService.signInWithGoogle();
                               if (userCredential != null && mounted) {
                                 // Check if this is first-time login
-                                bool isFirstTime = await _authService.isFirstTimeLogin();
+                                bool isFirstTimeLogin = await _authService.isFirstTimeLogin();
 
-                                // Navigate based on first-time login status
-                                Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => isFirstTime
-                                        ? const PersonalizationPage()
-                                        : const HomePage(),
-                                  ),
-                                );
+                                // Check if email is verified
+                                bool isEmailVerified = _authService.isEmailVerified();
+
+                                // Navigate based on login and verification status
+                                if (isFirstTimeLogin) {
+                                  // First-time login - navigate to email verification
+                                  Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => EmailVerificationPage(
+                                        email: userCredential.user?.email ?? '',
+                                        user: userCredential.user,
+                                      ),
+                                    ),
+                                  );
+                                } else if (!isEmailVerified) {
+                                  // Existing user but email not verified
+                                  Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => EmailVerificationPage(
+                                        email: userCredential.user?.email ?? '',
+                                        user: userCredential.user,
+                                      ),
+                                    ),
+                                  );
+                                } else {
+                                  // Fully verified user - proceed to home or personalization
+                                  Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => const PersonalizationPage(),
+                                    ),
+                                  );
+                                }
                               }
                             } catch (e) {
                               ScaffoldMessenger.of(context).showSnackBar(
@@ -306,7 +331,7 @@ class _LandingPageState extends State<LandingPage> with SingleTickerProviderStat
                                 ),
                               );
                             }
-                          },
+                          },//onPressed
                         ),
                       ),
                       AnimatedOpacity(

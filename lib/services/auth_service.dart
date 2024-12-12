@@ -271,12 +271,12 @@ class AuthService {
     try {
       // Hapus sign in yang mungkin masih ada
       await _googleSignIn.signOut();
-      
+
       print("Starting Google Sign In process");
       final GoogleSignInAccount? gUser = await _googleSignIn.signIn();
-      
+
       print("Google Sign In result: ${gUser?.email}");
-      
+
       if (gUser == null) {
         print("Google Sign In cancelled by user");
         return null;
@@ -284,7 +284,7 @@ class AuthService {
 
       print("Getting Google auth details");
       final GoogleSignInAuthentication gAuth = await gUser.authentication;
-      
+
       print("Creating credential");
       final credential = GoogleAuthProvider.credential(
         accessToken: gAuth.accessToken,
@@ -292,7 +292,40 @@ class AuthService {
       );
 
       print("Signing in to Firebase");
-      return await _auth.signInWithCredential(credential);
+      final UserCredential userCredential = await _auth.signInWithCredential(credential);
+
+      // Cek apakah ini login pertama kali
+      if (await isFirstTimeLogin()) {
+        // Ambil nama dari Google Sign-In
+        String? firstName = gUser.displayName?.split(' ').first ?? '';
+        String? lastName = gUser.displayName != null
+            ? gUser.displayName!.split(' ').length > 1
+            ? gUser.displayName!.split(' ').sublist(1).join(' ')
+            : ''
+            : '';
+
+        // Buat display name sesuai format
+        String displayName = [firstName, lastName].where((name) => name.isNotEmpty).join(' ');
+
+        // Update display name di Firebase Auth
+        await userCredential.user?.updateDisplayName(displayName);
+
+        // Kirim email verifikasi
+        await userCredential.user?.sendEmailVerification();
+
+        // Simpan data ke Firestore
+        await _firestore.collection('users').doc(userCredential.user!.uid).set({
+          'email': gUser.email,
+          'displayName': displayName,
+          'firstName': firstName,
+          'lastName': lastName,
+          'timestamp': FieldValue.serverTimestamp(),
+          'emailVerified': false,
+          'verificationSentAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+      }
+
+      return userCredential;
     } catch (e) {
       print('Detailed error in signInWithGoogle: $e');
       rethrow;
