@@ -208,10 +208,6 @@ class AuthService {
     }
   }
 
-  // Check if email is verified
-  bool isEmailVerified() {
-    return _auth.currentUser?.emailVerified ?? false;
-  }
 
   // Resend verification email
   Future<void> resendVerificationEmail() async {
@@ -265,7 +261,29 @@ class AuthService {
       return false;
     }
   }
+  Future<bool> isFirstTimeLoginGoogle() async {
+    try {
+      User? currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null) return false;
 
+      // Check Firestore for user document
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(currentUser.uid)
+          .get();
+
+      // If document doesn't exist, it's a first-time login
+      return !userDoc.exists;
+    } catch (e) {
+      print('Error checking first-time login: $e');
+      return false;
+    }
+  }
+
+  bool isEmailVerified() {
+    User? currentUser = FirebaseAuth.instance.currentUser;
+    return currentUser?.emailVerified ?? false;
+  }
   // Add this method for Google Sign In
   Future<UserCredential?> signInWithGoogle() async {
     try {
@@ -295,7 +313,7 @@ class AuthService {
       final UserCredential userCredential = await _auth.signInWithCredential(credential);
 
       // Cek apakah ini login pertama kali
-      if (await isFirstTimeLogin()) {
+      if (await isFirstTimeLoginGoogle()) {
         // Ambil nama dari Google Sign-In
         String? firstName = gUser.displayName?.split(' ').first ?? '';
         String? lastName = gUser.displayName != null
