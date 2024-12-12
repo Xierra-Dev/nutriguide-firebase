@@ -17,30 +17,30 @@ class SlideUpRoute extends PageRouteBuilder {
 
   SlideUpRoute({required this.page})
       : super(
-    pageBuilder: (
-        BuildContext context,
-        Animation<double> primaryAnimation,
-        Animation<double> secondaryAnimation,
-        ) =>
-    page,
-    transitionsBuilder: (
-        BuildContext context,
-        Animation<double> primaryAnimation,
-        Animation<double> secondaryAnimation,
-        Widget child,
-        ) {
-      return SlideTransition(
-        position: Tween<Offset>(
-          begin: const Offset(0.0, 1.0), // Start from bottom
-          end: Offset.zero, // End at the center
-        ).animate(CurvedAnimation(
-          parent: primaryAnimation,
-          curve: Curves.easeOutQuad,
-        )),
-        child: child,
-      );
-    },
-  );
+          pageBuilder: (
+            BuildContext context,
+            Animation<double> primaryAnimation,
+            Animation<double> secondaryAnimation,
+          ) =>
+              page,
+          transitionsBuilder: (
+            BuildContext context,
+            Animation<double> primaryAnimation,
+            Animation<double> secondaryAnimation,
+            Widget child,
+          ) {
+            return SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(0.0, 1.0), // Start from bottom
+                end: Offset.zero, // End at the center
+              ).animate(CurvedAnimation(
+                parent: primaryAnimation,
+                curve: Curves.easeOutQuad,
+              )),
+              child: child,
+            );
+          },
+        );
 }
 
 class _PlannerPageState extends State<PlannerPage> {
@@ -50,7 +50,8 @@ class _PlannerPageState extends State<PlannerPage> {
   Map<String, bool> madeStatus = {};
 
   // Track the current week
-  DateTime currentSunday = DateTime.now().subtract(Duration(days: DateTime.now().weekday % 7));
+  DateTime currentSunday =
+      DateTime.now().subtract(Duration(days: DateTime.now().weekday % 7));
 
   @override
   void initState() {
@@ -80,7 +81,7 @@ class _PlannerPageState extends State<PlannerPage> {
     try {
       print('Loading made status...');
       Map<String, bool> status = {};
-      
+
       // Iterate through all meals in weeklyMeals
       weeklyMeals.forEach((date, meals) {
         for (var meal in meals) {
@@ -124,10 +125,11 @@ class _PlannerPageState extends State<PlannerPage> {
 
   Future<void> _toggleMade(PlannedMeal plannedMeal) async {
     try {
-      final String mealKey = '${plannedMeal.recipe.id}_${plannedMeal.mealType}_${plannedMeal.dateKey}';
+      final String mealKey =
+          '${plannedMeal.recipe.id}_${plannedMeal.mealType}_${plannedMeal.dateKey}';
       print('Toggling made status for meal: ${plannedMeal.recipe.title}');
       print('Meal key: $mealKey');
-      
+
       final bool currentStatus = madeStatus[mealKey] ?? false;
       print('Current made status: $currentStatus');
 
@@ -165,10 +167,9 @@ class _PlannerPageState extends State<PlannerPage> {
                   color: Colors.white,
                 ),
                 const SizedBox(width: 8),
-                Text(!currentStatus 
-                  ? 'Recipe marked as made' 
-                  : 'Recipe marked as not made'
-                ),
+                Text(!currentStatus
+                    ? 'Recipe marked as made'
+                    : 'Recipe marked as not made'),
               ],
             ),
             backgroundColor: !currentStatus ? Colors.green : Colors.red,
@@ -182,7 +183,6 @@ class _PlannerPageState extends State<PlannerPage> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -190,13 +190,14 @@ class _PlannerPageState extends State<PlannerPage> {
       body: SafeArea(
         child: Column(
           children: [
-            const Padding(
+            Padding(
               padding: EdgeInsets.fromLTRB(0, 10, 0, 5),
               child: Text(
                 'Planned Recipes',
                 style: TextStyle(
                   color: Colors.deepOrange,
-                  fontSize: 25,
+                  fontSize: MediaQuery.of(context).size.width *
+                      0.065, // Adjusts font size based on screen width
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -217,10 +218,11 @@ class _PlannerPageState extends State<PlannerPage> {
                   ),
                   Text(
                     '${DateFormat('MMM d').format(currentSunday)} - '
-                        '${DateFormat('MMM d').format(currentSunday.add(Duration(days: 6)))}',
-                    style: const TextStyle(
+                    '${DateFormat('MMM d').format(currentSunday.add(Duration(days: 6)))}',
+                    style: TextStyle(
                       color: Colors.white,
-                      fontSize: 16,
+                      fontSize: MediaQuery.of(context).size.width *
+                          0.04, // Adjust font size based on screen width
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -237,7 +239,10 @@ class _PlannerPageState extends State<PlannerPage> {
             ),
             Expanded(
               child: isLoading
-                  ? const Center(child: CircularProgressIndicator(color: Colors.deepOrange,))
+                  ? const Center(
+                      child: CircularProgressIndicator(
+                      color: Colors.deepOrange,
+                    ))
                   : _buildWeekMeals(currentSunday),
             ),
           ],
@@ -275,9 +280,10 @@ class _PlannerPageState extends State<PlannerPage> {
                   children: [
                     Text(
                       dayName,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: Colors.white,
-                        fontSize: 18,
+                        fontSize: MediaQuery.of(context).size.width *
+                            0.05, // Adjust font size based on screen width
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -285,8 +291,10 @@ class _PlannerPageState extends State<PlannerPage> {
                     Text(
                       dateStr,
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.6),
-                        fontSize: 16,
+                        color: Colors.white
+                            .withOpacity(0.6), // Apply opacity to the color
+                        fontSize: MediaQuery.of(context).size.width *
+                            0.05, // Adjust font size based on screen width
                       ),
                     ),
                   ],
@@ -295,7 +303,8 @@ class _PlannerPageState extends State<PlannerPage> {
                   Icons.chevron_right,
                   color: Colors.white,
                 ),
-                onTap: () => _showDayMeals(context, '$dayName, $dateStr', meals),
+                onTap: () =>
+                    _showDayMeals(context, '$dayName, $dateStr', meals),
               ),
               if (meals.isNotEmpty)
                 SizedBox(
@@ -308,7 +317,8 @@ class _PlannerPageState extends State<PlannerPage> {
                       final meal = meals[mealIndex];
 
                       // Generate a unique key for this specific planned meal
-                      final mealKey = '${meal.recipe.id}_${meal.mealType}_${meal.dateKey}';
+                      final mealKey =
+                          '${meal.recipe.id}_${meal.mealType}_${meal.dateKey}';
                       // Inside the horizontal ListView.builder
                       return GestureDetector(
                         onTap: () => _viewRecipe(meal.recipe),
@@ -316,7 +326,8 @@ class _PlannerPageState extends State<PlannerPage> {
                           children: [
                             Container(
                               width: 250,
-                              margin: const EdgeInsets.only(right: 16, bottom: 16),
+                              margin:
+                                  const EdgeInsets.only(right: 16, bottom: 16),
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(15),
                                 image: DecorationImage(
@@ -343,9 +354,12 @@ class _PlannerPageState extends State<PlannerPage> {
                                   children: [
                                     Text(
                                       meal.recipe.title,
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         color: Colors.white,
-                                        fontSize: 15,
+                                        fontSize: MediaQuery.of(context)
+                                                .size
+                                                .width *
+                                            0.04, // Adjust font size based on screen width
                                         fontWeight: FontWeight.bold,
                                       ),
                                       maxLines: 2,
@@ -364,7 +378,10 @@ class _PlannerPageState extends State<PlannerPage> {
                                           '${meal.recipe.preparationTime} min',
                                           style: TextStyle(
                                             color: Colors.white70,
-                                            fontSize: 14,
+                                            fontSize: MediaQuery.of(context)
+                                                    .size
+                                                    .width *
+                                                0.035, // Adjusts font size based on screen width
                                           ),
                                         ),
                                         const SizedBox(width: 16),
@@ -372,7 +389,10 @@ class _PlannerPageState extends State<PlannerPage> {
                                           meal.mealType,
                                           style: TextStyle(
                                             color: Colors.orange,
-                                            fontSize: 14,
+                                            fontSize: MediaQuery.of(context)
+                                                    .size
+                                                    .width *
+                                                0.04, // Adjusts font size based on screen width
                                             fontWeight: FontWeight.bold,
                                           ),
                                         ),
@@ -413,7 +433,8 @@ class _PlannerPageState extends State<PlannerPage> {
                     'No meals planned for $dayName, $dateStr',
                     style: TextStyle(
                       color: Colors.white.withOpacity(0.6),
-                      fontSize: 14,
+                      fontSize: MediaQuery.of(context).size.width *
+                          0.04, // Adjust font size based on screen width
                     ),
                   ),
                 ),
@@ -529,7 +550,8 @@ class _PlannerPageState extends State<PlannerPage> {
     }
   }
 
-  void _showDayMeals(BuildContext context, String dayName, List<PlannedMeal> meals) {
+  void _showDayMeals(
+      BuildContext context, String dayName, List<PlannedMeal> meals) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -548,16 +570,18 @@ class _PlannerPageState extends State<PlannerPage> {
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: Colors.black.withOpacity(0.3),
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                  borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(20)),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
                       'Meals for $dayName',
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: Colors.white,
-                        fontSize: 20,
+                        fontSize: MediaQuery.of(context).size.width *
+                            0.05, // Adjust font size based on screen width
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -572,111 +596,121 @@ class _PlannerPageState extends State<PlannerPage> {
               Expanded(
                 child: meals.isEmpty
                     ? Center(
-                  child: Text(
-                    'No meals planned for $dayName',
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.6),
-                      fontSize: 16,
-                    ),
-                  ),
-                )
+                        child: Text(
+                          'No meals planned for $dayName',
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.6),
+                            fontSize: MediaQuery.of(context).size.width *
+                                0.04, // Adjust font size based on screen width
+                          ),
+                        ),
+                      )
                     : ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: meals.length,
-                  itemBuilder: (context, index) {
-                    final meal = meals[index];
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 16),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.3),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: InkWell(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            SlideUpRoute(
-                              page: RecipeDetailPage(
-                                recipe: meal.recipe,
+                        padding: const EdgeInsets.all(16),
+                        itemCount: meals.length,
+                        itemBuilder: (context, index) {
+                          final meal = meals[index];
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 16),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.3),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: InkWell(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  SlideUpRoute(
+                                    page: RecipeDetailPage(
+                                      recipe: meal.recipe,
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: ListTile(
+                                contentPadding: const EdgeInsets.all(12),
+                                leading: ClipRRect(
+                                  borderRadius: BorderRadius.circular(50),
+                                  child: Image.network(
+                                    meal.recipe.image,
+                                    width: 60,
+                                    height: 60,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                                title: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        meal.recipe.title,
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: MediaQuery.of(context)
+                                                  .size
+                                                  .width *
+                                              0.04, // Adjust font size based on screen width
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.deepOrange,
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Text(
+                                        meal.mealType,
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: MediaQuery.of(context)
+                                                  .size
+                                                  .width *
+                                              0.03, // Adjust font size based on screen width
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                subtitle: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.timer,
+                                      color: Colors.orange,
+                                      size: 16,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      '${meal.recipe.preparationTime} min',
+                                      style: TextStyle(
+                                        color: Colors.white70,
+                                        fontSize: MediaQuery.of(context)
+                                                .size
+                                                .width *
+                                            0.04, // Adjust font size based on screen width
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                trailing: IconButton(
+                                  icon: const Icon(
+                                    Icons.delete_outline,
+                                    color: Colors.red,
+                                  ),
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                    _deletePlannedMeal(meal, dayName);
+                                  },
+                                ),
                               ),
                             ),
                           );
                         },
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.all(12),
-                          leading: ClipRRect(
-                            borderRadius: BorderRadius.circular(50),
-                            child: Image.network(
-                              meal.recipe.image,
-                              width: 60,
-                              height: 60,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                          title: Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  meal.recipe.title,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.deepOrange,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Text(
-                                  meal.mealType,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          subtitle: Row(
-                            children: [
-                              Icon(
-                                Icons.timer,
-                                color: Colors.orange,
-                                size: 16,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                '${meal.recipe.preparationTime} min',
-                                style: TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ],
-                          ),
-                          trailing: IconButton(
-                            icon: const Icon(
-                              Icons.delete_outline,
-                              color: Colors.red,
-                            ),
-                            onPressed: () {
-                              Navigator.pop(context);
-                              _deletePlannedMeal(meal, dayName);
-                            },
-                          ),
-                        ),
                       ),
-                    );
-                  },
-                ),
               ),
               // Fixed Delete All Meals button
               SizedBox(
@@ -686,105 +720,139 @@ class _PlannerPageState extends State<PlannerPage> {
                   child: ElevatedButton(
                     onPressed: meals.isNotEmpty
                         ? () {
-                      // Show confirmation dialog before deleting all meals
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext dialogContext) {
-                          return Dialog(
-                            backgroundColor: Colors.transparent, // Membuat latar dialog transparan
-                            child: Container(
-                              width: MediaQuery.of(context).size.width * 0.9,
-                              height: MediaQuery.of(context).size.height * 0.25,
-                              padding: EdgeInsets.all(24),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF1E1E1E), // Warna latar belakang gelap
-                                borderRadius: BorderRadius.circular(28), // Sudut yang lebih bulat
-                              ),
-                              child: Column(
-                                children: [
-                                  SizedBox(height: 9,),
-                                  const Text(
-                                    'Delete All Meals',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
+                            // Show confirmation dialog before deleting all meals
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext dialogContext) {
+                                return Dialog(
+                                  backgroundColor: Colors
+                                      .transparent, // Membuat latar dialog transparan
+                                  child: Container(
+                                    width:
+                                        MediaQuery.of(context).size.width * 0.9,
+                                    height: MediaQuery.of(context).size.height *
+                                        0.25,
+                                    padding: EdgeInsets.all(24),
+                                    decoration: BoxDecoration(
+                                      color: const Color(
+                                          0xFF1E1E1E), // Warna latar belakang gelap
+                                      borderRadius: BorderRadius.circular(
+                                          28), // Sudut yang lebih bulat
                                     ),
-                                  ),
-                                  const SizedBox(height: 21.5),
-                                  const Text(
-                                    'Are you sure you want to delete all meals\nfor this day?',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      color: Colors.white70,
-                                      fontSize: 15,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 37),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      // Cancel Button
-                                      Expanded(
-                                        child: ElevatedButton(
-                                          onPressed: () {
-                                            Navigator.of(dialogContext).pop();
-                                          },
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: Colors.transparent,
-                                            foregroundColor: Colors.white,
-                                            elevation: 0,
-                                            padding: EdgeInsets.symmetric(vertical: 12),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(25),
-                                              side: BorderSide(color: Colors.white.withOpacity(0.2)),
-                                            ),
-                                          ),
-                                          child: const Text(
-                                            'Cancel',
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w600,
-                                            ),
+                                    child: Column(
+                                      children: [
+                                        SizedBox(
+                                          height: 9,
+                                        ),
+                                        Text(
+                                          'Delete All Meals',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: MediaQuery.of(context)
+                                                    .size
+                                                    .width *
+                                                0.05, // Adjust the multiplier as needed
+                                            fontWeight: FontWeight.bold,
                                           ),
                                         ),
-                                      ),
-                                      const SizedBox(width: 12),
-                                      // Delete Button
-                                      Expanded(
-                                        child: ElevatedButton(
-                                          onPressed: () {
-                                            Navigator.of(dialogContext).pop();
-                                            Navigator.of(context).pop();
-                                            _deletePlannedMealByDay(dayName);
-                                          },
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: Colors.red,
-                                            foregroundColor: Colors.white,
-                                            elevation: 0,
-                                            padding: EdgeInsets.symmetric(vertical: 12),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(25),
-                                            ),
-                                          ),
-                                          child: const Text(
-                                            'Delete',
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w600,
-                                            ),
+                                        const SizedBox(height: 21.5),
+                                        Text(
+                                          'Are you sure you want to delete all meals\nfor this day?',
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            color: Colors.white70,
+                                            fontSize: MediaQuery.of(context)
+                                                    .size
+                                                    .width *
+                                                0.04, // Adjust multiplier based on your needs
                                           ),
                                         ),
-                                      ),
-                                    ],
+                                        const SizedBox(height: 37),
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            // Cancel Button
+                                            Expanded(
+                                              child: ElevatedButton(
+                                                onPressed: () {
+                                                  Navigator.of(dialogContext)
+                                                      .pop();
+                                                },
+                                                style: ElevatedButton.styleFrom(
+                                                  backgroundColor:
+                                                      Colors.transparent,
+                                                  foregroundColor: Colors.white,
+                                                  elevation: 0,
+                                                  padding: EdgeInsets.symmetric(
+                                                      vertical: 12),
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            25),
+                                                    side: BorderSide(
+                                                        color: Colors.white
+                                                            .withOpacity(0.2)),
+                                                  ),
+                                                ),
+                                                child: Text(
+                                                  'Cancel',
+                                                  style: TextStyle(
+                                                    fontSize: MediaQuery.of(
+                                                                context)
+                                                            .size
+                                                            .width *
+                                                        0.035, // Adjust multiplier based on your needs
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 12),
+                                            // Delete Button
+                                            Expanded(
+                                              child: ElevatedButton(
+                                                onPressed: () {
+                                                  Navigator.of(dialogContext)
+                                                      .pop();
+                                                  Navigator.of(context).pop();
+                                                  _deletePlannedMealByDay(
+                                                      dayName);
+                                                },
+                                                style: ElevatedButton.styleFrom(
+                                                  backgroundColor: Colors.red,
+                                                  foregroundColor: Colors.white,
+                                                  elevation: 0,
+                                                  padding: EdgeInsets.symmetric(
+                                                      vertical: 12),
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            25),
+                                                  ),
+                                                ),
+                                                child: Text(
+                                                  'Delete',
+                                                  style: TextStyle(
+                                                    fontSize: MediaQuery.of(
+                                                                context)
+                                                            .size
+                                                            .width *
+                                                        0.035, // Adjust the multiplier to fit your design
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      );
-                    }
+                                );
+                              },
+                            );
+                          }
                         : null,
                     style: ElevatedButton.styleFrom(
                       foregroundColor: Colors.white,
