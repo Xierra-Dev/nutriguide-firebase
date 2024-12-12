@@ -332,7 +332,7 @@ class _LandingPageState extends State<LandingPage> with SingleTickerProviderStat
                               );
                             }
                           },//onPressed
-                        ),
+                        ),// kontol
                       ),
                       AnimatedOpacity(
                         duration: const Duration(milliseconds: 800),
