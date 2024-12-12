@@ -225,25 +225,8 @@ class _LandingPageState extends State<LandingPage> with SingleTickerProviderStat
                           ),
                         ),
                       ),
-                      const SizedBox(height: 10),
                       // Divider with OR text
-                      AnimatedOpacity(
-                        duration: const Duration(milliseconds: 800),
-                        opacity: _isLoading ? 0.0 : 1.0,
-                        child: const Row(
-                          children: [
-                            Expanded(child: Divider(color: Colors.white70)),
-                            Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 16),
-                              child: Text(
-                                'OR',
-                                style: TextStyle(color: Colors.white70),
-                              ),
-                            ),
-                            Expanded(child: Divider(color: Colors.white70)),
-                          ],
-                        ),
-                      ),
+
                       AnimatedOpacity(
                         duration: const Duration(milliseconds: 800),
                         opacity: _isLoading ? 0.0 : 1.0,

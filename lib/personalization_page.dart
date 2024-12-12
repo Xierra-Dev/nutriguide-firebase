@@ -17,6 +17,7 @@ class PersonalizationPage extends StatefulWidget {
 
 class _PersonalizationPageState extends State<PersonalizationPage> {
   final FirestoreService _firestoreService = FirestoreService();
+  final TheMealDBService _mealService = TheMealDBService();
   String? gender;
   int? birthYear;
   String heightUnit = 'cm';
@@ -25,7 +26,6 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
   String? activityLevel;
   bool _isLoading = false;
   int currentStep = 0;
-  final TheMealDBService _mealService = TheMealDBService();
   String? _backgroundImageUrl;
 
   @override
@@ -50,11 +50,13 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
         });
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error loading user data: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error loading user data: $e')),
+        );
+      }
     } finally {
-      if (mounted) { // Tambahkan mounted check
+      if (mounted) {
         setState(() => _isLoading = false);
       }
     }
@@ -63,7 +65,7 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
   Future<void> _loadRandomMealImage() async {
     try {
       final imageUrl = await _mealService.getRandomMealImage();
-      if (mounted) { // Check if widget is still mounted before setting state
+      if (mounted) {
         setState(() {
           _backgroundImageUrl = imageUrl;
           _isLoading = false;
@@ -194,11 +196,69 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
     );
   }
 
+  Widget _buildDialogButtons(BuildContext context, Size size) {
+    final isSmallScreen = size.width < 360;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        ElevatedButton(
+          onPressed: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const HomePage()),
+            );
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.red,
+            foregroundColor: Colors.white,
+            padding: EdgeInsets.symmetric(
+              vertical: size.height * 0.02,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(50.0),
+            ),
+          ),
+          child: Text(
+            "Skip Questionnaire",
+            style: TextStyle(
+              fontSize: isSmallScreen ? 14 : 16,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+        SizedBox(height: size.height * 0.02),
+        OutlinedButton(
+          onPressed: () => Navigator.of(context).pop(),
+          style: OutlinedButton.styleFrom(
+            foregroundColor: Colors.white,
+            padding: EdgeInsets.symmetric(
+              vertical: size.height * 0.02,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(50.0),
+            ),
+          ),
+          child: Text(
+            "Return to Questionnaire",
+            style: TextStyle(
+              fontSize: isSmallScreen ? 14 : 16,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final isSmallScreen = size.width < 360;
+
     return Scaffold(
       body: AnimatedContainer(
-        duration: const Duration(milliseconds: 100), // Add smooth transition
+        duration: const Duration(milliseconds: 100),
         decoration: BoxDecoration(
           image: _backgroundImageUrl != null
               ? DecorationImage(
@@ -215,159 +275,113 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
           ),
         ),
         child: SafeArea(
-          child: Stack(
-            children: [
-              // Gradient box in center with goals
-              Positioned(
-                top: 128,  // Adjust this value as needed
-                left: 5,
-                right: 5,
-                child: Container(
-                  width: double.infinity,
-                  margin: const EdgeInsets.symmetric(horizontal: 2.5),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 45,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight,
                   ),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        Colors.white.withOpacity(0.875),
-                        const Color.fromARGB(255, 66, 66, 66)
-                      ],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                    ),
-                    borderRadius: BorderRadius.circular(50),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
+                  child: Stack(
                     children: [
-                      const Text(
-                        'REVIEW YOUR HEALTH DATA',
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 23.5,
-                          fontWeight: FontWeight.w800,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 5),
-                      const Text(
-                        'Your data will be used for your personalization.\nPlease review before proceeding',
-                        style: TextStyle(
-                          color: Colors.red,
-                          fontSize: 12.25,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 20),
-                      _buildField('Sex', gender, _showGenderDialog),
-                      _buildField('Year of Birth', birthYear?.toString(), _showBirthYearDialog),
-                      _buildField('Height', height != null ? '$height ${heightUnit == 'cm' ? 'cm' : 'ft'}' : null, _showHeightDialog),
-                      _buildField('Weight', weight != null ? '$weight kg' : null, _showWeightDialog),
-                      _buildField('Activity Level', activityLevel, _showActivityLevelDialog),
+                      _buildMainContent(size, isSmallScreen),
+                      _buildProgressBar(size, isSmallScreen),
+                      _buildBottomButtons(size, isSmallScreen),
                     ],
                   ),
                 ),
-              ),
-
-              // Progress bar
-              Positioned(
-                bottom: 255, // Adjust this value as needed
-                left: 0,
-                right: 0,
-                child: LinearProgressBar(
-                  maxSteps: 3,
-                  progressType: LinearProgressBar.progressTypeDots,
-                  currentStep: currentStep,
-                  progressColor: kPrimaryColor,
-                  backgroundColor: kColorsGrey400,
-                  dotsAxis: Axis.horizontal,
-                  dotsActiveSize: 12.5,
-                  dotsInactiveSize: 10,
-                  dotsSpacing: const EdgeInsets.only(right: 10),
-                  valueColor: const AlwaysStoppedAnimation<Color>(Colors.red),
-                  semanticsLabel: "Label",
-                  semanticsValue: "Value",
-                  minHeight: 10,
-                ),
-              ),
-
-              // Buttons at bottom
-              Positioned(
-                bottom: 25,
-                left: 20,
-                right: 20,
-                child: Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      ElevatedButton(
-                        onPressed: _saveData,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.deepOrange,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          foregroundColor: Colors.black,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(50),
-                          ),
-                        ),
-                        child: _isLoading
-                            ? const CircularProgressIndicator(color: Colors.white)
-                            : const Text('SAVE', style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.black,
-                        ),),
-                      ),
-                      const SizedBox(height: 16),
-                      TextButton(
-                        onPressed:  _showSetUpLaterDialog,
-                        style: TextButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(25),
-                            side: const BorderSide(color: Colors.white),
-                          ),
-                        ),
-                        child: const Text(
-                          'SET UP LATER',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
+              );
+            },
           ),
         ),
       ),
     );
   }
 
-  Widget _buildField(String label, String? value, VoidCallback onTap) {
+  Widget _buildMainContent(Size size, bool isSmallScreen) {
+    return Padding(
+      padding: EdgeInsets.only(
+        top: size.height * 0.15,
+        bottom: size.height * 0.25,
+        left: size.width * 0.02,
+        right: size.width * 0.02,
+      ),
+      child: Container(
+        width: double.infinity,
+        margin: EdgeInsets.symmetric(
+          horizontal: size.width * 0.02,
+        ),
+        padding: EdgeInsets.symmetric(
+          horizontal: size.width * 0.05,
+          vertical: size.height * 0.04,
+        ),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Colors.white.withOpacity(0.875),
+              const Color.fromARGB(255, 66, 66, 66)
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+          borderRadius: BorderRadius.circular(50),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'REVIEW YOUR HEALTH DATA',
+              style: TextStyle(
+                color: Colors.black,
+                fontSize: isSmallScreen ? 20 : 23.5,
+                fontWeight: FontWeight.w800,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: size.height * 0.01),
+            Text(
+              'Your data will be used for your personalization.\nPlease review before proceeding',
+              style: TextStyle(
+                color: Colors.red,
+                fontSize: isSmallScreen ? 10 : 12.25,
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: size.height * 0.02),
+            ..._buildFields(size, isSmallScreen),
+          ],
+        ),
+      ),
+    );
+  }
+
+  List<Widget> _buildFields(Size size, bool isSmallScreen) {
+    return [
+      _buildField('Sex', gender, _showGenderDialog, size, isSmallScreen),
+      _buildField('Year of Birth', birthYear?.toString(), _showBirthYearDialog, size, isSmallScreen),
+      _buildField('Height', height != null ? '$height ${heightUnit == 'cm' ? 'cm' : 'ft'}' : null, _showHeightDialog, size, isSmallScreen),
+      _buildField('Weight', weight != null ? '$weight kg' : null, _showWeightDialog, size, isSmallScreen),
+      _buildField('Activity Level', activityLevel, _showActivityLevelDialog, size, isSmallScreen),
+    ];
+  }
+
+  Widget _buildField(String label, String? value, VoidCallback onTap, Size size, bool isSmallScreen) {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
+          padding: EdgeInsets.symmetric(
+            vertical: size.height * 0.01,
+          ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 label,
-                style: const TextStyle(
-                  color: Color.fromARGB(255, 37, 37, 37),
-                  fontSize: 21,
+                style: TextStyle(
+                  color: const Color.fromARGB(255, 37, 37, 37),
+                  fontSize: isSmallScreen ? 18 : 21,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -377,17 +391,21 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
                     value ?? 'Not Set',
                     style: TextStyle(
                       color: value == null ? Colors.red : Colors.black,
-                      fontSize: 18.5,
+                      fontSize: isSmallScreen ? 16 : 18.5,
                       fontWeight: value == null ? FontWeight.w600 : FontWeight.w800,
                     ),
                   ),
-                  const SizedBox(width: 3),
+                  SizedBox(width: size.width * 0.01),
                   IconButton(
-                    icon: const Icon(Icons.edit, color: Colors.red, size: 23),
+                    icon: Icon(
+                      Icons.edit,
+                      color: Colors.red,
+                      size: isSmallScreen ? 20 : 23,
+                    ),
                     onPressed: onTap,
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
-                    splashRadius: 20,
+                    splashRadius: isSmallScreen ? 15 : 20,
                   ),
                 ],
               ),
@@ -404,6 +422,99 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
     );
   }
 
+  Widget _buildProgressBar(Size size, bool isSmallScreen) {
+    return Positioned(
+      bottom: size.height * 0.225,
+      left: 0,
+      right: 0,
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: size.width * 0.05,
+        ),
+        child: LinearProgressBar(
+          maxSteps: 3,
+          progressType: LinearProgressBar.progressTypeDots,
+          currentStep: currentStep,
+          progressColor: kPrimaryColor,
+          backgroundColor: kColorsGrey400,
+          dotsAxis: Axis.horizontal,
+          dotsActiveSize: isSmallScreen ? 10 : 12.5,
+          dotsInactiveSize: isSmallScreen ? 8 : 10,
+          dotsSpacing: EdgeInsets.only(
+            right: size.width * 0.02,
+          ),
+          valueColor: const AlwaysStoppedAnimation<Color>(Colors.red),
+          semanticsLabel: "Label",
+          semanticsValue: "Value",
+          minHeight: size.height * 0.01,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBottomButtons(Size size, bool isSmallScreen) {
+    return Positioned(
+      bottom: 0,
+      left: 0,
+      right: 0,
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: size.width * 0.065,
+          vertical: size.height * 0.02,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            ElevatedButton(
+              onPressed: _saveData,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.deepOrange,
+                padding: EdgeInsets.symmetric(
+                  vertical: size.height * 0.0125,
+                ),
+                foregroundColor: Colors.black,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(50),
+                ),
+              ),
+              child: _isLoading
+                  ? const CircularProgressIndicator(color: Colors.white)
+                  : Text(
+                'SAVE',
+                style: TextStyle(
+                  fontSize: isSmallScreen ? 18 : 20,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.black,
+                ),
+              ),
+            ),
+            SizedBox(height: size.height * 0.02),
+            TextButton(
+              onPressed: _showSetUpLaterDialog,
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(
+                  vertical: size.height * 0.0125,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(25),
+                  side: const BorderSide(color: Colors.white),
+                ),
+              ),
+              child: Text(
+                'SET UP LATER',
+                style: TextStyle(
+                  fontSize: isSmallScreen ? 14 : 16,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
   void _showGenderDialog() {
     Navigator.of(context).push(
       MaterialPageRoute(

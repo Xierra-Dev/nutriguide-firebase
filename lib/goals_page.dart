@@ -107,6 +107,10 @@ class _GoalsPageState extends State<GoalsPage> {
     }
   }
 
+  Future<void> _loadUserData() async {
+
+  }
+
   void _showSetUpLaterDialog() {
     showDialog(
       context: context,
@@ -227,62 +231,79 @@ class _GoalsPageState extends State<GoalsPage> {
     {
       'title': 'Weight Less',
       'icon': Icons.scale,
-      'size': 20.0,  // Memastikan nilai double bukan null
+      'size': 25.0,  // Memastikan nilai double bukan null
       'titleSize': 20.0,  // Memastikan nilai double bukan null
     },
     {
       'title': 'Get Healthier',
       'icon': Icons.restaurant,
-      'size': 20.0,
+      'size': 25.0,
       'titleSize': 20.0,
     },
     {
       'title': 'Look Better',
       'icon': Icons.fitness_center,
-      'size': 20.0,
+      'size': 25.0,
       'titleSize': 20.0,
     },
     {
       'title': 'Reduce Stress',
       'icon': Icons.favorite,
-      'size': 20.0,
+      'size': 25.0,
       'titleSize': 20.0,
     },
     {
       'title': 'Sleep Better',
       'icon': Icons.nightlight_round,
-      'size': 20.0,
+      'size': 25.0,
       'titleSize': 20.0,
     },
   ];
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: AnimatedContainer(
-        duration: const Duration(milliseconds: 100), // Add smooth transition
-        decoration: BoxDecoration(
-          image: _backgroundImageUrl != null
-              ? DecorationImage(
-            image: NetworkImage(_backgroundImageUrl!),
-            fit: BoxFit.cover,
-            colorFilter: ColorFilter.mode(
-              Colors.black.withOpacity(0.3),
-              BlendMode.darken,
+    // Get device screen size and orientation
+    final mediaQuery = MediaQuery.of(context);
+    final screenWidth = mediaQuery.size.width;
+    final screenHeight = mediaQuery.size.height;
+    final orientation = mediaQuery.orientation;
+
+    // Responsive font sizes
+    final titleFontSize = screenWidth * 0.07;
+    final goalTitleFontSize = screenWidth * 0.03875;
+    final buttonFontSize = screenWidth * 0.045;
+
+    // Responsive padding and spacing
+    final horizontalPadding = screenWidth * 0.05;
+    final verticalPadding = screenHeight * 0.02;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Scaffold(
+          body: AnimatedContainer(
+            duration: const Duration(milliseconds: 100),
+            decoration: BoxDecoration(
+              image: _backgroundImageUrl != null
+                  ? DecorationImage(
+                image: NetworkImage(_backgroundImageUrl!),
+                fit: BoxFit.cover,
+                colorFilter: ColorFilter.mode(
+                  Colors.black.withOpacity(0.3),
+                  BlendMode.darken,
+                ),
+              )
+                  : const DecorationImage(
+                image: AssetImage('assets/images/landing_page.jpg'),
+                fit: BoxFit.cover,
+              ),
             ),
-          )
-              : const DecorationImage(
-            image: AssetImage('assets/images/landing_page.jpg'),
-            fit: BoxFit.cover,
-          ),
-        ),
-          child: SafeArea(
-            child: Stack(
-              children: [
-                Align(
-                  alignment: Alignment.topLeft,
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: 15, top: 15),
+            child: SafeArea(
+              child: Stack(
+                children: [
+                  // Back Button
+                  Positioned(
+                    top: verticalPadding,
+                    left: horizontalPadding,
                     child: Container(
                       decoration: BoxDecoration(
                         color: Colors.black.withOpacity(0.85),
@@ -293,121 +314,124 @@ class _GoalsPageState extends State<GoalsPage> {
                         onPressed: () {
                           Navigator.of(context).pushReplacement(
                             SlideRightRoute(
-                              page: const PersonalizationPage(), // Replace with the page you want to go back to
+                              page: const PersonalizationPage(),
                             ),
                           );
                         },
                       ),
                     ),
                   ),
-                ),
-                // Title positioned at top
-                const Positioned(
-                  top: 55,
-                  left: 50,
-                  right: 50,
-                  child: Text(
-                    'What are your current goals?',
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 28,
-                      fontWeight: FontWeight.w800,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-        
-                // Gradient box in center with goals
-                Positioned(
-                  top: 212,  // Adjust this value as needed
-                  left: 5,
-                  right: 5,
-                  child: Container(
-                    padding: const EdgeInsets.all(25),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          Colors.white.withOpacity(0.85),
-                          const Color.fromARGB(255, 66, 66, 66)
-                        ],
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
+
+                  // Title
+                  Positioned(
+                    top: screenHeight * 0.1,
+                    left: horizontalPadding,
+                    right: horizontalPadding,
+                    child: Text(
+                      'What are your current goals?',
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: titleFontSize,
+                        fontWeight: FontWeight.w800,
                       ),
-                      borderRadius: BorderRadius.circular(50),
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: goals.map((goal) => _buildGoalOption(goal)).toList(),
+                      textAlign: TextAlign.center,
                     ),
                   ),
-                ),
-        
-                // Progress bar
-                Positioned(
-                  bottom: 255, // Adjust this value as needed
-                  left: 0,
-                  right: 0,
-                  child: LinearProgressBar(
-                    maxSteps: 3,
-                    progressType: LinearProgressBar.progressTypeDots,
-                    currentStep: currentStep,
-                    progressColor: kPrimaryColor,
-                    backgroundColor: kColorsGrey400,
-                    dotsAxis: Axis.horizontal,
-                    dotsActiveSize: 12.5,
-                    dotsInactiveSize: 10,
-                    dotsSpacing: const EdgeInsets.only(right: 10),
-                    valueColor: const AlwaysStoppedAnimation<Color>(Colors.red),
-                    semanticsLabel: "Label",
-                    semanticsValue: "Value",
-                    minHeight: 10,
+
+                  // Goals Container
+                  Positioned(
+                    top: screenHeight * 0.2475,
+                    left: horizontalPadding,
+                    right: horizontalPadding,
+                    child: Container(
+                      padding: EdgeInsets.all(screenWidth * 0.05),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.white.withOpacity(0.85),
+                            const Color.fromARGB(255, 66, 66, 66)
+                          ],
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                        ),
+                        borderRadius: BorderRadius.circular(50),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: goals.map((goal) => _buildGoalOption(goal, goalTitleFontSize)).toList(),
+                      ),
+                    ),
                   ),
-                ),
-        
-                // Buttons at bottom
-                Positioned(
-                  bottom: 25,
-                  left: 20,
-                  right: 20,
-                  child: Padding(
-                    padding: const EdgeInsets.all(20.0),
+
+                  // Progress Bar
+                  Positioned(
+                    bottom: screenHeight * 0.23,
+                    left: 0,
+                    right: 0,
+                    child: Center(
+                      child: LinearProgressBar(
+                        maxSteps: 3,
+                        progressType: LinearProgressBar.progressTypeDots,
+                        currentStep: currentStep,
+                        progressColor: kPrimaryColor,
+                        backgroundColor: kColorsGrey400,
+                        dotsAxis: Axis.horizontal,
+                        dotsActiveSize: screenWidth * 0.03,
+                        dotsInactiveSize: screenWidth * 0.025,
+                        dotsSpacing: const EdgeInsets.only(right: 10),
+                        valueColor: const AlwaysStoppedAnimation<Color>(Colors.red),
+                        semanticsLabel: "Label",
+                        semanticsValue: "Value",
+                        minHeight: 10,
+                      ),
+                    ),
+                  ),
+
+                  // Buttons
+                  Positioned(
+                    bottom: verticalPadding,
+                    left: horizontalPadding,
+                    right: horizontalPadding,
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         if(selectedGoals.isNotEmpty)
-                        ElevatedButton(
-                          onPressed: selectedGoals.isNotEmpty ? _saveGoals : null,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.deepOrange,
-                            minimumSize: const Size(double.infinity, 50),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(50),
+                          ElevatedButton(
+                            onPressed: selectedGoals.isNotEmpty ? _saveGoals : null,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.deepOrange,
+                              minimumSize: Size(screenWidth * 0.9, screenHeight * 0.05),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(50),
+                              ),
+                              padding: EdgeInsets.symmetric(vertical: screenHeight * 0.0125),
                             ),
-                              padding: EdgeInsets.symmetric(vertical: 13.5)
+                            child: _isLoading
+                                ? const CircularProgressIndicator(color: Colors.deepOrange)
+                                : Text(
+                              'SAVE',
+                              style: TextStyle(
+                                fontSize: buttonFontSize,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.black,
+                              ),
+                            ),
                           ),
-                          child: _isLoading
-                              ? const CircularProgressIndicator(color: Colors.deepOrange)
-                              : const Text('SAVE', style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.black,
-                          ),),
-                        ),
-                        const SizedBox(height: 16),
+                        SizedBox(height: screenHeight * 0.02),
                         OutlinedButton(
                           onPressed: _showSetUpLaterDialog,
                           style: OutlinedButton.styleFrom(
-                            minimumSize: const Size(double.infinity, 50),
+                            minimumSize: Size(screenWidth * 0.95, screenHeight * 0.05),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(50),
                             ),
-                              padding: EdgeInsets.symmetric(vertical: 13.5)
+                            padding: EdgeInsets.symmetric(vertical: screenHeight * 0.0125),
                           ),
-                          child: const Text(
+                          child: Text(
                             'SET UP LATER',
                             style: TextStyle(
                               color: Colors.white,
-                              fontSize: 18.5,
+                              fontSize: buttonFontSize,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
@@ -415,17 +439,17 @@ class _GoalsPageState extends State<GoalsPage> {
                       ],
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-        ),
-      );
+        );
+      },
+    );
   }
 
-  Widget _buildGoalOption(Map<String, dynamic> goal) {
+  Widget _buildGoalOption(Map<String, dynamic> goal, double titleSize) {
     final bool isSelected = selectedGoals.contains(goal['title']);
-    // Memberikan nilai default jika null
     final double iconSize = (goal['size'] as double?) ?? 35.0;
     final double textSize = (goal['titleSize'] as double?) ?? 35.0;
 
@@ -448,14 +472,14 @@ class _GoalsPageState extends State<GoalsPage> {
               Icon(
                 goal['icon'] as IconData,
                 color: Colors.black,
-                size: iconSize,  // Menggunakan nilai yang sudah di-handle null safety
+                size: iconSize,
               ),
               const SizedBox(width: 20),
               Text(
                 goal['title'] as String,
                 style: TextStyle(
                   color: Colors.black,
-                  fontSize: textSize,  // Menggunakan nilai yang sudah di-handle null safety
+                  fontSize: titleSize,
                   fontWeight: FontWeight.w500,
                 ),
               ),
