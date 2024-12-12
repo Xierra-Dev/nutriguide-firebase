@@ -119,7 +119,7 @@ class PreferencePage extends StatelessWidget {
         body: SafeArea(
           child: Padding(
             padding: EdgeInsets.only(
-              top: verticalPadding * 1,
+              top: verticalPadding * 0.5,
               left: horizontalPadding,
               right: horizontalPadding,
             ),
