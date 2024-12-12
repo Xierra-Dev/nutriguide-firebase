@@ -87,6 +87,21 @@ class _GoalsPageState extends State<GoalsPage> {
   void initState() {
     super.initState();
     _loadRandomMealImage();
+    _loadGoals();
+  }
+
+  Future<void> _loadGoals() async {
+    try {
+      final userGoals = await _firestoreService.getUserGoals();
+      setState(() {
+        selectedGoals = Set.from(userGoals);
+
+      });
+    } catch (e) {
+      print('Error loading goals: $e');
+      setState(() {
+      });
+    }
   }
 
   Future<void> _loadRandomMealImage() async {
@@ -407,7 +422,7 @@ class _GoalsPageState extends State<GoalsPage> {
                               padding: EdgeInsets.symmetric(vertical: screenHeight * 0.0125),
                             ),
                             child: _isLoading
-                                ? const CircularProgressIndicator(color: Colors.deepOrange)
+                                ? const CircularProgressIndicator(color: Colors.amber)
                                 : Text(
                               'SAVE',
                               style: TextStyle(

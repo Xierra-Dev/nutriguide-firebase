@@ -404,7 +404,7 @@ class _AllergiesPageState extends State<AllergiesPage> {
                                 padding: EdgeInsets.symmetric(vertical: screenHeight * 0.0125)
                             ),
                             child: _isLoading
-                                ? const CircularProgressIndicator(color: Colors.white)
+                                ? const CircularProgressIndicator(color: Colors.amber)
                                 : Text(
                               'SAVE',
                               style: TextStyle(

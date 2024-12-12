@@ -479,7 +479,7 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
                 ),
               ),
               child: _isLoading
-                  ? const CircularProgressIndicator(color: Colors.white)
+                  ? const CircularProgressIndicator(color: Colors.amber)
                   : Text(
                 'SAVE',
                 style: TextStyle(
