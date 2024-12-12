@@ -12,6 +12,7 @@ import 'add_recipe_page.dart';
 import 'planner_page.dart';
 import 'package:intl/intl.dart';
 import 'services/cache_service.dart';
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -170,8 +171,7 @@ class _HomePageState extends State<HomePage> {
                       : Icons.delete_rounded,
                   color: savedStatus[recipe.id] == true
                       ? Colors.deepOrange
-                      : Colors.red
-              ),
+                      : Colors.red),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -229,7 +229,8 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  void _showMealSelectionDialog(BuildContext context, StateSetter setDialogState, Recipe recipe) {
+  void _showMealSelectionDialog(
+      BuildContext context, StateSetter setDialogState, Recipe recipe) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.grey[900],
@@ -242,18 +243,16 @@ class _HomePageState extends State<HomePage> {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter mealSetState) {
             return Padding(
-              padding: const EdgeInsets.symmetric(
-                  vertical: 40,
-                  horizontal: 20
-              ),
+              padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Select Meal Type',
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: MediaQuery.of(context).size.width *
+                          0.05, // Adjust the multiplier as needed
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
@@ -262,13 +261,20 @@ class _HomePageState extends State<HomePage> {
                   // Meal type selection
                   ListView(
                     shrinkWrap: true,
-                    children: ['Breakfast', 'Lunch', 'Dinner', 'Supper', 'Snacks'].map((String mealType) {
+                    children: [
+                      'Breakfast',
+                      'Lunch',
+                      'Dinner',
+                      'Supper',
+                      'Snacks'
+                    ].map((String mealType) {
                       return ListTile(
                         title: Text(
                           mealType,
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: Colors.white,
-                            fontSize: 16,
+                            fontSize: MediaQuery.of(context).size.width *
+                                0.05, // Adjust the multiplier as needed
                           ),
                         ),
                         onTap: () {
@@ -277,7 +283,8 @@ class _HomePageState extends State<HomePage> {
                             _selectedMeal = mealType;
                           });
                           // Close both dialogs
-                          Navigator.of(context).pop(); // Close meal selection dialog
+                          Navigator.of(context)
+                              .pop(); // Close meal selection dialog
                           Navigator.of(context).pop(); // Close parent dialog
 
                           // Reopen the parent dialog with selected meal
@@ -331,23 +338,22 @@ class _HomePageState extends State<HomePage> {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setDialogState) {
             return Padding(
-              padding: const EdgeInsets.symmetric(
-                  vertical: 20,
-                  horizontal: 20
-              ),
+              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Header dengan navigasi antar minggu
-                  const Text(
+                  Text(
                     'Choose Day',
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: MediaQuery.of(context).size.width *
+                          0.05, // Adjust the multiplier as needed for responsiveness
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
                   ),
+
                   const SizedBox(height: 16),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -369,9 +375,10 @@ class _HomePageState extends State<HomePage> {
                       Text(
                         // Menampilkan rentang tanggal minggu
                         '${DateFormat('MMM dd').format(_selectedDate)} - '
-                            '${DateFormat('MMM dd').format(_selectedDate.add(const Duration(days: 6)))}',
-                        style: const TextStyle(
-                          fontSize: 16,
+                        '${DateFormat('MMM dd').format(_selectedDate.add(const Duration(days: 6)))}',
+                        style: TextStyle(
+                          fontSize: MediaQuery.of(context).size.width *
+                              0.05, // Adjusting the font size based on screen width
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),
@@ -398,10 +405,12 @@ class _HomePageState extends State<HomePage> {
                       child: InkWell(
                         onTap: () {
                           // Open meal selection dialog
-                          _showMealSelectionDialog(context, setDialogState, recipe);
+                          _showMealSelectionDialog(
+                              context, setDialogState, recipe);
                         },
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
                           decoration: BoxDecoration(
                             color: Colors.grey[850],
                             borderRadius: BorderRadius.circular(8),
@@ -410,10 +419,13 @@ class _HomePageState extends State<HomePage> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                _selectedMeal.isEmpty ? 'Select Meal' : _selectedMeal,
-                                style: const TextStyle(
+                                _selectedMeal.isEmpty
+                                    ? 'Select Meal'
+                                    : _selectedMeal,
+                                style: TextStyle(
                                   color: Colors.white,
-                                  fontSize: 16,
+                                  fontSize: MediaQuery.of(context).size.width *
+                                      0.05, // Adjust font size based on screen width
                                 ),
                               ),
                               const SizedBox(width: 8),
@@ -450,7 +462,7 @@ class _HomePageState extends State<HomePage> {
                           backgroundColor: Colors.grey[800],
                           labelStyle: TextStyle(
                             color:
-                            _daysSelected[i] ? Colors.white : Colors.grey,
+                                _daysSelected[i] ? Colors.white : Colors.grey,
                           ),
                         ),
                     ],
@@ -472,9 +484,12 @@ class _HomePageState extends State<HomePage> {
                       ElevatedButton(
                         // Inside dialog's ElevatedButton onPressed
                         onPressed: () {
-                          if (_selectedMeal.isEmpty || !_daysSelected.contains(true)) {
+                          if (_selectedMeal.isEmpty ||
+                              !_daysSelected.contains(true)) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Please select at least one day and a meal type!')),
+                              const SnackBar(
+                                  content: Text(
+                                      'Please select at least one day and a meal type!')),
                             );
                             return;
                           }
@@ -483,12 +498,15 @@ class _HomePageState extends State<HomePage> {
                         },
                         style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.deepOrange,
-                            foregroundColor: Colors.white
+                            foregroundColor: Colors.white),
+                        child: Text(
+                          'Done',
+                          style: TextStyle(
+                            fontSize: MediaQuery.of(context).size.width *
+                                0.04, // Adjust font size based on screen width
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                        child: const Text('Done', style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                        ) ,),
                       ),
                     ],
                   ),
@@ -505,7 +523,8 @@ class _HomePageState extends State<HomePage> {
   void _saveSelectedPlan(Recipe recipe) async {
     try {
       List<DateTime> selectedDates = [];
-      List<DateTime> successfullyPlannedDates = []; // Untuk menyimpan tanggal yang berhasil direncanakan
+      List<DateTime> successfullyPlannedDates =
+          []; // Untuk menyimpan tanggal yang berhasil direncanakan
 
       for (int i = 0; i < _daysSelected.length; i++) {
         if (_daysSelected[i]) {
@@ -541,7 +560,8 @@ class _HomePageState extends State<HomePage> {
           date,
         );
 
-        successfullyPlannedDates.add(date); // Tambahkan tanggal yang berhasil direncanakan
+        successfullyPlannedDates
+            .add(date); // Tambahkan tanggal yang berhasil direncanakan
       }
 
       if (mounted) {
@@ -553,7 +573,8 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   Icon(Icons.add_task_rounded, color: Colors.white),
                   SizedBox(width: 8),
-                  Text('Recipe planned for ${successfullyPlannedDates.length} day(s)'),
+                  Text(
+                      'Recipe planned for ${successfullyPlannedDates.length} day(s)'),
                 ],
               ),
               backgroundColor: Colors.green,
@@ -567,7 +588,13 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   Icon(Icons.info, color: Colors.white),
                   SizedBox(width: 8),
-                  Text('No new plans were added. All selected plans already exist.', style: TextStyle(fontSize: 13),),
+                  Text(
+                    'No new plans were added. All selected plans already exist.',
+                    style: TextStyle(
+                      fontSize: MediaQuery.of(context).size.width *
+                          0.035, // Adjust font size based on screen width
+                    ),
+                  )
                 ],
               ),
               backgroundColor: Colors.blue,
@@ -599,7 +626,6 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-
   Future<void> _loadRecipes() async {
     try {
       // Jika sedang refresh, langsung ambil data baru
@@ -609,8 +635,10 @@ class _HomePageState extends State<HomePage> {
         final feed = await _mealDBService.getFeedRecipes();
 
         // Cache data baru
-        await _cacheService.cacheRecipes(CacheService.RECOMMENDED_CACHE_KEY, recommended);
-        await _cacheService.cacheRecipes(CacheService.POPULAR_CACHE_KEY, popular);
+        await _cacheService.cacheRecipes(
+            CacheService.RECOMMENDED_CACHE_KEY, recommended);
+        await _cacheService.cacheRecipes(
+            CacheService.POPULAR_CACHE_KEY, popular);
         await _cacheService.cacheRecipes(CacheService.FEED_CACHE_KEY, feed);
 
         if (mounted) {
@@ -625,11 +653,16 @@ class _HomePageState extends State<HomePage> {
       }
 
       // Initial load - coba load dari cache dulu
-      final cachedRecommended = await _cacheService.getCachedRecipes(CacheService.RECOMMENDED_CACHE_KEY);
-      final cachedPopular = await _cacheService.getCachedRecipes(CacheService.POPULAR_CACHE_KEY);
-      final cachedFeed = await _cacheService.getCachedRecipes(CacheService.FEED_CACHE_KEY);
+      final cachedRecommended = await _cacheService
+          .getCachedRecipes(CacheService.RECOMMENDED_CACHE_KEY);
+      final cachedPopular =
+          await _cacheService.getCachedRecipes(CacheService.POPULAR_CACHE_KEY);
+      final cachedFeed =
+          await _cacheService.getCachedRecipes(CacheService.FEED_CACHE_KEY);
 
-      if (cachedRecommended != null && cachedPopular != null && cachedFeed != null) {
+      if (cachedRecommended != null &&
+          cachedPopular != null &&
+          cachedFeed != null) {
         setState(() {
           recommendedRecipes = cachedRecommended;
           popularRecipes = cachedPopular;
@@ -642,8 +675,10 @@ class _HomePageState extends State<HomePage> {
         final popular = await _mealDBService.getPopularRecipes();
         final feed = await _mealDBService.getFeedRecipes();
 
-        await _cacheService.cacheRecipes(CacheService.RECOMMENDED_CACHE_KEY, recommended);
-        await _cacheService.cacheRecipes(CacheService.POPULAR_CACHE_KEY, popular);
+        await _cacheService.cacheRecipes(
+            CacheService.RECOMMENDED_CACHE_KEY, recommended);
+        await _cacheService.cacheRecipes(
+            CacheService.POPULAR_CACHE_KEY, popular);
         await _cacheService.cacheRecipes(CacheService.FEED_CACHE_KEY, feed);
 
         if (mounted) {
@@ -760,8 +795,7 @@ class _HomePageState extends State<HomePage> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  SlideUpRoute(
-                      page: const AddRecipePage()),
+                  SlideUpRoute(page: const AddRecipePage()),
                 );
               },
               backgroundColor: Colors.deepOrange,
@@ -789,11 +823,12 @@ class _HomePageState extends State<HomePage> {
             height: 33.5,
           ),
           const SizedBox(width: 10), // Add some spacing between logo and text
-          const Text(
+          Text(
             'NutriGuide',
             style: TextStyle(
               color: Colors.white,
-              fontSize: 24,
+              fontSize: MediaQuery.of(context).size.width *
+                  0.06, // Adjust font size based on screen width
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -805,8 +840,7 @@ class _HomePageState extends State<HomePage> {
           onPressed: () {
             Navigator.push(
               context,
-              SlideLeftRoute(
-                  page:  const NotificationsPage()),
+              SlideLeftRoute(page: const NotificationsPage()),
             );
           },
         ),
@@ -869,9 +903,10 @@ class _HomePageState extends State<HomePage> {
             children: [
               Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   color: Colors.white,
-                  fontSize: 20,
+                  fontSize: MediaQuery.of(context).size.width *
+                      0.05, // Responsive font size based on screen width
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -931,9 +966,10 @@ class _HomePageState extends State<HomePage> {
                           children: [
                             Text(
                               recipe.title,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 16,
+                                fontSize: MediaQuery.of(context).size.width *
+                                    0.04, // Adjust font size responsively based on screen width
                                 fontWeight: FontWeight.bold,
                               ),
                               maxLines: 2,
@@ -947,8 +983,13 @@ class _HomePageState extends State<HomePage> {
                                 const SizedBox(width: 4),
                                 Text(
                                   '${recipe.preparationTime} min',
-                                  style: const TextStyle(
-                                      color: Colors.white, fontSize: 12),
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: MediaQuery.of(context)
+                                            .size
+                                            .width *
+                                        0.03, // Adjust font size responsively based on screen width
+                                  ),
                                 ),
                                 const Spacer(),
                                 Icon(Icons.favorite,
@@ -959,9 +1000,13 @@ class _HomePageState extends State<HomePage> {
                                 Text(
                                   recipe.healthScore.toStringAsFixed(1),
                                   style: TextStyle(
-                                      color: _getHealthScoreColor(
-                                          recipe.healthScore),
-                                      fontSize: 12),
+                                    color: _getHealthScoreColor(
+                                        recipe.healthScore),
+                                    fontSize: MediaQuery.of(context)
+                                            .size
+                                            .width *
+                                        0.03, // Adjust font size responsively based on screen width
+                                  ),
                                 ),
                               ],
                             ),
@@ -984,9 +1029,10 @@ class _HomePageState extends State<HomePage> {
                               ),
                               child: Text(
                                 recipe.area ?? 'International',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: Colors.white,
-                                  fontSize: 12,
+                                  fontSize: MediaQuery.of(context).size.width *
+                                      0.03, // Adjust font size responsively based on screen width
                                 ),
                               ),
                             ),
@@ -1011,7 +1057,8 @@ class _HomePageState extends State<HomePage> {
                                     _togglePlan(recipe);
                                   }
                                 },
-                                color: Colors.grey[900], // Mengubah warna background PopupMenu menjadi grey[900]
+                                color: Colors.grey[
+                                    900], // Mengubah warna background PopupMenu menjadi grey[900]
                                 elevation: 4,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(15),
@@ -1029,16 +1076,19 @@ class _HomePageState extends State<HomePage> {
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 10),
                                       child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.start,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
                                         children: [
                                           Icon(
                                             savedStatus[recipe.id] == true
                                                 ? Icons.bookmark
                                                 : Icons.bookmark_border_rounded,
                                             size: 22,
-                                            color: savedStatus[recipe.id] == true
+                                            color: savedStatus[recipe.id] ==
+                                                    true
                                                 ? Colors.deepOrange
-                                                : Colors.white, // Mengubah warna icon menjadi putih
+                                                : Colors
+                                                    .white, // Mengubah warna icon menjadi putih
                                           ),
                                           const SizedBox(width: 10),
                                           Text(
@@ -1046,10 +1096,15 @@ class _HomePageState extends State<HomePage> {
                                                 ? 'Saved'
                                                 : 'Save Recipe',
                                             style: TextStyle(
-                                              fontSize: 16,
-                                              color: savedStatus[recipe.id] == true
+                                              fontSize: MediaQuery.of(context)
+                                                      .size
+                                                      .width *
+                                                  0.04, // Adjust font size based on screen width
+                                              color: savedStatus[recipe.id] ==
+                                                      true
                                                   ? Colors.deepOrange
-                                                  : Colors.white, // Mengubah warna text menjadi putih
+                                                  : Colors
+                                                      .white, // Change color based on savedStatus
                                               fontWeight: FontWeight.w500,
                                             ),
                                           ),
@@ -1064,20 +1119,27 @@ class _HomePageState extends State<HomePage> {
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 10),
                                       child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.start,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
                                         children: [
                                           const Icon(
                                             Icons.calendar_today_rounded,
                                             size: 22,
-                                            color: Colors.white, // Mengubah warna icon menjadi putih
+                                            color: Colors
+                                                .white, // Mengubah warna icon menjadi putih
                                           ),
                                           const SizedBox(width: 10),
-                                          const Text(
+                                          Text(
                                             'Plan Meal',
                                             style: TextStyle(
-                                              fontSize: 16,
-                                              color: Colors.white, // Mengubah warna text menjadi putih
-                                              fontWeight: FontWeight.w500,
+                                              fontSize: MediaQuery.of(context)
+                                                      .size
+                                                      .width *
+                                                  0.04, // Responsive font size based on screen width
+                                              color: Colors
+                                                  .white, // White color for the text
+                                              fontWeight: FontWeight
+                                                  .w500, // Adjusted font weight
                                             ),
                                           ),
                                         ],
@@ -1119,11 +1181,12 @@ class _HomePageState extends State<HomePage> {
               size: 80,
             ),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               'Oops! Something Went Wrong',
               style: TextStyle(
                 color: Colors.white,
-                fontSize: 20,
+                fontSize: MediaQuery.of(context).size.width *
+                    0.05, // Responsive font size based on screen width
                 fontWeight: FontWeight.bold,
               ),
               textAlign: TextAlign.center,
@@ -1131,9 +1194,10 @@ class _HomePageState extends State<HomePage> {
             const SizedBox(height: 8),
             Text(
               errorMessage!,
-              style: const TextStyle(
+              style: TextStyle(
                 color: Colors.white70,
-                fontSize: 16,
+                fontSize: MediaQuery.of(context).size.width *
+                    0.05, // Adjust font size based on screen width
               ),
               textAlign: TextAlign.center,
             ),
@@ -1183,13 +1247,14 @@ class _HomePageState extends State<HomePage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
+        Padding(
           padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           child: Text(
             'Recipe Feed',
             style: TextStyle(
               color: Colors.white,
-              fontSize: 20,
+              fontSize: MediaQuery.of(context).size.width *
+                  0.05, // Adjust font size based on screen width
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -1233,9 +1298,10 @@ class _HomePageState extends State<HomePage> {
                         children: [
                           Text(
                             recipe.title,
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: Colors.white,
-                              fontSize: 18,
+                              fontSize: MediaQuery.of(context).size.width *
+                                  0.05, // Adjust font size based on screen width
                               fontWeight: FontWeight.bold,
                             ),
                             maxLines: 2,
@@ -1250,7 +1316,8 @@ class _HomePageState extends State<HomePage> {
                                 style: TextStyle(
                                   color:
                                       _getHealthScoreColor(recipe.healthScore),
-                                  fontSize: 14,
+                                  fontSize: MediaQuery.of(context).size.width *
+                                      0.04, // Adjust font size based on screen width
                                 ),
                               ),
                               Row(
@@ -1263,9 +1330,11 @@ class _HomePageState extends State<HomePage> {
                                   const SizedBox(width: 4),
                                   Text(
                                     '${recipe.preparationTime} min',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       color: Colors.white,
-                                      fontSize: 14,
+                                      fontSize:
+                                          MediaQuery.of(context).size.width *
+                                              0.04,
                                     ),
                                   ),
                                 ],
@@ -1275,130 +1344,138 @@ class _HomePageState extends State<HomePage> {
                         ],
                       ),
                     ),
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.black.withOpacity(0.5),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Text(
-                                  recipe.area ?? 'International',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ),
-                              Container(
-                                width: 32.5,
-                                height: 32.5,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Colors.black.withOpacity(0.5),
-                                ),
-                                child: PopupMenuButton<String>(
-                                  padding: EdgeInsets.zero,
-                                  iconSize: 24,
-                                  icon: const Icon(
-                                    Icons.more_vert,
-                                    color: Colors.white,
-                                  ),
-                                  onSelected: (String value) {
-                                    if (value == 'Save Recipe') {
-                                      _toggleSave(recipe);
-                                    } else if (value == 'Plan Meal') {
-                                      _togglePlan(recipe);
-                                    }
-                                  },
-                                  color: Colors.grey[900],
-                                  elevation: 4,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(15),
-                                  ),
-                                  offset: const Offset(0, 45),
-                                  constraints: const BoxConstraints(
-                                    minWidth: 175, // Makes popup menu wider
-                                    maxWidth: 175,
-                                  ),
-                                  itemBuilder: (BuildContext context) => [
-                                    PopupMenuItem<String>(
-                                      height: 60, // Makes item taller
-                                      value: 'Save Recipe',
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 10),
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.start,
-                                          children: [
-                                            Icon(
-                                              savedStatus[recipe.id] == true
-                                                  ? Icons.bookmark
-                                                  : Icons.bookmark_border_rounded,
-                                              size: 22,
-                                              color: savedStatus[recipe.id] == true
-                                                  ? Colors.deepOrange
-                                                  : Colors.white, // Mengubah warna icon menjadi putih
-                                            ),
-                                            const SizedBox(width: 10),
-                                            Text(
-                                              savedStatus[recipe.id] == true
-                                                  ? 'Saved'
-                                                  : 'Save Recipe',
-                                              style: TextStyle(
-                                                fontSize: 16,
-                                                color: savedStatus[recipe.id] == true
-                                                    ? Colors.deepOrange
-                                                    : Colors.white, // Mengubah warna text menjadi putih
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                    PopupMenuItem<String>(
-                                      height: 60, // Makes item taller
-                                      value: 'Plan Meal',
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 10),
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.start,
-                                          children: [
-                                            const Icon(
-                                                Icons.calendar_today_rounded,
-                                                size: 22,
-                                                color: Colors.white,
-                                            ),
-                                            const SizedBox(width: 10),
-                                            Text(
-                                              'Plan Meal',
-                                              style: TextStyle(
-                                                fontSize: 16,
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.5),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Text(recipe.area ?? 'International',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: MediaQuery.of(context).size.width *
+                                      0.03, // Adjust font size based on screen width
+                                )),
                           ),
-                        ),
+                          Container(
+                            width: 32.5,
+                            height: 32.5,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.black.withOpacity(0.5),
+                            ),
+                            child: PopupMenuButton<String>(
+                              padding: EdgeInsets.zero,
+                              iconSize: 24,
+                              icon: const Icon(
+                                Icons.more_vert,
+                                color: Colors.white,
+                              ),
+                              onSelected: (String value) {
+                                if (value == 'Save Recipe') {
+                                  _toggleSave(recipe);
+                                } else if (value == 'Plan Meal') {
+                                  _togglePlan(recipe);
+                                }
+                              },
+                              color: Colors.grey[900],
+                              elevation: 4,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                              offset: const Offset(0, 45),
+                              constraints: const BoxConstraints(
+                                minWidth: 175, // Makes popup menu wider
+                                maxWidth: 175,
+                              ),
+                              itemBuilder: (BuildContext context) => [
+                                PopupMenuItem<String>(
+                                  height: 60, // Makes item taller
+                                  value: 'Save Recipe',
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 10),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      children: [
+                                        Icon(
+                                          savedStatus[recipe.id] == true
+                                              ? Icons.bookmark
+                                              : Icons.bookmark_border_rounded,
+                                          size: 22,
+                                          color: savedStatus[recipe.id] == true
+                                              ? Colors.deepOrange
+                                              : Colors
+                                                  .white, // Mengubah warna icon menjadi putih
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Text(
+                                          savedStatus[recipe.id] == true
+                                              ? 'Saved'
+                                              : 'Save Recipe',
+                                          style: TextStyle(
+                                            fontSize: MediaQuery.of(context)
+                                                    .size
+                                                    .width *
+                                                0.04, // Adjust font size based on screen width
+                                            color: savedStatus[recipe.id] ==
+                                                    true
+                                                ? Colors.deepOrange
+                                                : Colors
+                                                    .white, // Change text color based on savedStatus
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                PopupMenuItem<String>(
+                                  height: 60, // Makes item taller
+                                  value: 'Plan Meal',
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 10),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      children: [
+                                        const Icon(
+                                          Icons.calendar_today_rounded,
+                                          size: 22,
+                                          color: Colors.white,
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Text(
+                                          'Plan Meal',
+                                          style: TextStyle(
+                                            fontSize: MediaQuery.of(context)
+                                                    .size
+                                                    .width *
+                                                0.04, // Adjust font size based on screen width
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -1419,8 +1496,11 @@ class _HomePageState extends State<HomePage> {
       selectedItemColor: const Color.fromARGB(255, 255, 201, 32),
       unselectedItemColor: Colors.black,
       type: BottomNavigationBarType.fixed,
-      selectedFontSize: 15, // Ukuran font label yang dipilih
-      unselectedFontSize: 14, // Ukuran font label yang tidak dipilih
+      selectedFontSize: MediaQuery.of(context).size.width *
+          0.04, // Ukuran font untuk label yang dipilih
+      unselectedFontSize: MediaQuery.of(context).size.width *
+          0.035, // Ukuran font untuk label yang tidak dipilih
+
       iconSize: 25, // Ukuran ikon
       items: const [
         BottomNavigationBarItem(
