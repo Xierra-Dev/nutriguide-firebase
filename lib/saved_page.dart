@@ -15,30 +15,30 @@ class SlideUpRoute extends PageRouteBuilder {
 
   SlideUpRoute({required this.page})
       : super(
-    pageBuilder: (
-        BuildContext context,
-        Animation<double> primaryAnimation,
-        Animation<double> secondaryAnimation,
-        ) =>
-    page,
-    transitionsBuilder: (
-        BuildContext context,
-        Animation<double> primaryAnimation,
-        Animation<double> secondaryAnimation,
-        Widget child,
-        ) {
-      return SlideTransition(
-        position: Tween<Offset>(
-          begin: const Offset(0.0, 1.0),  // Start from bottom
-          end: Offset.zero,  // End at the center
-        ).animate(CurvedAnimation(
-          parent: primaryAnimation,
-          curve: Curves.easeOutQuad,
-        )),
-        child: child,
-      );
-    },
-  );
+          pageBuilder: (
+            BuildContext context,
+            Animation<double> primaryAnimation,
+            Animation<double> secondaryAnimation,
+          ) =>
+              page,
+          transitionsBuilder: (
+            BuildContext context,
+            Animation<double> primaryAnimation,
+            Animation<double> secondaryAnimation,
+            Widget child,
+          ) {
+            return SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(0.0, 1.0), // Start from bottom
+                end: Offset.zero, // End at the center
+              ).animate(CurvedAnimation(
+                parent: primaryAnimation,
+                curve: Curves.easeOutQuad,
+              )),
+              child: child,
+            );
+          },
+        );
 }
 
 class _SavedPageState extends State<SavedPage> {
@@ -108,7 +108,9 @@ class _SavedPageState extends State<SavedPage> {
               children: [
                 Icon(Icons.bookmark_remove_rounded, color: Colors.red),
                 SizedBox(width: 8),
-                Expanded(child: Text('Recipe: "${recipe.title}" removed from saved')),
+                Expanded(
+                    child:
+                        Text('Recipe: "${recipe.title}" removed from saved')),
               ],
             ),
             backgroundColor: Colors.green,
@@ -126,7 +128,8 @@ class _SavedPageState extends State<SavedPage> {
                 Icon(Icons.error, color: Colors.white),
                 SizedBox(width: 8),
                 Expanded(
-                  child: Text('Failed to remove ${recipe.title} from saved recipes.\nError: ${e.toString()}'),
+                  child: Text(
+                      'Failed to remove ${recipe.title} from saved recipes.\nError: ${e.toString()}'),
                 ),
               ],
             ),
@@ -136,7 +139,6 @@ class _SavedPageState extends State<SavedPage> {
       }
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -158,27 +160,39 @@ class _SavedPageState extends State<SavedPage> {
             ),
             Expanded(
               child: isLoading
-                  ? const Center(child: CircularProgressIndicator(color: Colors.deepOrange))
+                  ? const Center(
+                      child:
+                          CircularProgressIndicator(color: Colors.deepOrange))
                   : savedRecipes.isEmpty
-                  ? _buildEmptyState()
-                  : RefreshIndicator(
-                onRefresh: _loadSavedRecipes,
-                color: Colors.deepOrange,
-                child: GridView.builder(
-                  padding: const EdgeInsets.all(16),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    childAspectRatio: 0.75,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
-                  ),
-                  itemCount: savedRecipes.length,
-                  itemBuilder: (context, index) {
-                    final recipe = savedRecipes[index];
-                    return _buildRecipeCard(recipe);
-                  },
-                ),
-              ),
+                      ? _buildEmptyState()
+                      : RefreshIndicator(
+                          onRefresh: _loadSavedRecipes,
+                          color: Colors.deepOrange,
+                          child: LayoutBuilder(
+                            builder: (context, constraints) {
+                              // Determine grid item count based on screen width
+                              int crossAxisCount =
+                                  constraints.maxWidth > 600 ? 3 : 2;
+                              return GridView.builder(
+                                padding: const EdgeInsets.all(16),
+                                gridDelegate:
+                                    SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: crossAxisCount,
+                                  childAspectRatio:
+                                      (constraints.maxWidth / crossAxisCount) /
+                                          300,
+                                  crossAxisSpacing: 16,
+                                  mainAxisSpacing: 16,
+                                ),
+                                itemCount: savedRecipes.length,
+                                itemBuilder: (context, index) {
+                                  final recipe = savedRecipes[index];
+                                  return _buildRecipeCard(recipe);
+                                },
+                              );
+                            },
+                          ),
+                        ),
             ),
           ],
         ),
@@ -252,7 +266,8 @@ class _SavedPageState extends State<SavedPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: Colors.black.withOpacity(0.5),
                       borderRadius: BorderRadius.circular(12),
@@ -280,14 +295,19 @@ class _SavedPageState extends State<SavedPage> {
                       const SizedBox(width: 4),
                       Text(
                         '${recipe.preparationTime} min',
-                        style: const TextStyle(color: Colors.white, fontSize: 12),
+                        style:
+                            const TextStyle(color: Colors.white, fontSize: 12),
                       ),
                       const Spacer(),
-                      Icon(Icons.favorite, color: _getHealthScoreColor(recipe.healthScore), size: 16),
+                      Icon(Icons.favorite,
+                          color: _getHealthScoreColor(recipe.healthScore),
+                          size: 16),
                       const SizedBox(width: 4),
                       Text(
                         recipe.healthScore.toStringAsFixed(1),
-                        style: TextStyle(color: _getHealthScoreColor(recipe.healthScore), fontSize: 12),
+                        style: TextStyle(
+                            color: _getHealthScoreColor(recipe.healthScore),
+                            fontSize: 12),
                       ),
                     ],
                   ),
