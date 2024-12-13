@@ -164,15 +164,154 @@ class _LandingPageState extends State<LandingPage>
                     child: AnimatedOpacity(
                       duration: const Duration(milliseconds: 800),
                       opacity: _isLoading ? 0.0 : 1.0,
-                      child: Text(
-                        'Plan\nYour\nFood',
-                        style: TextStyle(
-                          fontSize: 48,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'Pacifico',
-                          color: Theme.of(context).primaryColor,
-                        ),
-                        textAlign: TextAlign.center,
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          // Hitung ukuran font berdasarkan lebar layar
+                          double fontSize = constraints.maxWidth *
+                              0.1; // 10% dari lebar layar
+
+                          return Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Expanded(
+                                child: Center(
+                                  child: AnimatedOpacity(
+                                    duration: const Duration(milliseconds: 800),
+                                    opacity: _isLoading ? 0.0 : 1.0,
+                                    child: LayoutBuilder(
+                                      builder: (context, constraints) {
+                                        // Menghitung fontSize yang responsif berdasarkan lebar layar
+                                        double fontSize = constraints.maxWidth *
+                                            0.1; // Menggunakan persentase dari lebar layar
+
+                                        // Pastikan ukuran font tidak terlalu kecil atau besar
+                                        fontSize = fontSize.clamp(24.0,
+                                            48.0); // Minimal 24, maksimal 48
+
+                                        return Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.center,
+                                          children: [
+                                            // Teks "Plan"
+                                            Text(
+                                              'Plan',
+                                              style: TextStyle(
+                                                fontSize: fontSize,
+                                                fontWeight: FontWeight.bold,
+                                                fontFamily: 'Pacifico',
+                                                foreground: Paint()
+                                                  ..shader = LinearGradient(
+                                                    colors: [
+                                                      Color(
+                                                          0xFFFF6A00), // #ff6a00
+                                                      Color(
+                                                          0xFF00BFFF), // #00bfff
+                                                    ],
+                                                  ).createShader(
+                                                    Rect.fromLTWH(
+                                                      0.0,
+                                                      0.0,
+                                                      constraints.maxWidth,
+                                                      constraints.maxHeight,
+                                                    ),
+                                                  ),
+                                                shadows: [
+                                                  Shadow(
+                                                    offset: Offset(2, 2),
+                                                    blurRadius: 4,
+                                                    color: Colors.black
+                                                        .withOpacity(0.4),
+                                                  ),
+                                                ],
+                                              ),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                            SizedBox(
+                                                height: 10), // Spasi antar teks
+
+                                            // Teks "Your"
+                                            Text(
+                                              'Your',
+                                              style: TextStyle(
+                                                fontSize: fontSize,
+                                                fontWeight: FontWeight.bold,
+                                                fontFamily: 'Pacifico',
+                                                foreground: Paint()
+                                                  ..shader = LinearGradient(
+                                                    colors: [
+                                                      Color(
+                                                          0xFFFF6A00), // #ff6a00
+                                                      Color(
+                                                          0xFF00BFFF), // #00bfff
+                                                    ],
+                                                  ).createShader(
+                                                    Rect.fromLTWH(
+                                                      0.0,
+                                                      0.0,
+                                                      constraints.maxWidth,
+                                                      constraints.maxHeight,
+                                                    ),
+                                                  ),
+                                                shadows: [
+                                                  Shadow(
+                                                    offset: Offset(2, 2),
+                                                    blurRadius: 4,
+                                                    color: Colors.black
+                                                        .withOpacity(0.4),
+                                                  ),
+                                                ],
+                                              ),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                            SizedBox(
+                                                height: 10), // Spasi antar teks
+
+                                            // Teks "Food"
+                                            Text(
+                                              'Food',
+                                              style: TextStyle(
+                                                fontSize: fontSize,
+                                                fontWeight: FontWeight.bold,
+                                                fontFamily: 'Pacifico',
+                                                foreground: Paint()
+                                                  ..shader = LinearGradient(
+                                                    colors: [
+                                                      Color(
+                                                          0xFFFF6A00), // #ff6a00
+                                                      Color(
+                                                          0xFF00BFFF), // #00bfff
+                                                    ],
+                                                  ).createShader(
+                                                    Rect.fromLTWH(
+                                                      0.0,
+                                                      0.0,
+                                                      constraints.maxWidth,
+                                                      constraints.maxHeight,
+                                                    ),
+                                                  ),
+                                                shadows: [
+                                                  Shadow(
+                                                    offset: Offset(2, 2),
+                                                    blurRadius: 4,
+                                                    color: Colors.black
+                                                        .withOpacity(0.4),
+                                                  ),
+                                                ],
+                                              ),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
                       ),
                     ),
                   ),
@@ -234,16 +373,58 @@ class _LandingPageState extends State<LandingPage>
                       AnimatedOpacity(
                         duration: const Duration(milliseconds: 800),
                         opacity: _isLoading ? 0.0 : 1.0,
-                        child: const Padding(
-                          padding: EdgeInsets.only(top: 55),
-                          child: Text(
-                            'By using NutriGuide you agree to our\nTerms and Privacy Policy',
-                            style: TextStyle(
-                              fontSize: 15,
-                              color: Colors.red,
-                              fontWeight: FontWeight.bold,
-                            ),
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 20, bottom: 10),
+                          child: RichText(
                             textAlign: TextAlign.center,
+                            text: TextSpan(
+                              text: 'By using NutriGuide you agree to our ',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                foreground: Paint()
+                                  ..shader = LinearGradient(
+                                    colors: [
+                                      Color(0xFFFF6A00), // Warna oranye
+                                      Color(0xFF00BFFF), // Warna biru
+                                    ],
+                                  ).createShader(
+                                    const Rect.fromLTWH(0.0, 0.0, 200.0, 50.0),
+                                  ),
+                                shadows: [
+                                  Shadow(
+                                    offset: Offset(1, 1),
+                                    blurRadius: 3,
+                                    color: Colors.black.withOpacity(
+                                        0.5), // Shadow untuk menonjolkan teks
+                                  ),
+                                ],
+                              ),
+                              children: [
+                                TextSpan(
+                                  text: 'Terms',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    decoration: TextDecoration
+                                        .underline, // Garis bawah untuk memberi kesan link
+                                    color: Colors
+                                        .white, // Warna netral terang agar tetap terlihat
+                                  ),
+                                ),
+                                const TextSpan(
+                                  text: ' and ',
+                                ),
+                                TextSpan(
+                                  text: 'Privacy Policy',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    decoration: TextDecoration
+                                        .underline, // Garis bawah untuk memberi kesan link
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),

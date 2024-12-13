@@ -10,7 +10,6 @@ class AllergiesPage extends StatefulWidget {
 
   @override
   _AllergiesPageState createState() => _AllergiesPageState();
-
 }
 
 class SlideRightRoute extends PageRouteBuilder {
@@ -35,7 +34,7 @@ class SlideRightRoute extends PageRouteBuilder {
           end: Offset.zero,
         ).animate(CurvedAnimation(
           parent: primaryAnimation,
-          curve: Curves.easeOutQuad, // You can change the curve for different animation feels
+          curve: Curves.easeOutQuad,
         ),),
         child: child,
       );
@@ -91,7 +90,7 @@ class _AllergiesPageState extends State<AllergiesPage> {
   Future<void> _loadRandomMealImage() async {
     try {
       final imageUrl = await _mealService.getRandomMealImage();
-      if (mounted) { // Check if widget is still mounted before setting state
+      if (mounted) {
         setState(() {
           _backgroundImageUrl = imageUrl;
           _isLoading = false;
@@ -182,7 +181,8 @@ class _AllergiesPageState extends State<AllergiesPage> {
                             borderRadius: BorderRadius.circular(50.0),
                           ),
                         ),
-                        child: Text("Skip Questionnaire", style: TextStyle(
+                        child: Text("Skip Questionnaire",
+                          style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w800,
                           ),
@@ -237,213 +237,130 @@ class _AllergiesPageState extends State<AllergiesPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Use MediaQuery to get device dimensions and orientation
-    final mediaQuery = MediaQuery.of(context);
-    final screenWidth = mediaQuery.size.width;
-    final screenHeight = mediaQuery.size.height;
-    final orientation = mediaQuery.orientation;
-    final textScaleFactor = mediaQuery.textScaleFactor;
+    final size = MediaQuery.of(context).size;
+    final isSmallScreen = size.width < 360;
 
-    // Responsive sizing and scaling
-    double containerWidth = screenWidth * 0.975;
-    double containerHeight = orientation == Orientation.portrait
-        ? screenHeight * 0.525
-        : screenHeight * 0.75;
-
-    // Responsive font sizes
-    double titleFontSize = screenWidth * 0.075;
-    double allergyFontSize = screenWidth * 0.04755;
-    double buttonFontSize = screenWidth * 0.045;
-
-    // Responsive padding and spacing
-    double horizontalPadding = screenWidth * 0.05;
-    double verticalPadding = screenHeight * 0.02;
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return Scaffold(
-          body: AnimatedContainer(
-            duration: const Duration(milliseconds: 10),
-            decoration: BoxDecoration(
-              image: _backgroundImageUrl != null
-                  ? DecorationImage(
-                image: NetworkImage(_backgroundImageUrl!),
-                fit: BoxFit.cover,
-                colorFilter: ColorFilter.mode(
-                  Colors.black.withOpacity(0.3),
-                  BlendMode.darken,
-                ),
-              )
-                  : const DecorationImage(
-                image: AssetImage('assets/images/landing_page.jpg'),
-                fit: BoxFit.cover,
-              ),
+    return Scaffold(
+      body: AnimatedContainer(
+        duration: const Duration(milliseconds: 100),
+        decoration: BoxDecoration(
+          image: _backgroundImageUrl != null
+              ? DecorationImage(
+            image: NetworkImage(_backgroundImageUrl!),
+            fit: BoxFit.cover,
+            colorFilter: ColorFilter.mode(
+              Colors.black.withOpacity(0.3),
+              BlendMode.darken,
             ),
-            child: SafeArea(
-              child: Stack(
-                children: [
-                  // Back Button - Responsive positioning
-                  Align(
-                    alignment: Alignment.topLeft,
-                    child: Padding(
-                      padding: EdgeInsets.only(
-                          left: screenWidth * 0.045,
-                          top: screenHeight * 0.02
-                      ),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.5),
-                          shape: BoxShape.circle,
-                        ),
-                        child: IconButton(
-                          icon: const Icon(Icons.arrow_back, color: Colors.white),
-                          onPressed: () {
-                            Navigator.of(context).pushReplacement(
-                              SlideRightRoute(
-                                page: const GoalsPage(),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  // Title - Responsive positioning and sizing
-                  Positioned(
-                    top: screenHeight * 0.075,
-                    left: 0,
-                    right: 0,
-                    child: Center(
-                      child: Text(
-                        'Allergies',
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontSize: titleFontSize,
-                          fontWeight: FontWeight.w700,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ),
-
-                  // Centered Gradient Container - Responsive sizing
-                  Positioned(
-                    top: screenHeight * 0.145,
-                    left: 5,
-                    right: 5,
-                    child: Center(
-                      child: Container(
-                        width: containerWidth,
-                        height: containerHeight,
-                        padding: EdgeInsets.symmetric(
-                          horizontal: horizontalPadding,
-                          vertical: verticalPadding,
-                        ),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Colors.white.withOpacity(0.8),
-                              const Color.fromARGB(255, 66, 66, 66),
-                            ],
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                          ),
-                          borderRadius: BorderRadius.circular(50),
-                        ),
-                        child: SingleChildScrollView(
-                          child: Column(
-                            children: allergies.map((allergy) =>
-                                _buildAllergyOption(allergy, allergyFontSize)
-                            ).toList(),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  // Progress Indicator - Responsive positioning
-                  Positioned(
-                    bottom: screenHeight * 0.25,
-                    left: 0,
-                    right: 0,
-                    child: LinearProgressBar(
-                      maxSteps: 3,
-                      progressType: LinearProgressBar.progressTypeDots,
-                      currentStep: currentStep,
-                      progressColor: kPrimaryColor,
-                      backgroundColor: kColorsGrey400,
-                      dotsAxis: Axis.horizontal,
-                      dotsActiveSize: screenWidth * 0.035,
-                      dotsInactiveSize: screenWidth * 0.025,
-                      dotsSpacing: const EdgeInsets.only(right: 10),
-                      valueColor: const AlwaysStoppedAnimation<Color>(Colors.red),
-                      semanticsLabel: "Label",
-                      semanticsValue: "Value",
-                      minHeight: 10,
-                    ),
-                  ),
-
-                  // Bottom Buttons - Responsive sizing and positioning
-                  Positioned(
-                    bottom: screenHeight * 0.05,
-                    left: 0,
-                    right: 0,
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-                      child: Column(
-                        children: [
-                          ElevatedButton(
-                            onPressed: _saveAllergies,
-                            style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.deepOrange,
-                                minimumSize: Size(screenWidth * 0.9, screenHeight * 0.05),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(50),
-                                ),
-                                padding: EdgeInsets.symmetric(vertical: screenHeight * 0.0125)
-                            ),
-                            child: _isLoading
-                                ? const CircularProgressIndicator(color: Colors.amber)
-                                : Text(
-                              'SAVE',
-                              style: TextStyle(
-                                fontSize: buttonFontSize,
-                                fontWeight: FontWeight.w800,
-                                color: Colors.black,
-                              ),
-                            ),
-                          ),
-                          SizedBox(height: screenHeight * 0.02),
-                          TextButton(
-                            onPressed: _showSetUpLaterDialog,
-                            style: TextButton.styleFrom(
-                                minimumSize: Size(screenWidth * 0.9, screenHeight * 0.05),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(50),
-                                ),
-                                side: BorderSide(color: Colors.white),
-                                padding: EdgeInsets.symmetric(vertical: screenHeight * 0.0125)
-                            ),
-                            child: Text(
-                              'SET UP LATER',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: buttonFontSize,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+          )
+              : const DecorationImage(
+            image: AssetImage('assets/images/landing_page.jpg'),
+            fit: BoxFit.cover,
           ),
-        );
-      },
+        ),
+        child: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight,
+                  ),
+                  child: Stack(
+                    children: [
+                      _buildBackButton(size),
+                      _buildMainContent(size, isSmallScreen),
+                      _buildProgressBar(size, isSmallScreen),
+                      _buildBottomButtons(size, isSmallScreen),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBackButton(Size size) {
+    return Positioned(
+      top: size.height * 0.02,
+      left: size.width * 0.05,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.85),
+          shape: BoxShape.circle,
+        ),
+        child: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () {
+            Navigator.of(context).pushReplacement(
+              SlideRightRoute(
+                page: const GoalsPage(),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMainContent(Size size, bool isSmallScreen) {
+    return Padding(
+      padding: EdgeInsets.only(
+        top: size.height * 0.15,
+        bottom: size.height * 0.25,
+        left: size.width * 0.02,
+        right: size.width * 0.02,
+      ),
+      child: Container(
+        width: double.infinity,
+        margin: EdgeInsets.symmetric(
+          horizontal: size.width * 0.02,
+        ),
+        padding: EdgeInsets.symmetric(
+          horizontal: size.width * 0.05,
+          vertical: size.height * 0.04,
+        ),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Colors.white.withOpacity(0.875),
+              const Color.fromARGB(255, 66, 66, 66)
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+          borderRadius: BorderRadius.circular(50),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Allergies',
+              style: TextStyle(
+                color: Colors.black,
+                fontSize: isSmallScreen ? 20 : 23.5,
+                fontWeight: FontWeight.w800,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: size.height * 0.02),
+            SingleChildScrollView(
+              child: Column(
+                children: allergies
+                    .map((allergy) => _buildAllergyOption(
+                  allergy,
+                  isSmallScreen ? 16 : 18,
+                ))
+                    .toList(),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -478,6 +395,100 @@ class _AllergiesPageState extends State<AllergiesPage> {
               isSelected ? Icons.check_circle : Icons.circle,
               color: isSelected ? Colors.green : const Color.fromARGB(255, 124, 93, 93),
               size: fontSize * 1.4,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProgressBar(Size size, bool isSmallScreen) {
+    return Positioned(
+      bottom: size.height * 0.225,
+      left: 0,
+      right: 0,
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: size.width * 0.05,
+        ),
+        child: LinearProgressBar(
+          maxSteps: 3,
+          progressType: LinearProgressBar.progressTypeDots,
+          currentStep: currentStep,
+          progressColor: kPrimaryColor,
+          backgroundColor: kColorsGrey400,
+          dotsAxis: Axis.horizontal,
+          dotsActiveSize: isSmallScreen ? 10 : 12.5,
+          dotsInactiveSize: isSmallScreen ? 8 : 10,
+          dotsSpacing: EdgeInsets.only(
+            right: size.width * 0.02,
+          ),
+          valueColor: const AlwaysStoppedAnimation<Color>(Colors.red),
+          semanticsLabel: "Label",
+          semanticsValue: "Value",
+          minHeight: size.height * 0.01,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBottomButtons(Size size, bool isSmallScreen) {
+    return Positioned(
+      bottom: 0,
+      left: 0,
+      right: 0,
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: size.width * 0.065,
+          vertical: size.height * 0.02,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            ElevatedButton(
+              onPressed: _saveAllergies,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.deepOrange,
+                padding: EdgeInsets.symmetric(
+                  vertical: size.height * 0.0125,
+                ),
+                foregroundColor: Colors.black,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(50),
+                ),
+              ),
+              child: _isLoading
+                  ? const CircularProgressIndicator(color: Colors.amber)
+                  : Text(
+                'SAVE',
+                style: TextStyle(
+                  fontSize: isSmallScreen ? 18 : 20,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.black,
+                ),
+              ),
+            ),
+            SizedBox(height: size.height * 0.02),
+            TextButton(
+              onPressed: _showSetUpLaterDialog,
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(
+                  vertical: size.height * 0.0125,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(25),
+                  side: const BorderSide(color: Colors.white),
+                ),
+              ),
+              child: Text(
+                'SET UP LATER',
+                style: TextStyle(
+                  fontSize: isSmallScreen ? 14 : 16,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
             ),
           ],
         ),

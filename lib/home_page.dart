@@ -8,7 +8,6 @@ import 'search_page.dart';
 import 'saved_page.dart';
 import 'profile_page.dart';
 import 'notifications_page.dart';
-import 'add_recipe_page.dart';
 import 'planner_page.dart';
 import 'package:intl/intl.dart';
 import 'services/cache_service.dart';
@@ -814,18 +813,7 @@ class _HomePageState extends State<HomePage> {
       backgroundColor: Colors.black,
       appBar: _buildAppBar(),
       body: _buildBody(),
-      floatingActionButton: _currentIndex == 1
-          ? null
-          : FloatingActionButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  SlideUpRoute(page: const AddRecipePage()),
-                );
-              },
-              backgroundColor: Colors.deepOrange,
-              child: const Icon(Icons.add),
-            ),
+      // Remove floating action button
       bottomNavigationBar: _buildBottomNavigationBar(),
     );
   }
@@ -847,13 +835,12 @@ class _HomePageState extends State<HomePage> {
             width: 33.5,
             height: 33.5,
           ),
-          const SizedBox(width: 10), // Add some spacing between logo and text
+          const SizedBox(width: 10),
           Text(
             'NutriGuide',
             style: TextStyle(
               color: Colors.white,
-              fontSize: MediaQuery.of(context).size.width *
-                  0.06, // Adjust font size based on screen width
+              fontSize: MediaQuery.of(context).size.width * 0.06,
               fontWeight: FontWeight.bold,
             ),
           ),
