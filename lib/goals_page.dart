@@ -6,7 +6,6 @@ import 'home_page.dart';
 import 'personalization_page.dart';
 import 'services/themealdb_service.dart';
 
-
 class GoalsPage extends StatefulWidget {
   const GoalsPage({super.key});
 
@@ -36,7 +35,7 @@ class SlideRightRoute extends PageRouteBuilder {
           end: Offset.zero,
         ).animate(CurvedAnimation(
           parent: primaryAnimation,
-          curve: Curves.easeOutQuad, // You can change the curve for different animation feels
+          curve: Curves.easeOutQuad,
         ),),
         child: child,
       );
@@ -95,19 +94,17 @@ class _GoalsPageState extends State<GoalsPage> {
       final userGoals = await _firestoreService.getUserGoals();
       setState(() {
         selectedGoals = Set.from(userGoals);
-
       });
     } catch (e) {
       print('Error loading goals: $e');
-      setState(() {
-      });
+      setState(() {});
     }
   }
 
   Future<void> _loadRandomMealImage() async {
     try {
       final imageUrl = await _mealService.getRandomMealImage();
-      if (mounted) { // Check if widget is still mounted before setting state
+      if (mounted) {
         setState(() {
           _backgroundImageUrl = imageUrl;
           _isLoading = false;
@@ -120,10 +117,6 @@ class _GoalsPageState extends State<GoalsPage> {
         });
       }
     }
-  }
-
-  Future<void> _loadUserData() async {
-
   }
 
   void _showSetUpLaterDialog() {
@@ -246,8 +239,8 @@ class _GoalsPageState extends State<GoalsPage> {
     {
       'title': 'Weight Less',
       'icon': Icons.scale,
-      'size': 25.0,  // Memastikan nilai double bukan null
-      'titleSize': 20.0,  // Memastikan nilai double bukan null
+      'size': 25.0,
+      'titleSize': 20.0,
     },
     {
       'title': 'Get Healthier',
@@ -277,199 +270,130 @@ class _GoalsPageState extends State<GoalsPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Get device screen size and orientation
-    final mediaQuery = MediaQuery.of(context);
-    final screenWidth = mediaQuery.size.width;
-    final screenHeight = mediaQuery.size.height;
-    final orientation = mediaQuery.orientation;
+    final size = MediaQuery.of(context).size;
+    final isSmallScreen = size.width < 360;
 
-    // Responsive font sizes
-    final titleFontSize = screenWidth * 0.07;
-    final goalTitleFontSize = screenWidth * 0.03875;
-    final buttonFontSize = screenWidth * 0.045;
-
-    // Responsive padding and spacing
-    final horizontalPadding = screenWidth * 0.05;
-    final verticalPadding = screenHeight * 0.02;
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return Scaffold(
-          body: AnimatedContainer(
-            duration: const Duration(milliseconds: 100),
-            decoration: BoxDecoration(
-              image: _backgroundImageUrl != null
-                  ? DecorationImage(
-                image: NetworkImage(_backgroundImageUrl!),
-                fit: BoxFit.cover,
-                colorFilter: ColorFilter.mode(
-                  Colors.black.withOpacity(0.3),
-                  BlendMode.darken,
-                ),
-              )
-                  : const DecorationImage(
-                image: AssetImage('assets/images/landing_page.jpg'),
-                fit: BoxFit.cover,
-              ),
+    return Scaffold(
+      body: AnimatedContainer(
+        duration: const Duration(milliseconds: 100),
+        decoration: BoxDecoration(
+          image: _backgroundImageUrl != null
+              ? DecorationImage(
+            image: NetworkImage(_backgroundImageUrl!),
+            fit: BoxFit.cover,
+            colorFilter: ColorFilter.mode(
+              Colors.black.withOpacity(0.3),
+              BlendMode.darken,
             ),
-            child: SafeArea(
-              child: Stack(
-                children: [
-                  // Back Button
-                  Positioned(
-                    top: verticalPadding,
-                    left: horizontalPadding,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.85),
-                        shape: BoxShape.circle,
-                      ),
-                      child: IconButton(
-                        icon: const Icon(Icons.arrow_back, color: Colors.white),
-                        onPressed: () {
-                          Navigator.of(context).pushReplacement(
-                            SlideRightRoute(
-                              page: const PersonalizationPage(),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-
-                  // Title
-                  Positioned(
-                    top: screenHeight * 0.1,
-                    left: horizontalPadding,
-                    right: horizontalPadding,
-                    child: Text(
-                      'What are your current goals?',
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontSize: titleFontSize,
-                        fontWeight: FontWeight.w800,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-
-                  // Goals Container
-                  Positioned(
-                    top: screenHeight * 0.2475,
-                    left: horizontalPadding,
-                    right: horizontalPadding,
-                    child: Container(
-                      padding: EdgeInsets.all(screenWidth * 0.05),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            Colors.white.withOpacity(0.85),
-                            const Color.fromARGB(255, 66, 66, 66)
-                          ],
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                        ),
-                        borderRadius: BorderRadius.circular(50),
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: goals.map((goal) => _buildGoalOption(goal, goalTitleFontSize)).toList(),
-                      ),
-                    ),
-                  ),
-
-                  // Progress Bar
-                  Positioned(
-                    bottom: screenHeight * 0.23,
-                    left: 0,
-                    right: 0,
-                    child: Center(
-                      child: LinearProgressBar(
-                        maxSteps: 3,
-                        progressType: LinearProgressBar.progressTypeDots,
-                        currentStep: currentStep,
-                        progressColor: kPrimaryColor,
-                        backgroundColor: kColorsGrey400,
-                        dotsAxis: Axis.horizontal,
-                        dotsActiveSize: screenWidth * 0.03,
-                        dotsInactiveSize: screenWidth * 0.025,
-                        dotsSpacing: const EdgeInsets.only(right: 10),
-                        valueColor: const AlwaysStoppedAnimation<Color>(Colors.red),
-                        semanticsLabel: "Label",
-                        semanticsValue: "Value",
-                        minHeight: 10,
-                      ),
-                    ),
-                  ),
-
-                  // Buttons
-                  Positioned(
-                    bottom: verticalPadding,
-                    left: horizontalPadding,
-                    right: horizontalPadding,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if(selectedGoals.isNotEmpty)
-                          ElevatedButton(
-                            onPressed: selectedGoals.isNotEmpty ? _saveGoals : null,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.deepOrange,
-                              minimumSize: Size(screenWidth * 0.9, screenHeight * 0.05),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(50),
-                              ),
-                              padding: EdgeInsets.symmetric(vertical: screenHeight * 0.0125),
-                            ),
-                            child: _isLoading
-                                ? const CircularProgressIndicator(color: Colors.amber)
-                                : Text(
-                              'SAVE',
-                              style: TextStyle(
-                                fontSize: buttonFontSize,
-                                fontWeight: FontWeight.w800,
-                                color: Colors.black,
-                              ),
-                            ),
-                          ),
-                        SizedBox(height: screenHeight * 0.02),
-                        OutlinedButton(
-                          onPressed: _showSetUpLaterDialog,
-                          style: OutlinedButton.styleFrom(
-                            minimumSize: Size(screenWidth * 0.95, screenHeight * 0.05),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(50),
-                            ),
-                            padding: EdgeInsets.symmetric(vertical: screenHeight * 0.0125),
-                          ),
-                          child: Text(
-                            'SET UP LATER',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: buttonFontSize,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
+          )
+              : const DecorationImage(
+            image: AssetImage('assets/images/landing_page.jpg'),
+            fit: BoxFit.cover,
           ),
-        );
-      },
+        ),
+        child: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight,
+                  ),
+                  child: Stack(
+                    children: [
+                      _buildBackButton(size),
+                      _buildMainContent(size, isSmallScreen),
+                      _buildProgressBar(size, isSmallScreen),
+                      _buildBottomButtons(size, isSmallScreen),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBackButton(Size size) {
+    return Positioned(
+      top: size.height * 0.02,
+      left: size.width * 0.05,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.85),
+          shape: BoxShape.circle,
+        ),
+        child: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () {
+            Navigator.of(context).pushReplacement(
+              SlideRightRoute(
+                page: const PersonalizationPage(),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMainContent(Size size, bool isSmallScreen) {
+    return Padding(
+      padding: EdgeInsets.only(
+        top: size.height * 0.15,
+        bottom: size.height * 0.25,
+        left: size.width * 0.02,
+        right: size.width * 0.02,
+      ),
+      child: Container(
+        width: double.infinity,
+        margin: EdgeInsets.symmetric(
+          horizontal: size.width * 0.02,
+        ),
+        padding: EdgeInsets.symmetric(
+          horizontal: size.width * 0.05,
+          vertical: size.height * 0.04,
+        ),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Colors.white.withOpacity(0.875),
+              const Color.fromARGB(255, 66, 66, 66)
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+          borderRadius: BorderRadius.circular(50),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'What are your current goals?',
+              style: TextStyle(
+                color: Colors.black,
+                fontSize: isSmallScreen ? 20 : 23.5,
+                fontWeight: FontWeight.w800,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: size.height * 0.02),
+            ...goals.map((goal) => _buildGoalOption(goal, isSmallScreen ? 18 : 20.0)).toList(),
+          ],
+        ),
+      ),
     );
   }
 
   Widget _buildGoalOption(Map<String, dynamic> goal, double titleSize) {
     final bool isSelected = selectedGoals.contains(goal['title']);
     final double iconSize = (goal['size'] as double?) ?? 35.0;
-    final double textSize = (goal['titleSize'] as double?) ?? 35.0;
 
     return Padding(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 12.0),
       child: InkWell(
         onTap: () {
           setState(() {
@@ -480,32 +404,124 @@ class _GoalsPageState extends State<GoalsPage> {
             }
           });
         },
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12.0),
-          child: Row(
-            children: [
-              Icon(
-                goal['icon'] as IconData,
+        child: Row(
+          children: [
+            Icon(
+              goal['icon'] as IconData,
+              color: Colors.black,
+              size: iconSize,
+            ),
+            const SizedBox(width: 20),
+            Text(
+              goal['title'] as String,
+              style: TextStyle(
                 color: Colors.black,
-                size: iconSize,
+                fontSize: titleSize,
+                fontWeight: FontWeight.w500,
               ),
-              const SizedBox(width: 20),
-              Text(
-                goal['title'] as String,
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: titleSize,
-                  fontWeight: FontWeight.w500,
+            ),
+            const Spacer(),
+            Icon(
+              isSelected ? Icons.check_circle : Icons.circle,
+              color: isSelected ? Colors.green : const Color.fromARGB(255, 124, 93, 93),
+              size: 27.5,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProgressBar(Size size, bool isSmallScreen) {
+    return Positioned(
+      bottom: size.height * 0.225,
+      left: 0,
+      right: 0,
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: size.width * 0.05,
+        ),
+        child: LinearProgressBar(
+          maxSteps: 3,
+          progressType: LinearProgressBar.progressTypeDots,
+          currentStep: currentStep,
+          progressColor: kPrimaryColor,
+          backgroundColor: kColorsGrey400,
+          dotsAxis: Axis.horizontal,
+          dotsActiveSize: isSmallScreen ? 10 : 12.5,
+          dotsInactiveSize: isSmallScreen ? 8 : 10,
+          dotsSpacing: EdgeInsets.only(
+            right: size.width * 0.02,
+          ),
+          valueColor: const AlwaysStoppedAnimation<Color>(Colors.red),
+          semanticsLabel: "Label",
+          semanticsValue: "Value",
+          minHeight: size.height * 0.01,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBottomButtons(Size size, bool isSmallScreen) {
+    return Positioned(
+      bottom: 0,
+      left: 0,
+      right: 0,
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: size.width * 0.065,
+          vertical: size.height * 0.02,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if(selectedGoals.isNotEmpty)
+              ElevatedButton(
+                onPressed: _saveGoals,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.deepOrange,
+                  padding: EdgeInsets.symmetric(
+                    vertical: size.height * 0.0125,
+                  ),
+                  foregroundColor: Colors.black,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(50),
+                  ),
+                ),
+                child: _isLoading
+                    ? const CircularProgressIndicator(color: Colors.amber)
+                    : Text(
+                  'SAVE',
+                  style: TextStyle(
+                    fontSize: isSmallScreen ? 18 : 20,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.black,
+                  ),
                 ),
               ),
-              const Spacer(),
-              Icon(
-                isSelected ? Icons.check_circle : Icons.circle,
-                color: isSelected ? Colors.green : const Color.fromARGB(255, 124, 93, 93),
-                size: 27.5,
+            SizedBox(height: size.height * 0.02),
+            TextButton(
+              onPressed: _showSetUpLaterDialog,
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(
+                  vertical: size.height * 0.0125,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(25),
+                  side: const BorderSide(color: Colors.white),
+                ),
               ),
-            ],
-          ),
+              child: Text(
+                'SET UP LATER',
+                style: TextStyle(
+                  fontSize: isSmallScreen ? 14 : 16,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
