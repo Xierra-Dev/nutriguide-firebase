@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:fl_chart/fl_chart.dart';
 import '../services/firestore_service.dart';
 import '../models/nutrition_goals.dart';
+import 'package:intl/intl.dart';
+
 class NutritionTracker extends StatefulWidget {
   final NutritionGoals nutritionGoals;
 
@@ -14,100 +15,176 @@ class NutritionTracker extends StatefulWidget {
   _NutritionTrackerState createState() => _NutritionTrackerState();
 }
 
-class DashedLinePainter extends CustomPainter {
-  final Color color;
-  
-  DashedLinePainter({
-    required this.color,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    double dashWidth = 5, dashSpace = 5, startX = 0;
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = 1;
-
-    while (startX < size.width) {
-      canvas.drawLine(
-        Offset(startX, 0),
-        Offset(startX + dashWidth, 0),
-        paint,
-      );
-      startX += dashWidth + dashSpace;
-    }
-  }
-
-  @override
-  bool shouldRepaint(CustomPainter oldDelegate) => false;
-}
-
 class _NutritionTrackerState extends State<NutritionTracker> {
   final FirestoreService _firestoreService = FirestoreService();
-  int selectedWeek = 1;
-  String selectedNutrient = 'carbs';
-  Map<String, List<double>> weeklyNutrition = {};
   bool isLoading = true;
-  final Map<String, Color> nutrientColors = {
-    'calories': Colors.blue,
-    'carbs': Colors.orange,
-    'fiber': Colors.green,
-    'protein': Colors.pink,
-    'fat': Colors.purple,
+  Map<String, double> todayNutrition = {
+    'calories': 0,
+    'carbs': 0,
+    'fiber': 0,
+    'protein': 0,
+    'fat': 0,
   };
 
   @override
   void initState() {
     super.initState();
-    _loadWeeklyNutrition();
+    _loadTodayNutrition();
   }
 
-  Future<void> _loadWeeklyNutrition() async {
+  Future<void> _loadTodayNutrition() async {
     setState(() => isLoading = true);
-    final data = await _firestoreService.getWeeklyNutrition(selectedWeek);
-    setState(() {
-      weeklyNutrition = data;
-      isLoading = false;
-    });
+    try {
+      final data = await _firestoreService.getTodayNutrition();
+      setState(() {
+        todayNutrition = data;
+        isLoading = false;
+      });
+    } catch (e) {
+      print('Error loading nutrition: $e');
+      setState(() => isLoading = false);
+    }
   }
 
-  double _getMaxValue() {
-    if (weeklyNutrition.isEmpty || weeklyNutrition[selectedNutrient] == null) {
-      return 0;
-    }
+  Widget _buildNutrientProgress(String label, String nutrient, Color color) {
+    final current = todayNutrition[nutrient] ?? 0;
+    final goal = switch (nutrient) {
+      'calories' => widget.nutritionGoals.calories,
+      'carbs' => widget.nutritionGoals.carbs,
+      'fiber' => widget.nutritionGoals.fiber,
+      'protein' => widget.nutritionGoals.protein,
+      'fat' => widget.nutritionGoals.fat,
+      _ => 0.0,
+    };
     
-    // Use nutrition goals as maximum values
-    switch (selectedNutrient) {
-      case 'calories':
-        return widget.nutritionGoals.calories;
-      case 'carbs':
-        return widget.nutritionGoals.carbs;
-      case 'fiber':
-        return widget.nutritionGoals.fiber;
-      case 'protein':
-        return widget.nutritionGoals.protein;
-      case 'fat':
-        return widget.nutritionGoals.fat;
-      default:
-        return 0;
-    }
-  }
+    final progress = (current / goal).clamp(0.0, 1.0);
+    final unit = nutrient == 'calories' ? 'kcal' : 'g';
+    final isExceeded = current > goal;
 
-  int _getCurrentDayIndex() {
-    // Mengambil hari saat ini dalam bentuk indeks (0 untuk Minggu, 1 untuk Senin, dst.)
-    return DateTime.now().weekday % 7;
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            Row(
+              children: [
+                if (isExceeded)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8.0),
+                    child: Icon(
+                      Icons.warning_rounded,
+                      color: Colors.red,
+                      size: 18,
+                    ),
+                  ),
+                Text(
+                  '${current.toStringAsFixed(1)}/$goal$unit',
+                  style: TextStyle(
+                    color: isExceeded ? Colors.red : Colors.grey[400],
+                    fontSize: 14,
+                    fontWeight: isExceeded ? FontWeight.bold : FontWeight.normal,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Stack(
+          children: [
+            // Background bar
+            Container(
+              height: 8,
+              decoration: BoxDecoration(
+                color: Colors.grey[800],
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+            // Progress bar
+            FractionallySizedBox(
+              widthFactor: progress,
+              child: Container(
+                height: 8,
+                decoration: BoxDecoration(
+                  color: isExceeded ? Colors.red : color,
+                  borderRadius: BorderRadius.circular(4),
+                  boxShadow: [
+                    BoxShadow(
+                      color: (isExceeded ? Colors.red : color).withOpacity(0.5),
+                      blurRadius: 4,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            // Exceeded indicator
+            if (isExceeded)
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(
+                      color: Colors.red,
+                      width: 1,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+        if (isExceeded)
+          Padding(
+            padding: const EdgeInsets.only(top: 4.0),
+            child: Text(
+              'Exceeded by ${(current - goal).toStringAsFixed(1)}$unit',
+              style: TextStyle(
+                color: Colors.red,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+      ],
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    bool hasExceededLimits = false;
+    if (!isLoading) {
+      hasExceededLimits = (todayNutrition['calories'] ?? 0) > widget.nutritionGoals.calories ||
+          (todayNutrition['carbs'] ?? 0) > widget.nutritionGoals.carbs ||
+          (todayNutrition['fiber'] ?? 0) > widget.nutritionGoals.fiber ||
+          (todayNutrition['protein'] ?? 0) > widget.nutritionGoals.protein ||
+          (todayNutrition['fat'] ?? 0) > widget.nutritionGoals.fat;
+    }
+
     return Container(
-      padding: const EdgeInsets.symmetric(
-        vertical: 25,
-        horizontal: 17.5,
-      ),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.grey[900],
         borderRadius: BorderRadius.circular(16),
+        border: hasExceededLimits
+            ? Border.all(color: Colors.red.withOpacity(0.5), width: 2)
+            : null,
+        boxShadow: [
+          BoxShadow(
+            color: hasExceededLimits
+                ? Colors.red.withOpacity(0.2)
+                : Colors.black.withOpacity(0.2),
+            blurRadius: 8,
+            offset: Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -115,194 +192,105 @@ class _NutritionTrackerState extends State<NutritionTracker> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              GestureDetector(
-                onTap: () {
-                  showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      backgroundColor: Colors.grey[900],
-                      title: Text('Select Week', style: TextStyle(color: Colors.white)),
-                      content: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: List.generate(
-                          4,
-                          (index) => ListTile(
-                            title: Text(
-                              'Week ${index + 1}',
-                              style: TextStyle(color: Colors.white),
-                            ),
-                            onTap: () {
-                              setState(() => selectedWeek = index + 1);
-                              Navigator.pop(context);
-                              _loadWeeklyNutrition();
-                            },
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                },
-                child: Row(
-                  children: [
-                    Text(
-                      'Week $selectedWeek',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Icon(Icons.keyboard_arrow_down, color: Colors.white),
-                  ],
+              Text(
+                "Today's Nutrition",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: nutrientColors[selectedNutrient],
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  _getMaxValue().toStringAsFixed(1),
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          if (isLoading)
-            Center(child: CircularProgressIndicator(color: Colors.deepOrange))
-          else
-            SizedBox(
-              height: 200,
-              child: Stack(
+              Row(
                 children: [
-                  // Garis putus-putus horizontal
-                  Positioned(
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    child: Container(
-                      height: 1,
-                      decoration: BoxDecoration(
-                        border: Border(
-                          bottom: BorderSide(
-                            color: Colors.white.withOpacity(0.2),
-                            width: 1,
-                          ),
+                  if (hasExceededLimits)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: Container(
+                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.red.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.red),
                         ),
-                      ),
-                      child: CustomPaint(
-                        painter: DashedLinePainter(
-                          color: Colors.white.withOpacity(0.2),
-                        ),
-                        size: const Size(double.infinity, 1),
-                      ),
-                    ),
-                  ),
-                  // Bar Chart
-                  BarChart(
-                    BarChartData(
-                      alignment: BarChartAlignment.spaceAround,
-                      maxY: _getMaxValue(),
-                      minY: 0,
-                      barTouchData: BarTouchData(enabled: true),
-                      titlesData: FlTitlesData(
-                        show: true,
-                        topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                        rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                        leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                        bottomTitles: AxisTitles(
-                          sideTitles: SideTitles(
-                            showTitles: true,
-                            getTitlesWidget: (value, meta) {
-                              const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-                              final currentDayIndex = _getCurrentDayIndex();
-                              return Padding(
-                                padding: const EdgeInsets.only(top: 8.0),
-                                child: Text(
-                                  value.toInt() == currentDayIndex ? 'Today' : days[value.toInt()],
-                                  style: TextStyle(
-                                    color: value.toInt() == currentDayIndex
-                                        ? Colors.white
-                                        : Colors.grey,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                      ),
-                      gridData: FlGridData(show: false),
-                      borderData: FlBorderData(show: false),
-                      barGroups: List.generate(
-                        7,
-                        (index) => BarChartGroupData(
-                          x: index,
-                          barRods: [
-                            BarChartRodData(
-                              toY: weeklyNutrition[selectedNutrient]?[index] ?? 0,
-                              color: index == _getCurrentDayIndex()
-                                  ? nutrientColors[selectedNutrient] // Warna untuk hari ini
-                                  : nutrientColors[selectedNutrient]?.withOpacity(1), // Warna untuk hari lain
-                              width: 30,
-                              borderRadius: BorderRadius.circular(15),
+                        child: Row(
+                          children: [
+                            Icon(Icons.warning_rounded, color: Colors.red, size: 16),
+                            SizedBox(width: 4),
+                            Text(
+                              'Limit Exceeded',
+                              style: TextStyle(
+                                color: Colors.red,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ],
                         ),
                       ),
                     ),
+                  IconButton(
+                    icon: Icon(Icons.refresh, color: Colors.white),
+                    onPressed: _loadTodayNutrition,
                   ),
                 ],
               ),
-            ),
-          const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildNutrientSelector('Cal', 'calories', Colors.blue),
-              _buildNutrientSelector('Carbs', 'carbs', Colors.orange),
-              _buildNutrientSelector('Fiber', 'fiber', Colors.green),
-              _buildNutrientSelector('Protein', 'protein', Colors.pink),
-              _buildNutrientSelector('Fat', 'fat', Colors.purple),
             ],
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNutrientSelector(String label, String value, Color color) {
-    final isSelected = selectedNutrient == value;
-    return GestureDetector(
-      onTap: () {
-        setState(() => selectedNutrient = value);
-      },
-      child: Row(
-        children: [
-          Container(
-            width: 16,
-            height: 16,
-            decoration: BoxDecoration(
-              color: isSelected ? color : color.withOpacity(0.5),
-              shape: BoxShape.circle,
-            ),
-          ),
-          const SizedBox(width: 4),
           Text(
-            label,
+            DateFormat('EEEE, MMMM d').format(DateTime.now()),
             style: TextStyle(
-              color: isSelected ? Colors.white : Colors.grey,
-              fontSize: 12,
+              color: Colors.grey[400],
+              fontSize: 14,
             ),
           ),
+          const SizedBox(height: 24),
+          if (isLoading)
+            Center(
+              child: CircularProgressIndicator(
+                color: Colors.deepOrange,
+              ),
+            )
+          else
+            Column(
+              children: [
+                _buildNutrientProgress('Calories', 'calories', Colors.blue),
+                const SizedBox(height: 16),
+                _buildNutrientProgress('Carbs', 'carbs', Colors.orange),
+                const SizedBox(height: 16),
+                _buildNutrientProgress('Fiber', 'fiber', Colors.green),
+                const SizedBox(height: 16),
+                _buildNutrientProgress('Protein', 'protein', Colors.pink),
+                const SizedBox(height: 16),
+                _buildNutrientProgress('Fat', 'fat', Colors.purple),
+              ],
+            ),
+          if (hasExceededLimits)
+            Padding(
+              padding: const EdgeInsets.only(top: 16.0),
+              child: Container(
+                padding: EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.red.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.red.withOpacity(0.5)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline, color: Colors.red),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'You have exceeded your daily nutrition limits. Consider adjusting your meal plan.',
+                        style: TextStyle(
+                          color: Colors.red,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
         ],
       ),
     );
