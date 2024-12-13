@@ -1,17 +1,12 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
+
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn(
-    scopes: [
-      'email',
-      'profile',
-    ],
-  );
+
 
   // Get current user
   User? get currentUser => _auth.currentUser;
@@ -141,25 +136,6 @@ class AuthService {
       print('Error retrieving user names: $e');
     }
     return {};
-  }
-
-  void _startVerificationTimer(User user) {
-    Timer(Duration(minutes: 3), () async {
-      // Reload user untuk mendapatkan status terbaru
-      await user.reload();
-
-      // Periksa apakah email telah diverifikasi
-      if (user.emailVerified) {
-        // Update status di Firestore
-        await _firestore.collection('users').doc(user.uid).update({
-          'emailVerified': true,
-        });
-      } else {
-        // Jika belum diverifikasi, hapus user dari Firestore dan Firebase Auth
-        await _firestore.collection('users').doc(user.uid).delete();
-        await user.delete();
-      }
-    });
   }
 
   // Update user profile

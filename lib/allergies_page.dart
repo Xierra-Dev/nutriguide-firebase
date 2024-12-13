@@ -404,7 +404,7 @@ class _AllergiesPageState extends State<AllergiesPage> {
 
   Widget _buildProgressBar(Size size, bool isSmallScreen) {
     return Positioned(
-      bottom: size.height * 0.225,
+      bottom: size.height * 0.215,
       left: 0,
       right: 0,
       child: Padding(

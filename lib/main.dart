@@ -20,13 +20,11 @@ class MealPlannerApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ScreenUtilInit(
-      // iPhone 13 Pro Max / 14 Pro Max dimensions (6.5 inch)
-      designSize: const Size(428, 926),
       minTextAdapt: true,
       splitScreenMode: true,
       builder: (context, child) {
         return MaterialApp(
-          title: 'Meal Planner',
+          title: 'NutriGuide',
           theme: ThemeData(
             visualDensity: VisualDensity.adaptivePlatformDensity,
             fontFamily: 'Roboto',

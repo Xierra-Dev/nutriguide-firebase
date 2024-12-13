@@ -196,61 +196,6 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
     );
   }
 
-  Widget _buildDialogButtons(BuildContext context, Size size) {
-    final isSmallScreen = size.width < 360;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        ElevatedButton(
-          onPressed: () {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const HomePage()),
-            );
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.red,
-            foregroundColor: Colors.white,
-            padding: EdgeInsets.symmetric(
-              vertical: size.height * 0.02,
-            ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(50.0),
-            ),
-          ),
-          child: Text(
-            "Skip Questionnaire",
-            style: TextStyle(
-              fontSize: isSmallScreen ? 14 : 16,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-        ),
-        SizedBox(height: size.height * 0.02),
-        OutlinedButton(
-          onPressed: () => Navigator.of(context).pop(),
-          style: OutlinedButton.styleFrom(
-            foregroundColor: Colors.white,
-            padding: EdgeInsets.symmetric(
-              vertical: size.height * 0.02,
-            ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(50.0),
-            ),
-          ),
-          child: Text(
-            "Return to Questionnaire",
-            style: TextStyle(
-              fontSize: isSmallScreen ? 14 : 16,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -368,6 +313,9 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
   }
 
   Widget _buildField(String label, String? value, VoidCallback onTap, Size size, bool isSmallScreen) {
+    final maxLabelWidth = size.width * 0.175;
+    final maxValueWidth = size.width * 0.175;
+
     return Column(
       children: [
         Padding(
@@ -377,22 +325,30 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                label,
-                style: TextStyle(
-                  color: const Color.fromARGB(255, 37, 37, 37),
-                  fontSize: isSmallScreen ? 18 : 21,
-                  fontWeight: FontWeight.w700,
+              Container(
+                width: maxLabelWidth,
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    color: const Color.fromARGB(255, 37, 37, 37),
+                    fontSize: isSmallScreen ? 18 : 21,
+                    fontWeight: FontWeight.w700,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
               Row(
                 children: [
-                  Text(
-                    value ?? 'Not Set',
-                    style: TextStyle(
-                      color: value == null ? Colors.red : Colors.black,
-                      fontSize: isSmallScreen ? 16 : 18.5,
-                      fontWeight: value == null ? FontWeight.w600 : FontWeight.w800,
+                  Container(
+                    width: maxValueWidth,
+                    child: Text(
+                      value ?? 'Not Set',
+                      style: TextStyle(
+                        color: value == null ? Colors.red : Colors.black,
+                        fontSize: isSmallScreen ? 16 : 18.5,
+                        fontWeight: value == null ? FontWeight.w600 : FontWeight.w800,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   SizedBox(width: size.width * 0.01),
@@ -421,6 +377,7 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
       ],
     );
   }
+
 
   Widget _buildProgressBar(Size size, bool isSmallScreen) {
     return Positioned(

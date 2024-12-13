@@ -83,6 +83,7 @@ class _AccountPageState extends State<AccountPage> {
   final TextEditingController _newPasswordController = TextEditingController();
   final TextEditingController _confirmNewPasswordController = TextEditingController();
   bool _isPasswordVisible = false;
+  bool _isLoading = true;
 
   bool isGoogleUser() {
     User? user = _auth.currentUser;
@@ -101,14 +102,171 @@ class _AccountPageState extends State<AccountPage> {
 
     try {
       email = authService.getCurrentUserEmail();
-      setState(() {});
+      setState(() {
+        _isLoading = false;
+      });
     } catch (e) {
       print('Error fetching user data: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to load user data: $e'),
           backgroundColor: Colors.red,),
       );
+      setState(() {
+        _isLoading = false;
+      });
     }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final textScaleFactor = MediaQuery.of(context).textScaleFactor;
+
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: screenWidth * 0.04,
+                vertical: screenHeight * 0.01,
+              ),
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: Icon(
+                      Icons.arrow_back,
+                      color: Colors.white,
+                      size: screenHeight * 0.03,
+                    ),
+                    onPressed: () {
+                      Navigator.of(context).pushReplacement(
+                        SlideRightRoute(page: const SettingsPage()),
+                      );
+                    },
+                  ),
+                  SizedBox(width: screenWidth * 0.02),
+                  Container(
+                    constraints: BoxConstraints(
+                      maxWidth: screenWidth * 0.375,
+                    ),
+                    child: Text(
+                      'Account Settings',
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: screenHeight * 0.03,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: ListView(
+                padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04),
+                children: [
+                  _buildSettingsListTile(
+                    context: context,
+                    leadingText: 'Email',
+                    trailingText: email ?? '',
+                    onTap: isGoogleUser() ? null : _showChangeEmailDialog,
+                  ),
+                  _buildDivider(screenHeight),
+                  if (!isGoogleUser())
+                    _buildSettingsListTile(
+                      context: context,
+                      leadingText: 'Password',
+                      trailingText: displayPassword,
+                      onTap: _showChangePasswordDialog,
+                    ),
+                  if (!isGoogleUser()) _buildDivider(screenHeight),
+                  _buildSettingsListTile(
+                    context: context,
+                    leadingText: 'Logout',
+                    trailingText: '',
+                    onTap: () => confirmLogout(context),
+                  ),
+                  _buildDivider(screenHeight),
+                  _buildSettingsListTile(
+                    context: context,
+                    leadingText: 'Delete Account',
+                    trailingText: '',
+                    onTap: () => confirmDeleteAccount(context),
+                    isDestructive: true,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSettingsListTile({
+    required BuildContext context,
+    required String leadingText,
+    required String trailingText,
+    required VoidCallback? onTap,
+    bool isDestructive = false,
+  }) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final textScaleFactor = MediaQuery.of(context).textScaleFactor;
+
+    return ListTile(
+      contentPadding: EdgeInsets.symmetric(vertical: screenHeight * 0.01),
+      title: Container(
+        constraints: BoxConstraints(
+          maxWidth: screenWidth * 0.375,
+        ),
+        child: Text(
+          leadingText,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color: isDestructive ? Colors.red : Colors.white,
+            fontSize: screenHeight * 0.02 * textScaleFactor,
+          ),
+        ),
+      ),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (trailingText.isNotEmpty)
+            Container(
+              constraints: BoxConstraints(
+                maxWidth: screenWidth * 0.375,
+              ),
+              margin: EdgeInsets.only(right: screenWidth * 0.02),
+              child: Text(
+                trailingText,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: isDestructive ? Colors.red : Colors.white70,
+                  fontSize: screenHeight * 0.018 * textScaleFactor,
+                ),
+              ),
+            ),
+          Icon(
+            Icons.arrow_forward_ios,
+            color: isDestructive ? Colors.red : Colors.white,
+            size: screenHeight * 0.02,
+          ),
+        ],
+      ),
+      onTap: onTap,
+    );
+  }
+
+  Widget _buildDivider(double screenHeight) {
+    return Divider(
+      color: Colors.white24,
+      height: screenHeight * 0.001,
+    );
   }
 
   Future<void> changeEmail() async {
@@ -378,161 +536,133 @@ class _AccountPageState extends State<AccountPage> {
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
+    final textScaleFactor = mediaQuery.textScaleFactor;
+
+    final double baseWidth = 375; // iPhone 12 Pro width as base
+    final double widthRatio = screenWidth / baseWidth;
+    final double scaleFactor = widthRatio.clamp(0.8, 1.2);
 
     showDialog(
       context: context,
       barrierDismissible: false,
-      barrierColor: Colors.black.withOpacity(0.7),
-      builder: (context) => LayoutBuilder(
-        builder: (context, constraints) {
-          // Adaptive text scaling
-          final textScaleFactor = mediaQuery.textScaleFactor;
-          final responsiveWidth = screenWidth * 0.85;
-          final responsiveHeight = screenHeight * 0.47;
-
-          // Adaptive padding and spacing
-          final double baseWidth = 375; // iPhone 12 Pro width as base
-          final double widthRatio = screenWidth / baseWidth;
-          final double scaleFactor = widthRatio.clamp(0.8, 1.2);
-
-          return Dialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(25.0),
-            ),
-            backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withOpacity(0.5),
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24.0),
+        ),
+        backgroundColor: const Color(0xFF2C2C2C),
+        child: SingleChildScrollView(
+          child: IntrinsicWidth(
             child: Container(
-              width: responsiveWidth,
-              height: responsiveHeight,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(25.0),
-                color: Color(0xFF2C2C2C),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.3),
-                    blurRadius: 30,
-                    offset: Offset(0, 15),
-                  ),
-                ],
-              ),
+              width: screenWidth * 0.925,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
               child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Header Section
-                  Container(
-                    padding: EdgeInsets.symmetric(
-                        vertical: 20 * scaleFactor,
-                        horizontal: 25 * scaleFactor
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.deepOrange[800],
-                      borderRadius: BorderRadius.vertical(
-                        top: Radius.circular(25.0),
+                  // Key Change Icon
+                  Align(
+                    alignment: Alignment.center,
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.deepOrange.withOpacity(0.1),
+                        shape: BoxShape.circle,
                       ),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Change Password',
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 21 * textScaleFactor,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                        Icon(
-                          MdiIcons.keyChange,
-                          color: Colors.black,
-                          size: 29 * scaleFactor,
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // Password Fields Section
-                  Expanded(
-                    child: Padding(
-                      padding: EdgeInsets.only(
-                        top: 30.0 * scaleFactor,
-                        left: 15.0 * scaleFactor,
-                        right: 15.0 * scaleFactor,
-                      ),
-                      child: SingleChildScrollView(
-                        child: Column(
-                          children: [
-                            _buildAdaptivePasswordField('Current Password', _currentPasswordController, scaleFactor, textScaleFactor),
-                            SizedBox(height: 15 * scaleFactor),
-                            _buildAdaptivePasswordField('New Password', _newPasswordController, scaleFactor, textScaleFactor),
-                            SizedBox(height: 15 * scaleFactor),
-                            _buildAdaptivePasswordField('Confirm New Password', _confirmNewPasswordController, scaleFactor, textScaleFactor),
-                          ],
-                        ),
+                      child: const Icon(
+                        Icons.key_rounded,
+                        color: Colors.deepOrange,
+                        size: 32,
                       ),
                     ),
                   ),
-
-                  // Action Buttons Section
-                  Padding(
-                    padding: EdgeInsets.only(
-                      bottom: 25 * scaleFactor,
-                      left: 15 * scaleFactor,
-                      right: 15 * scaleFactor,
+                  SizedBox(height: screenHeight * 0.0225),
+                  // Title
+                  Text(
+                    'Change Password',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 24 * textScaleFactor,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      letterSpacing: 0.5,
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: changePassword,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.deepOrange[800],
-                              padding: EdgeInsets.symmetric(vertical: 15 * scaleFactor),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(50.0),
-                              ),
-                              elevation: 6,
+                  ),
+                  SizedBox(height: screenHeight * 0.0175),
+                  // Description
+                  Text(
+                    'Please enter your current password and new password.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 15 * textScaleFactor,
+                      color: Colors.grey,
+                      height: 1.5,
+                    ),
+                  ),
+                  SizedBox(height: screenHeight * 0.0225),
+                  // Current Password Field
+                  _buildAdaptivePasswordField('Current Password', _currentPasswordController, scaleFactor, textScaleFactor),
+                  SizedBox(height: screenHeight * 0.0175),
+                  // New Password Field
+                  _buildAdaptivePasswordField('New Password', _newPasswordController, scaleFactor, textScaleFactor),
+                  SizedBox(height: screenHeight * 0.0175),
+                  // Confirm New Password Field
+                  _buildAdaptivePasswordField('Confirm New Password', _confirmNewPasswordController, scaleFactor, textScaleFactor),
+                  SizedBox(height: screenHeight * 0.0425),
+                  // Buttons
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: changePassword,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.deepOrange[800],
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(50),
                             ),
-                            child: Text(
-                              'Change Password',
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontSize: 13 * textScaleFactor,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 0.7,
-                              ),
+                            elevation: 0,
+                          ),
+                          child: Text(
+                            'Change Password',
+                            style: TextStyle(
+                              fontSize: 16 * textScaleFactor,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
-                        SizedBox(width: 15 * scaleFactor),
-                        Expanded(
-                          child: OutlinedButton(
-                            onPressed: () => Navigator.of(context).pop(),
-                            style: OutlinedButton.styleFrom(
-                              padding: EdgeInsets.symmetric(vertical: 15 * scaleFactor),
-                              side: BorderSide(color: Colors.deepOrange[800]!, width: 2),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30.0),
-                              ),
+                      ),
+                      SizedBox(width: screenWidth * 0.04),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.grey[800],
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(50),
                             ),
-                            child: Text(
-                              'Cancel',
-                              style: TextStyle(
-                                color: Colors.deepOrange[800],
-                                fontSize: 13 * textScaleFactor,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 0.7,
-                              ),
+                            elevation: 0,
+                          ),
+                          child: Text(
+                            'Cancel',
+                            style: TextStyle(
+                              fontSize: 16 * textScaleFactor,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
-          );
-        },
+          ),
+        ),
       ),
     );
   }
@@ -593,127 +723,126 @@ class _AccountPageState extends State<AccountPage> {
 
 
   Future<void> confirmLogout(BuildContext context) async {
-    final size = MediaQuery.of(context).size;
-    final textScaleFactor = MediaQuery.of(context).textScaleFactor;
+    final mediaQuery = MediaQuery.of(context);
+    final screenWidth = mediaQuery.size.width;
+    final screenHeight = mediaQuery.size.height;
+    final textScaleFactor = mediaQuery.textScaleFactor;
+    final size = mediaQuery.size;
+
+    final double baseWidth = 375; // iPhone 12 Pro width as base
+    final double widthRatio = screenWidth / baseWidth;
+    final double scaleFactor = widthRatio.clamp(0.8, 1.2);
 
     bool? loggedOut = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
-      barrierColor: Colors.black.withOpacity(0.6),
+      barrierColor: Colors.black.withOpacity(0.5),
       builder: (context) => Dialog(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20.0),
+          borderRadius: BorderRadius.circular(24.0),
         ),
-        backgroundColor: Color(0xFF2C2C2C),
-        child: Container(
-          constraints: BoxConstraints(
-            maxWidth: size.width * 0.85,
-            maxHeight: size.height * 0.4,
-          ),
-          padding: EdgeInsets.symmetric(
-            horizontal: size.width * 0.06,
-            vertical: size.height * 0.03,
-          ),
-          decoration: BoxDecoration(
-            color: Color(0xFF2C2C2C),
-            borderRadius: BorderRadius.circular(20.0),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                spreadRadius: 5,
-                blurRadius: 20,
-                offset: const Offset(0, 10),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Logout Icon
-              Icon(
-                Icons.logout,
-                size: size.width * 0.105,
-                color: Colors.deepOrange[800],
-              ),
-              SizedBox(height: size.height * 0.02),
-
-              // Title
-              Text(
-                'Log Out',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: size.width * 0.058 * textScaleFactor,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-
-              SizedBox(height: size.height * 0.02),
-
-              // Message
-              Text(
-                'Are you sure you want to log out of the application?',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: size.width * 0.04 * textScaleFactor,
-                  color: Colors.white,
-                ),
-              ),
-
-              SizedBox(height: size.height * 0.04),
-
-              // Buttons
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+        backgroundColor: const Color(0xFF2C2C2C),
+        child: SingleChildScrollView(
+          child: IntrinsicWidth(
+            child: Container(
+              width: screenWidth * 0.925,  // Maintain max width
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.of(context).pop(true),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.deepOrange[800],
-                        minimumSize: Size(size.width * 0.3, size.height * 0.06),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(50),
-                        ),
-                        elevation: 5,
+                  // Logout Icon
+                  Align(
+                    alignment: Alignment.center,
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.deepOrange[800]!.withOpacity(0.1),
+                        shape: BoxShape.circle,
                       ),
-                      child: Text(
-                        'Log Out',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: size.width * 0.04 * textScaleFactor,
-                          fontWeight: FontWeight.w600,
-                        ),
+                      child: Icon(
+                        Icons.logout,
+                        color: Colors.deepOrange[800],
+                        size: 32,
                       ),
                     ),
                   ),
-
-                  SizedBox(width: size.width * 0.04),
-
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.of(context).pop(false),
-                      style: OutlinedButton.styleFrom(
-                        minimumSize: Size(size.width * 0.3, size.height * 0.06),
-                        side: BorderSide(color: Colors.deepOrange[800]!, width: 2),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(50),
-                        ),
-                      ),
-                      child: Text(
-                        'Cancel',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: size.width * 0.04 * textScaleFactor,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                  SizedBox(height: screenHeight * 0.0225),
+                  // Title
+                  Text(
+                    'Log Out',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      letterSpacing: 0.5,
                     ),
+                  ),
+                  SizedBox(height: screenHeight * 0.0175),
+                  // Description
+                  Text(
+                    'Are you sure you want to log out of the application?',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: Colors.grey,
+                      height: 1.5,
+                    ),
+                  ),
+                  SizedBox(height: screenHeight * 0.0425),
+                  // Buttons
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () => Navigator.of(context).pop(true),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.deepOrange[800],
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(50),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: const Text(
+                            'Log Out',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: screenWidth * 0.04),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () => Navigator.of(context).pop(false),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.grey[800],
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(50),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: const Text(
+                            'Cancel',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
+            ),
           ),
         ),
       ),
@@ -730,9 +859,7 @@ class _AccountPageState extends State<AccountPage> {
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              'Logout Failed: $e',
-            ),
+            content: Text('Logout Failed: ${e.toString()}'),
             backgroundColor: Colors.red,
           ),
         );
@@ -742,155 +869,128 @@ class _AccountPageState extends State<AccountPage> {
 
   Future<void> confirmDeleteAccount(BuildContext context) async {
     bool isGoogle = isGoogleUser();
-    final size = MediaQuery.of(context).size;
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
 
+    final textScaleFactor = mediaQuery.textScaleFactor;
+    final double baseWidth = 375; // iPhone 12 Pro width as base
+    final double widthRatio = screenWidth / baseWidth;
+    final double scaleFactor = widthRatio.clamp(0.8, 1.2);
+
     bool? confirmed = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
-      barrierColor: Colors.black.withOpacity(0.5),  // Increased opacity for better contrast
+      barrierColor: Colors.black.withOpacity(0.5),
       builder: (context) => Dialog(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24.0),  // Increased border radius
+          borderRadius: BorderRadius.circular(24.0),
         ),
-        backgroundColor: const Color(0xFF2C2C2C),  // Darker, more modern background
-        child: Container(
-          constraints: BoxConstraints(
-            maxWidth: size.width * 0.925,
-            maxHeight: size.height * 0.4,
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Warning Icon
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.red.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.warning_rounded,
-                  color: Colors.red,
-                  size: 32,
-                ),
-              ),
-              SizedBox(height: screenHeight * 0.0225),
-              // Title
-              const Text(
-                'Delete Account',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                  letterSpacing: 0.5,
-                ),
-              ),
-              SizedBox(height: screenHeight * 0.0175),
-              // Description
-              const Text(
-                'Are you sure you want to delete your account? This action cannot be undone.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 15,
-                  color: Colors.grey,
-                  height: 1.5,
-                ),
-              ),
-              SizedBox(height: screenHeight * 0.0225),
-              // Input Field
-              if (!isGoogle)
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.grey[900],
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: TextField(
-                    controller: _currentPasswordController,
-                    obscureText: !_isPasswordVisible,
-                    decoration: InputDecoration(
-                      labelText: 'Enter Password to Confirm',
-                      labelStyle: TextStyle(color: Colors.grey[400]),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(50),
-                        borderSide: BorderSide.none,
-                      ),
-                      filled: true,
-                      fillColor: Colors.transparent,
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _isPasswordVisible ? Icons.visibility_off : Icons.visibility,
-                          color: Colors.grey[600],
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _isPasswordVisible = !_isPasswordVisible;
-                          });
-                        },
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 16,
-                      ),
-                    ),
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                ),
-              const Spacer(),
-              // Buttons
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+        backgroundColor: const Color(0xFF2C2C2C),
+        child: SingleChildScrollView(
+          child: IntrinsicWidth(
+            child: Container(
+              width: screenWidth * 0.925,  // Maintain max width
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.of(context).pop(true),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(50),
-                        ),
-                        elevation: 0,
+                  // Warning Icon
+                  Align(
+                    alignment: Alignment.center,
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.red.withOpacity(0.1),
+                        shape: BoxShape.circle,
                       ),
-                      child: const Text(
-                        'Delete',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
+                      child: const Icon(
+                        Icons.warning_rounded,
+                        color: Colors.red,
+                        size: 32,
                       ),
                     ),
                   ),
-                  SizedBox(width: screenWidth * 0.04),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.of(context).pop(false),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.grey[800],
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(50),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: const Text(
-                        'Cancel',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                  SizedBox(height: screenHeight * 0.0225),
+                  // Title
+                  const Text(
+                    'Delete Account',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      letterSpacing: 0.5,
                     ),
+                  ),
+                  SizedBox(height: screenHeight * 0.0175),
+                  // Description
+                  const Text(
+                    'Are you sure you want to delete your account? This action cannot be undone.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: Colors.grey,
+                      height: 1.5,
+                    ),
+                  ),
+                  SizedBox(height: screenHeight * 0.0225),
+                  // Input Field
+                  _buildAdaptivePasswordField('Current Password', _currentPasswordController, scaleFactor, textScaleFactor),
+                  SizedBox(height: screenHeight * 0.0425),
+                  // Buttons
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () => Navigator.of(context).pop(true),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(50),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: const Text(
+                            'Delete',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: screenWidth * 0.04),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () => Navigator.of(context).pop(false),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.grey[800],
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(50),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: const Text(
+                            'Cancel',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
+            ),
           ),
         ),
       ),
@@ -901,12 +1001,12 @@ class _AccountPageState extends State<AccountPage> {
       try {
         User? currentUser = _auth.currentUser;
         if (currentUser != null) {
-            // For email/password users, re-authenticate
-            AuthCredential credential = EmailAuthProvider.credential(
-                email: currentUser.email!,
-                password: _currentPasswordController.text
-            );
-            await currentUser.reauthenticateWithCredential(credential);
+          // For email/password users, re-authenticate
+          AuthCredential credential = EmailAuthProvider.credential(
+              email: currentUser.email!,
+              password: _currentPasswordController.text
+          );
+          await currentUser.reauthenticateWithCredential(credential);
 
           await currentUser.delete();
           _currentPasswordController.clear();
@@ -953,158 +1053,5 @@ class _AccountPageState extends State<AccountPage> {
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    bool isGoogle = isGoogleUser();
-    final size = MediaQuery.of(context).size;
-    final isSmallScreen = size.width < 360;
 
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: size.width * 0.04,
-            vertical: size.height * 0.0185,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: EdgeInsets.only(left: size.width * 0.02), // Added slight right shift
-                child: Row(
-                  children: [
-                    IconButton(
-                      icon: Icon(
-                        Icons.arrow_back,
-                        color: Colors.white,
-                        size: size.width * 0.065,
-                      ),
-                      onPressed: () {
-                        Navigator.of(context).pushReplacement(
-                          SlideRightRoute(page: const SettingsPage()),
-                        );
-                      },
-                      splashColor: Colors.transparent,
-                      highlightColor: Colors.transparent,
-                    ),
-                    SizedBox(width: size.width * 0.04),
-                    Text(
-                      'Account Settings',
-                      style: TextStyle(
-                        fontSize: size.width * 0.055,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: size.height * 0.0375),
-              ListTile(
-                leading: Text(
-                  'Email',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: isSmallScreen ? 14 : size.width * 0.042,
-                  ),
-                ),
-                trailing: Container(
-                  width: size.width * 0.525,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Flexible(
-                        child: Text(
-                          email ?? 'Loading...',
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: isSmallScreen ? 14 : size.width * 0.042,
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: size.width * 0.04),
-                      Icon(
-                        Icons.arrow_forward_ios,
-                        color: Colors.white,
-                        size: size.width * 0.055,
-                      ),
-                    ],
-                  ),
-                ),
-                onTap: isGoogle ? null : _showChangeEmailDialog,
-              ),
-              SizedBox(height: size.height * 0.025),
-              if (!isGoogle) ListTile(
-                leading: Text(
-                  'Password',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: isSmallScreen ? 14 : size.width * 0.042,
-                  ),
-                ),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      displayPassword,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: isSmallScreen ? 14 : size.width * 0.042,
-                      ),
-                    ),
-                    SizedBox(width: size.width * 0.04),
-                    Icon(
-                      Icons.arrow_forward_ios,
-                      color: Colors.white,
-                      size: size.width * 0.055,
-                    ),
-                  ],
-                ),
-                onTap: _showChangePasswordDialog,
-              ),
-              SizedBox(height: size.height * 0.025),
-              ListTile(
-                leading: Text(
-                  'Logout',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: isSmallScreen ? 14 : size.width * 0.042,
-                  ),
-                ),
-                trailing: Icon(
-                  Icons.logout,
-                  color: Colors.white,
-                  size: size.width * 0.062,
-                ),
-                onTap: () {
-                  confirmLogout(context);
-                },
-              ),
-              SizedBox(height: size.height * 0.025),
-              ListTile(
-                leading: Text(
-                  'Delete Account',
-                  style: TextStyle(
-                    color: Colors.red,
-                    fontSize: isSmallScreen ? 14 : size.width * 0.042,
-                  ),
-                ),
-                trailing: Icon(
-                  Icons.delete_forever,
-                  color: Colors.red,
-                  size: size.width * 0.07,
-                ),
-                onTap: () {
-                  confirmDeleteAccount(context);
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }

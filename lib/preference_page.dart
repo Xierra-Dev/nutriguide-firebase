@@ -4,200 +4,146 @@ import 'health_data_page.dart';
 import 'goals_settings_page.dart';
 import 'allergies_settings_page.dart';
 
-class SlideRightRoute extends PageRouteBuilder {
-  final Widget page;
-
-  SlideRightRoute({required this.page})
-      : super(
-    pageBuilder: (
-        BuildContext context,
-        Animation<double> primaryAnimation,
-        Animation<double> secondaryAnimation,
-        ) =>
-    page,
-    transitionsBuilder: (
-        BuildContext context,
-        Animation<double> primaryAnimation,
-        Animation<double> secondaryAnimation,
-        Widget child,
-        ) {
-      return SlideTransition(
-        position: Tween<Offset>(
-          begin: const Offset(-1.0, 0.0),
-          end: Offset.zero,
-        ).animate(CurvedAnimation(
-          parent: primaryAnimation,
-          curve: Curves.easeOutQuad,
-        )),
-        child: child,
-      );
-    },
-  );
-}
-
-class SlideLeftRoute extends PageRouteBuilder {
-  final Widget page;
-
-  SlideLeftRoute({required this.page})
-      : super(
-    pageBuilder: (
-        BuildContext context,
-        Animation<double> primaryAnimation,
-        Animation<double> secondaryAnimation,
-        ) =>
-    page,
-    transitionsBuilder: (
-        BuildContext context,
-        Animation<double> primaryAnimation,
-        Animation<double> secondaryAnimation,
-        Widget child,
-        ) {
-      return SlideTransition(
-        position: Tween<Offset>(
-          begin: const Offset(1.0, 0.0),
-          end: Offset.zero,
-        ).animate(CurvedAnimation(
-          parent: primaryAnimation,
-          curve: Curves.easeOutQuad,
-        )),
-        child: child,
-      );
-    },
-  );
-}
-
-class PreferencePage extends StatelessWidget {
+class PreferencePage extends StatefulWidget {
   const PreferencePage({super.key});
 
   @override
+  _PreferencePageState createState() => _PreferencePageState();
+}
+
+class _PreferencePageState extends State<PreferencePage> {
+  @override
   Widget build(BuildContext context) {
-    // Get screen size
-    final size = MediaQuery.of(context).size;
-    final isSmallScreen = size.width < 360;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final textScaleFactor = MediaQuery.of(context).textScaleFactor;
 
-    // Calculate dynamic padding and sizes
-    final horizontalPadding = size.width * 0.025;
-    final verticalPadding = size.height * 0.02;
-    final titleFontSize = isSmallScreen ? 20.0 : size.width * 0.055;
-    final itemFontSize = isSmallScreen ? 16.0 : size.width * 0.045;
-    final itemSpacing = size.height * 0.03;
-    final iconSize = isSmallScreen ? 20.0 : size.width * 0.055;
-
-    return Padding(
-      padding: EdgeInsets.all(horizontalPadding),
-      child: Scaffold(
-        backgroundColor: Colors.black,
-        appBar: PreferredSize(
-          preferredSize: Size.fromHeight(size.height * 0.08),
-          child: AppBar(
-            backgroundColor: Colors.black,
-            title: Text(
-              'Preferences',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: titleFontSize,
-                fontWeight: FontWeight.bold,
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: screenWidth * 0.04,
+                vertical: screenHeight * 0.01,
+              ),
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: Icon(
+                      Icons.arrow_back,
+                      color: Colors.white,
+                      size: screenHeight * 0.03,
+                    ),
+                    onPressed: () {
+                      Navigator.of(context).pushReplacement(
+                        SlideRightRoute(page: const SettingsPage()),
+                      );
+                    },
+                  ),
+                  SizedBox(width: screenWidth * 0.02),
+                  Container(
+                    constraints: BoxConstraints(
+                      maxWidth: screenWidth * 0.375,
+                    ),
+                    child: Text(
+                      'Preferences',
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: screenHeight * 0.03,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-            leading: IconButton(
-              icon: Icon(
-                Icons.arrow_back,
-                color: Colors.white,
-                size: iconSize,
+            Expanded(
+              child: ListView(
+                padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04),
+                children: [
+                  _buildPreferenceListTile(
+                    context: context,
+                    leadingText: 'Health Data',
+                    onTap: () {
+                      Navigator.of(context).push(
+                        SlideLeftRoute(page: const HealthDataPage()),
+                      );
+                    },
+                  ),
+                  _buildDivider(screenHeight),
+                  _buildPreferenceListTile(
+                    context: context,
+                    leadingText: 'Personalized Goals',
+                    onTap: () {
+                      Navigator.of(context).push(
+                        SlideLeftRoute(page: const GoalsSettingsPage()),
+                      );
+                    },
+                  ),
+                  _buildDivider(screenHeight),
+                  _buildPreferenceListTile(
+                    context: context,
+                    leadingText: 'Allergies',
+                    onTap: () {
+                      Navigator.of(context).push(
+                        SlideLeftRoute(page: const AllergiesSettingsPage()),
+                      );
+                    },
+                  ),
+                ],
               ),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  SlideRightRoute(
-                    page: const SettingsPage(),
-                  ),
-                );
-              },
             ),
-          ),
-        ),
-        body: SafeArea(
-          child: Padding(
-            padding: EdgeInsets.only(
-              top: verticalPadding * 0.5,
-              left: horizontalPadding,
-              right: horizontalPadding,
-            ),
-            child: Column(
-              children: [
-                _buildPreferenceItem(
-                  context,
-                  'Health Data',
-                      () => Navigator.push(
-                    context,
-                    SlideLeftRoute(
-                      page: const HealthDataPage(),
-                    ),
-                  ),
-                  itemFontSize,
-                  iconSize,
-                ),
-                SizedBox(height: itemSpacing),
-                _buildPreferenceItem(
-                  context,
-                  'Personalized Goals',
-                      () => Navigator.push(
-                    context,
-                    SlideLeftRoute(
-                      page: const GoalsSettingsPage(),
-                    ),
-                  ),
-                  itemFontSize,
-                  iconSize,
-                ),
-                SizedBox(height: itemSpacing),
-                _buildPreferenceItem(
-                  context,
-                  'Allergies',
-                      () => Navigator.push(
-                    context,
-                    SlideLeftRoute(
-                      page: const AllergiesSettingsPage(),
-                    ),
-                  ),
-                  itemFontSize,
-                  iconSize,
-                ),
-              ],
-            ),
-          ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildPreferenceItem(
-      BuildContext context,
-      String title,
-      VoidCallback onTap,
-      double fontSize,
-      double iconSize,
-      ) {
-    return Column(
-      children: [
-        ListTile(
-          contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-          title: Text(
-            title,
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: fontSize,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          trailing: Icon(
-            Icons.chevron_right,
-            color: Colors.white,
-            size: iconSize,
-          ),
-          onTap: onTap,
+  Widget _buildPreferenceListTile({
+    required BuildContext context,
+    required String leadingText,
+    required VoidCallback onTap,
+  }) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final textScaleFactor = MediaQuery.of(context).textScaleFactor;
+
+    return ListTile(
+      contentPadding: EdgeInsets.symmetric(vertical: screenHeight * 0.01),
+      title: Container(
+        constraints: BoxConstraints(
+          maxWidth: screenWidth * 0.375,
         ),
-      ],
+        child: Text(
+          leadingText,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: screenHeight * 0.02 * textScaleFactor,
+          ),
+        ),
+      ),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.arrow_forward_ios,
+            color: Colors.white,
+            size: screenHeight * 0.02,
+          ),
+        ],
+      ),
+      onTap: onTap,
+    );
+  }
+
+  Widget _buildDivider(double screenHeight) {
+    return Divider(
+      color: Colors.white24,
+      height: screenHeight * 0.001,
     );
   }
 }

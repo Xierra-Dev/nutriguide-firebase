@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nutriguide/assistant_page.dart';
 import 'models/recipe.dart';
 import 'services/themealdb_service.dart';
 import 'services/firestore_service.dart';
@@ -813,6 +814,18 @@ class _HomePageState extends State<HomePage> {
       backgroundColor: Colors.black,
       appBar: _buildAppBar(),
       body: _buildBody(),
+      floatingActionButton: _currentIndex == 1
+          ? null
+          : FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            SlideUpRoute(page: const ChatPage()),
+          );
+        },
+        backgroundColor: Colors.deepOrange,
+        child: const Icon(Icons.add),
+      ),
       // Remove floating action button
       bottomNavigationBar: _buildBottomNavigationBar(),
     );
