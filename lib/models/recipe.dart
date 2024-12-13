@@ -42,7 +42,7 @@ class Recipe {
     for (int i = 1; i <= 20; i++) {
       String? ingredient = json['strIngredient$i'];
       String? measure = json['strMeasure$i'];
-      
+
       if (ingredient != null && ingredient.trim().isNotEmpty) {
         ingredients.add(ingredient.trim());
         measurements.add(measure?.trim() ?? '');
@@ -109,7 +109,8 @@ class Recipe {
     };
   }
 
-  static double _calculateHealthScore(NutritionInfo nutritionInfo, List<String> ingredients) {
+  static double _calculateHealthScore(
+      NutritionInfo nutritionInfo, List<String> ingredients) {
     double score = 5.0; // Start with a base score of 5
 
     // Adjust score based on nutrition info
@@ -119,9 +120,19 @@ class Recipe {
     score -= (nutritionInfo.sugars / nutritionInfo.calories) * 5;
 
     // Bonus for vegetables and fruits
-    final healthyIngredients = ['vegetable', 'fruit', 'leafy', 'berry', 'nuts', 'seed', 'grain', 'legume'];
+    final healthyIngredients = [
+      'vegetable',
+      'fruit',
+      'leafy',
+      'berry',
+      'nuts',
+      'seed',
+      'grain',
+      'legume'
+    ];
     for (var ingredient in ingredients) {
-      if (healthyIngredients.any((healthy) => ingredient.toLowerCase().contains(healthy))) {
+      if (healthyIngredients
+          .any((healthy) => ingredient.toLowerCase().contains(healthy))) {
         score += 0.5;
       }
     }
@@ -201,4 +212,3 @@ class NutritionInfo {
     );
   }
 }
-
