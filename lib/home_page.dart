@@ -820,7 +820,7 @@ class _HomePageState extends State<HomePage> {
         onPressed: () {
           Navigator.push(
             context,
-            SlideUpRoute(page: const ChatPage()),
+            SlideUpRoute(page: const AssistantPage()),
           );
         },
         backgroundColor: Colors.deepOrange,

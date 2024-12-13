@@ -1,160 +1,127 @@
-import 'package:chat_gpt_sdk/chat_gpt_sdk.dart';
+import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:dash_chat_2/dash_chat_2.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gemini/flutter_gemini.dart';
+import 'package:image_picker/image_picker.dart';
 
-class ChatPage extends StatefulWidget {
-  const ChatPage({super.key});
+class AssistantPage extends StatefulWidget {
+  const AssistantPage({super.key});
 
   @override
-  State<ChatPage> createState() => _ChatPageState();
+  State<AssistantPage> createState() => _AssistantPageState();
 }
 
-class _ChatPageState extends State<ChatPage> {
-  late final OpenAI _openAI;
-  bool _isInitialized = false;
+class _AssistantPageState extends State<AssistantPage> {
+  final Gemini gemini = Gemini.instance;
 
-  final ChatUser _user = ChatUser(
-    id: '1',
-    firstName: 'User',
+  List<ChatMessage> messages = [];
+
+  ChatUser currentUser = ChatUser(id: "0", firstName: "User");
+  ChatUser geminiUser = ChatUser(
+    id: "1",
+    firstName: "Gemini",
+    profileImage:
+    "https://seeklogo.com/images/G/google-gemini-logo-A5787B2669-seeklogo.com.png",
   );
-
-  final ChatUser _gptChatUser = ChatUser(
-    id: '2',
-    firstName: 'Assistant',
-  );
-
-  List<ChatMessage> _messages = <ChatMessage>[];
-  List<ChatUser> _typingUsers = <ChatUser>[];
-
-  @override
-  void initState() {
-    super.initState();
-    _initializeOpenAI();
-  }
-
-  void _initializeOpenAI() {
-    try {
-      _openAI = OpenAI.instance.build(
-        token: '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', // Replace with your actual OpenAI API key
-        baseOption: HttpSetup(
-          receiveTimeout: const Duration(seconds: 60),
-          connectTimeout: const Duration(seconds: 60),
-        ),
-        enableLog: true,
-      );
-      _isInitialized = true;
-      debugPrint('OpenAI initialized successfully');
-    } catch (e) {
-      debugPrint('Error initializing OpenAI: $e');
-      _showError('Failed to initialize chat. Please check your API key and try again.');
-    }
-  }
-
-  void _showError(String message) {
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color.fromRGBO(0, 166, 126, 1),
+        centerTitle: true,
         title: const Text(
-          'GPT Chat',
-          style: TextStyle(color: Colors.white),
+          "Gemini Chat",
         ),
       ),
-      body: DashChat(
-        currentUser: _user,
-        messageOptions: const MessageOptions(
-          currentUserContainerColor: Colors.black,
-          containerColor: Color.fromRGBO(0, 166, 126, 1),
-          textColor: Colors.white,
-        ),
-        onSend: (ChatMessage m) {
-          getChatResponse(m);
-        },
-        messages: _messages,
-        typingUsers: _typingUsers,
-      ),
+      body: _buildUI(),
     );
   }
 
-  Future<void> getChatResponse(ChatMessage m) async {
-    if (!_isInitialized) {
-      _showError('Chat is not initialized. Please check your API key and try again.');
-      return;
-    }
+  Widget _buildUI() {
+    return DashChat(
+      inputOptions: InputOptions(trailing: [
+        IconButton(
+          onPressed: _sendMediaMessage,
+          icon: const Icon(
+            Icons.image,
+          ),
+        )
+      ]),
+      currentUser: currentUser,
+      onSend: _sendMessage,
+      messages: messages,
+    );
+  }
 
+  void _sendMessage(ChatMessage chatMessage) {
     setState(() {
-      _messages.insert(0, m);
-      _typingUsers.add(_gptChatUser);
+      messages = [chatMessage, ...messages];
     });
-
     try {
-      debugPrint('Preparing chat completion request...');
-      final List<Map<String, String>> messagesHistory = _messages.reversed.map((msg) {
-        return {
-          'role': msg.user.id == _user.id ? 'user' : 'assistant',
-          'content': msg.text,
-        };
-      }).toList();
-
-      messagesHistory.insert(0, {
-        'role': 'system',
-        'content': 'You are a helpful assistant.',
-      });
-
-      final request = ChatCompleteText(
-        model: Gpt4oMiniChatModel(),
-        messages: messagesHistory,
-        maxToken: 2000,
-        temperature: 0.7,
-      );
-
-      debugPrint('Sending request to OpenAI...');
-      final response = await _openAI.onChatCompletion(request: request);
-      debugPrint('Received response from OpenAI');
-
-      if (response != null && response.choices.isNotEmpty) {
-        final assistantMessage = response.choices.first.message;
-        if (assistantMessage != null && assistantMessage.content.isNotEmpty) {
-          debugPrint('Assistant response: ${assistantMessage.content}');
-          setState(() {
-            _messages.insert(
-              0,
-              ChatMessage(
-                user: _gptChatUser,
-                createdAt: DateTime.now(),
-                text: assistantMessage.content,
-              ),
-            );
-          });
+      String question = chatMessage.text;
+      List<Uint8List>? images;
+      if (chatMessage.medias?.isNotEmpty ?? false) {
+        images = [
+          File(chatMessage.medias!.first.url).readAsBytesSync(),
+        ];
+      }
+      gemini
+          .streamGenerateContent(
+        question,
+        images: images,
+      )
+          .listen((event) {
+        ChatMessage? lastMessage = messages.firstOrNull;
+        if (lastMessage != null && lastMessage.user == geminiUser) {
+          lastMessage = messages.removeAt(0);
+          String response = event.content?.parts?.fold(
+              "", (previous, current) => "$previous ${current.text}") ??
+              "";
+          lastMessage.text += response;
+          setState(
+                () {
+              messages = [lastMessage!, ...messages];
+            },
+          );
         } else {
-          debugPrint('Error: Assistant message is empty');
-          _showError('Received empty response from assistant. Please try again.');
+          String response = event.content?.parts?.fold(
+              "", (previous, current) => "$previous ${current.text}") ??
+              "";
+          ChatMessage message = ChatMessage(
+            user: geminiUser,
+            createdAt: DateTime.now(),
+            text: response,
+          );
+          setState(() {
+            messages = [message, ...messages];
+          });
         }
-      } else {
-        debugPrint('Error: No response from OpenAI');
-        _showError('No response received from assistant. Please check your internet connection and try again.');
-      }
+      });
     } catch (e) {
-      debugPrint('Error during chat completion: $e');
-      _showError('Failed to get response from assistant. Error: $e');
-    } finally {
-      if (mounted) {
-        setState(() {
-          _typingUsers.remove(_gptChatUser);
-        });
-      }
+      print(e);
+    }
+  }
+
+  void _sendMediaMessage() async {
+    ImagePicker picker = ImagePicker();
+    XFile? file = await picker.pickImage(
+      source: ImageSource.gallery,
+    );
+    if (file != null) {
+      ChatMessage chatMessage = ChatMessage(
+        user: currentUser,
+        createdAt: DateTime.now(),
+        text: "Describe this picture?",
+        medias: [
+          ChatMedia(
+            url: file.path,
+            fileName: "",
+            type: MediaType.image,
+          )
+        ],
+      );
+      _sendMessage(chatMessage);
     }
   }
 }
-
