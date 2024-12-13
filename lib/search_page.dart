@@ -733,16 +733,15 @@ class _SearchPageState extends State<SearchPage> {
         Padding(
           padding: const EdgeInsets.all(16.0),
           child: Text(
-            '',
+            '', // Judul halaman (belum ada konten)
             style: TextStyle(
               color: Colors.deepOrange,
-              fontSize: MediaQuery.of(context).size.width *
-                  0.06, // Adjust font size based on screen width
+              fontSize: MediaQuery.of(context).size.width * 0.06, // Responsif
               fontWeight: FontWeight.bold,
             ),
           ),
         ),
-        // Only show the main search bar when not searching
+        // Hanya tampilkan pencarian utama saat tidak mencari
         if (!_isSearching)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -783,20 +782,16 @@ class _SearchPageState extends State<SearchPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                    child: Builder(
-                      builder: (BuildContext context) {
-                        return Text(
-                          'Popular Ingredients',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: MediaQuery.of(context).size.width *
-                                0.05, // Adjusting font size based on screen width
-                            fontWeight: FontWeight.bold,
-                          ),
-                        );
-                      },
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0, vertical: 8.0),
+                    child: Text(
+                      'Popular Ingredients',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: MediaQuery.of(context).size.width *
+                            0.05, // Responsif
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                   SizedBox(
@@ -834,15 +829,18 @@ class _SearchPageState extends State<SearchPage> {
                               ),
                               alignment: Alignment.bottomCenter,
                               padding: const EdgeInsets.all(8),
-                              child: Text(ingredient['name']!.toUpperCase(),
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: MediaQuery.of(context)
-                                            .size
-                                            .width *
-                                        0.04, // Menyesuaikan fontSize dengan lebar layar
-                                  )),
+                              child: Text(
+                                ingredient['name']!.toUpperCase(),
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize:
+                                      MediaQuery.of(context).size.width < 360
+                                          ? 12 // Ukuran untuk perangkat kecil
+                                          : MediaQuery.of(context).size.width *
+                                              0.035, // Responsif
+                                ),
+                              ),
                             ),
                           ),
                         );
@@ -862,8 +860,8 @@ class _SearchPageState extends State<SearchPage> {
                   'Recipes you may like',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: MediaQuery.of(context).size.width *
-                        0.05, // Adjust font size based on screen width
+                    fontSize:
+                        MediaQuery.of(context).size.width * 0.05, // Responsif
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -885,7 +883,7 @@ class _SearchPageState extends State<SearchPage> {
                   constraints: const BoxConstraints(
                     // Mengatur ukuran minimum popup
                     minWidth: 180, // Lebar minimum
-                    maxWidth: 180, // Lebar maximum
+                    maxWidth: 180, // Lebar maksimum
                   ),
                   child: Row(
                     children: [
@@ -903,9 +901,7 @@ class _SearchPageState extends State<SearchPage> {
                       height: 50, // Menambah tinggi setiap item
                       child: Text(
                         'Newest',
-                        style: TextStyle(
-                          color: Colors.white,
-                        ),
+                        style: TextStyle(color: Colors.white),
                       ),
                     ),
                     const PopupMenuItem<String>(
