@@ -93,7 +93,8 @@ class _AddRecipePageState extends State<AddRecipePage> {
         final recipe = Recipe(
           id: DateTime.now().millisecondsSinceEpoch.toString(),
           title: title,
-          image: imageUrl ?? 'https://res.cloudinary.com/dwbii43dk/image/upload/default_recipe.jpg', // Sesuaikan dengan default image di Cloudinary Anda
+          image: imageUrl ??
+              'https://res.cloudinary.com/dwbii43dk/image/upload/default_recipe.jpg', // Sesuaikan dengan default image di Cloudinary Anda
           category: 'My Recipe',
           area: 'My Recipe',
           instructions: instructions.join('\n'),
@@ -134,8 +135,9 @@ class _AddRecipePageState extends State<AddRecipePage> {
 
   Future<Map<String, dynamic>> _uploadToCloudinary(File imageFile) async {
     try {
-      final url = Uri.parse('https://api.cloudinary.com/v1_1/dwbii43dk/image/upload');
-      
+      final url =
+          Uri.parse('https://api.cloudinary.com/v1_1/dwbii43dk/image/upload');
+
       // Create multipart request
       final request = http.MultipartRequest('POST', url)
         ..fields['upload_preset'] = 'impalkeun'
@@ -148,16 +150,19 @@ class _AddRecipePageState extends State<AddRecipePage> {
       final response = await request.send();
       final responseData = await response.stream.toBytes();
       final responseString = String.fromCharCodes(responseData);
-      
-      print('Cloudinary response status: ${response.statusCode}'); // Debug print
+
+      print(
+          'Cloudinary response status: ${response.statusCode}'); // Debug print
       print('Cloudinary response body: $responseString'); // Debug print
 
       if (response.statusCode == 200) {
         final parsedResponse = json.decode(responseString);
-        print('Upload successful, URL: ${parsedResponse['secure_url']}'); // Debug print
+        print(
+            'Upload successful, URL: ${parsedResponse['secure_url']}'); // Debug print
         return parsedResponse;
       } else {
-        throw Exception('Failed to upload image. Status: ${response.statusCode}, Body: $responseString');
+        throw Exception(
+            'Failed to upload image. Status: ${response.statusCode}, Body: $responseString');
       }
     } catch (e) {
       print('Error uploading to Cloudinary: $e');
@@ -282,7 +287,8 @@ class _AddRecipePageState extends State<AddRecipePage> {
             TextFormField(
               maxLines: 3,
               decoration: InputDecoration(
-                hintText: 'Introduce your recipe, add notes, cooking tips, serving suggestions, etc...',
+                hintText:
+                    'Introduce your recipe, add notes, cooking tips, serving suggestions, etc...',
                 hintStyle: TextStyle(color: Colors.grey[600]),
                 filled: true,
                 fillColor: Colors.grey[900],
@@ -546,7 +552,8 @@ class _CookTimeDialogState extends State<_CookTimeDialog> {
             children: [
               const SizedBox(height: 16),
               Container(
-                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
                 decoration: BoxDecoration(
                   color: Colors.grey[800],
                   borderRadius: BorderRadius.circular(12),
@@ -611,7 +618,8 @@ class _CookTimeDialogState extends State<_CookTimeDialog> {
                                 padding: const EdgeInsets.only(
                                   left: 10,
                                 ),
-                                child: Positioned(// Center vertically
+                                child: Positioned(
+                                  // Center vertically
                                   child: Text(
                                     'minutes',
                                     style: TextStyle(
@@ -621,7 +629,6 @@ class _CookTimeDialogState extends State<_CookTimeDialog> {
                                   ),
                                 ),
                               ),
-
                             ],
                           ),
                         ],
@@ -653,7 +660,8 @@ class _CookTimeDialogState extends State<_CookTimeDialog> {
               onPressed: () => Navigator.pop(context),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.grey[700],
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(50),
                 ),
@@ -674,7 +682,8 @@ class _CookTimeDialogState extends State<_CookTimeDialog> {
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.deepOrange,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(50),
                 ),
@@ -695,4 +704,3 @@ class _CookTimeDialogState extends State<_CookTimeDialog> {
     );
   }
 }
-

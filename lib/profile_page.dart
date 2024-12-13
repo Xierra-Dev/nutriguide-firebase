@@ -4,7 +4,6 @@ import 'settings_page.dart';
 import 'services/auth_service.dart';
 import 'services/firestore_service.dart';
 import 'profile_edit_page.dart';
-import 'add_recipe_page.dart';
 import 'models/recipe.dart';
 import 'models/nutrition_goals.dart';
 import 'recipe_detail_page.dart';
@@ -90,7 +89,6 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
   bool isLoading = true;
   bool isLoadingActivity = true; 
   List<Recipe> activityRecipes = []; 
-  List<Recipe> createdRecipes = [];
   bool isLoadingCreated = true;
 
   final Color selectedColor = const Color.fromARGB(255, 240, 182, 75);
@@ -106,9 +104,8 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 2, vsync: this);
     _loadUserData();
-    _loadCreatedRecipes();
     _loadDailyNutritionData();
     _loadActivityData();
     _loadNutritionGoals();
@@ -368,7 +365,6 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
             tabs: const [
               Tab(text: 'Insights'),
               Tab(text: 'Activity'),
-              Tab(text: 'Created'),
             ],
           ),
           const SizedBox(height: 10,),
@@ -378,7 +374,6 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
               children: [
                 _buildInsightsTab(),
                 _buildActivityTab(),
-                _buildCreatedTab(),
               ],
             ),
           ),
@@ -479,23 +474,6 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
     );
   }
 
-  Future<void> _loadCreatedRecipes() async {
-    print('Loading created recipes...'); // Debug print
-    try {
-      final recipes = await _firestoreService.getUserCreatedRecipes();
-      print('Loaded ${recipes.length} recipes'); // Debug print
-      setState(() {
-        createdRecipes = recipes;
-        isLoadingCreated = false;
-      });
-    } catch (e) {
-      print('Error loading created recipes: $e');
-      setState(() {
-        isLoadingCreated = false;
-      });
-    }
-  }
-
   Widget _buildNutrientIndicator(String label, Color color) {
     return Row(
       children: [
@@ -547,169 +525,6 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
     );
   }
 
-  Widget _buildCreatedTab() {
-    if (isLoadingCreated) {
-      return const Center(child: CircularProgressIndicator(color: Colors.deepOrange));
-    }
-
-    return RefreshIndicator(
-      onRefresh: _loadCreatedRecipes,
-      color: Colors.deepOrange,
-      child: createdRecipes.isEmpty
-          ? ListView(
-              children: [
-                SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.465,
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Image.asset(
-                          'assets/images/no-activity.png',
-                          width: 125,
-                          height: 125,
-                          fit: BoxFit.contain,
-                        ),
-                        const SizedBox(height: 16),
-                        const Text(
-                          'No recipes created yet',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 17,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 13),
-                        OutlinedButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => const AddRecipePage()),
-                            ).then((_) => _loadCreatedRecipes()); // Refresh after creating new recipe
-                          },
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(50),
-                            ),
-                          ),
-                          child: const Text('Create Recipe'),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            )
-          : ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: createdRecipes.length,
-              itemBuilder: (context, index) {
-                final recipe = createdRecipes[index];
-                return Card(
-                  color: Colors.grey[900],
-                  margin: const EdgeInsets.only(bottom: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: ListTile(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => RecipeDetailPage(recipe: recipe),
-                        ),
-                      ).then((_) => _loadCreatedRecipes()); // Refresh after returning
-                    },
-                    contentPadding: const EdgeInsets.all(16),
-                    leading: ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.network(
-                        recipe.image,
-                        width: 60,
-                        height: 60,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    title: Text(
-                      recipe.title,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    subtitle: Text(
-                      '${recipe.preparationTime} min · ${recipe.category}',
-                      style: TextStyle(color: Colors.grey[400]),
-                    ),
-                    trailing: PopupMenuButton<String>(
-                      icon: const Icon(Icons.more_vert, color: Colors.white),
-                      onSelected: (value) async {
-                        if (value == 'edit') {
-                          // Navigate to edit page
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => EditRecipePage(recipe: recipe),
-                            ),
-                          ).then((_) => _loadCreatedRecipes());
-                        } else if (value == 'delete') {
-                          // Show delete confirmation
-                          final confirm = await showDialog<bool>(
-                            context: context,
-                            builder: (context) => AlertDialog(
-                              backgroundColor: Colors.grey[900],
-                              title: const Text('Delete Recipe?', style: TextStyle(color: Colors.white)),
-                              content: const Text('This action cannot be undone.', style: TextStyle(color: Colors.white70)),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context, false),
-                                  child: const Text('Cancel'),
-                                ),
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context, true),
-                                  child: const Text('Delete', style: TextStyle(color: Colors.red)),
-                                ),
-                              ],
-                            ),
-                          );
-
-                          if (confirm == true) {
-                            await _firestoreService.deleteUserRecipe(recipe.id);
-                            _loadCreatedRecipes();
-                          }
-                        }
-                      },
-                      itemBuilder: (context) => [
-                        const PopupMenuItem(
-                          value: 'edit',
-                          child: Row(
-                            children: [
-                              Icon(Icons.edit, color: Colors.black),
-                              SizedBox(width: 8),
-                              Text('Edit'),
-                            ],
-                          ),
-                        ),
-                        const PopupMenuItem(
-                          value: 'delete',
-                          child: Row(
-                            children: [
-                              Icon(Icons.delete, color: Colors.red),
-                              SizedBox(width: 8),
-                              Text('Delete', style: TextStyle(color: Colors.red)),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-    );
-  }
-
     Widget _buildActivityTab() {
     if (isLoadingActivity) {
       return const Center(child: CircularProgressIndicator(color: Colors.deepOrange));
@@ -718,7 +533,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
     return RefreshIndicator(
       onRefresh: _loadActivityData,
       color: Colors.deepOrange,
-      child: activityRecipes.isEmpty && createdRecipes.isEmpty
+      child: activityRecipes.isEmpty
           ? ListView(
               children: [
                 SizedBox(
@@ -750,12 +565,9 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
             )
           : ListView.builder(
               padding: const EdgeInsets.all(16),
-              itemCount: activityRecipes.length + createdRecipes.length,
+              itemCount: activityRecipes.length,
               itemBuilder: (context, index) {
-                bool isMadeRecipe = index < activityRecipes.length;
-                final recipe = isMadeRecipe 
-                    ? activityRecipes[index]
-                    : createdRecipes[index - activityRecipes.length];
+                final recipe = activityRecipes[index];
                 
                 return Container(
                   margin: const EdgeInsets.only(bottom: 16),
@@ -825,9 +637,9 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                                   color: Colors.black.withOpacity(0.7),
                                   borderRadius: BorderRadius.circular(4),
                                 ),
-                                child: Text(
-                                  isMadeRecipe ? 'Made it ✨' : 'Created ✍️',
-                                  style: const TextStyle(
+                                child: const Text(
+                                  'Made it ✨',
+                                  style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
@@ -854,7 +666,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              recipe.category ?? 'My Recipe',
+                              recipe.category ?? 'Recipe',
                               style: TextStyle(
                                 color: Colors.grey[400],
                                 fontSize: 14,
@@ -863,55 +675,14 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                           ],
                         ),
                       ),
-                      // Action Buttons
+                      // Action Button
                       Padding(
                         padding: const EdgeInsets.only(right: 12, bottom: 12),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
-                            if (!isMadeRecipe) // Only show edit/delete for created recipes
-                              IconButton(
-                                icon: const Icon(Icons.edit, color: Colors.white),
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => EditRecipePage(recipe: recipe),
-                                    ),
-                                  ).then((_) => _loadCreatedRecipes());
-                                },
-                              ),
-                            if (!isMadeRecipe)
-                              IconButton(
-                                icon: const Icon(Icons.delete, color: Colors.white),
-                                onPressed: () async {
-                                  final confirm = await showDialog<bool>(
-                                    context: context,
-                                    builder: (context) => AlertDialog(
-                                      backgroundColor: Colors.grey[900],
-                                      title: const Text('Delete Recipe?', style: TextStyle(color: Colors.white)),
-                                      content: const Text('This action cannot be undone.', style: TextStyle(color: Colors.white70)),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () => Navigator.pop(context, false),
-                                          child: const Text('Cancel'),
-                                        ),
-                                        TextButton(
-                                          onPressed: () => Navigator.pop(context, true),
-                                          child: const Text('Delete', style: TextStyle(color: Colors.red)),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-
-                                  if (confirm == true) {
-                                    await _firestoreService.deleteUserRecipe(recipe.id);
-                                    _loadCreatedRecipes();
-                                  }
-                                },
-                              ),
                             IconButton(
-                              icon: Icon(
+                              icon: const Icon(
                                 Icons.bookmark_border,
                                 color: Colors.white,
                               ),
@@ -920,7 +691,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                                   await _firestoreService.saveRecipe(recipe);
                                   if (mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
+                                      const SnackBar(
                                         content: Text('Recipe saved to bookmarks'),
                                         backgroundColor: Colors.green,
                                       ),
@@ -929,7 +700,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                                 } catch (e) {
                                   if (mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
+                                      const SnackBar(
                                         content: Text('Failed to save recipe'),
                                         backgroundColor: Colors.red,
                                       ),
