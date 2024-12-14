@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:nutriguide/assistant_page.dart';
 import 'models/recipe.dart';
 import 'services/themealdb_service.dart';
 import 'services/firestore_service.dart';
@@ -252,7 +251,7 @@ class _HomePageState extends State<HomePage> {
                     'Select Meal Type',
                     style: TextStyle(
                       fontSize: MediaQuery.of(context).size.width *
-                          0.05, // Adjust font size based on screen width
+                          0.05, // Adjust the multiplier as needed
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
@@ -274,7 +273,7 @@ class _HomePageState extends State<HomePage> {
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: MediaQuery.of(context).size.width *
-                                0.05, // Adjust font size based on screen width
+                                0.05, // Adjust the multiplier as needed
                           ),
                         ),
                         onTap: () {
@@ -328,7 +327,7 @@ class _HomePageState extends State<HomePage> {
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.grey[900], // Background for dark mode
+      backgroundColor: Colors.grey[900], // Background untuk dark mode
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(16),
@@ -343,19 +342,15 @@ class _HomePageState extends State<HomePage> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Header with week navigation
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      double textSize = constraints.maxWidth * 0.05;
-                      return Text(
-                        'Choose Day',
-                        style: TextStyle(
-                          fontSize: textSize,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      );
-                    },
+                  // Header dengan navigasi antar minggu
+                  Text(
+                    'Choose Day',
+                    style: TextStyle(
+                      fontSize: MediaQuery.of(context).size.width *
+                          0.05, // Adjust the multiplier as needed for responsiveness
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
 
                   const SizedBox(height: 16),
@@ -364,7 +359,7 @@ class _HomePageState extends State<HomePage> {
                     children: [
                       IconButton(
                         onPressed: () {
-                          // Move to the previous week
+                          // Pindah ke minggu sebelumnya
                           setDialogState(() {
                             _selectedDate =
                                 _selectedDate.subtract(const Duration(days: 7));
@@ -376,23 +371,20 @@ class _HomePageState extends State<HomePage> {
                         ),
                         color: Colors.white,
                       ),
-                      LayoutBuilder(
-                        builder: (context, constraints) {
-                          double textSize = constraints.maxWidth * 0.05;
-                          return Text(
-                            '${DateFormat('MMM dd').format(_selectedDate)} - '
-                            '${DateFormat('MMM dd').format(_selectedDate.add(const Duration(days: 6)))}',
-                            style: TextStyle(
-                              fontSize: textSize,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          );
-                        },
+                      Text(
+                        // Menampilkan rentang tanggal minggu
+                        '${DateFormat('MMM dd').format(_selectedDate)} - '
+                        '${DateFormat('MMM dd').format(_selectedDate.add(const Duration(days: 6)))}',
+                        style: TextStyle(
+                          fontSize: MediaQuery.of(context).size.width *
+                              0.05, // Adjusting the font size based on screen width
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
                       IconButton(
                         onPressed: () {
-                          // Move to the next week
+                          // Pindah ke minggu berikutnya
                           setDialogState(() {
                             _selectedDate =
                                 _selectedDate.add(const Duration(days: 7));
@@ -425,19 +417,15 @@ class _HomePageState extends State<HomePage> {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              LayoutBuilder(
-                                builder: (context, constraints) {
-                                  double textSize = constraints.maxWidth * 0.05;
-                                  return Text(
-                                    _selectedMeal.isEmpty
-                                        ? 'Select Meal'
-                                        : _selectedMeal,
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: textSize,
-                                    ),
-                                  );
-                                },
+                              Text(
+                                _selectedMeal.isEmpty
+                                    ? 'Select Meal'
+                                    : _selectedMeal,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: MediaQuery.of(context).size.width *
+                                      0.05, // Adjust font size based on screen width
+                                ),
                               ),
                               const SizedBox(width: 8),
                               const Icon(
@@ -451,28 +439,17 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                   const SizedBox(height: 15),
-                  // Day selection using ChoiceChip
+                  // Pilihan hari menggunakan ChoiceChip (dimulai dari Sunday)
                   Wrap(
                     spacing: 8,
                     children: [
                       for (int i = 0; i < 7; i++)
                         ChoiceChip(
-                          label: LayoutBuilder(
-                            builder: (context, constraints) {
-                              double textSize = constraints.maxWidth * 0.05;
-                              return Text(
-                                DateFormat('EEE').format(
-                                  _selectedDate.add(Duration(
-                                      days: i - _selectedDate.weekday % 7)),
-                                ), // Display day starting from Sunday
-                                style: TextStyle(
-                                  fontSize: textSize,
-                                  color: _daysSelected[i]
-                                      ? Colors.white
-                                      : Colors.grey,
-                                ),
-                              );
-                            },
+                          label: Text(
+                            DateFormat('EEE').format(
+                              _selectedDate.add(Duration(
+                                  days: i - _selectedDate.weekday % 7)),
+                            ), // Menampilkan hari dimulai dari Sunday
                           ),
                           selected: _daysSelected[i],
                           onSelected: (bool selected) {
@@ -482,11 +459,15 @@ class _HomePageState extends State<HomePage> {
                           },
                           selectedColor: Colors.blue,
                           backgroundColor: Colors.grey[800],
+                          labelStyle: TextStyle(
+                            color:
+                                _daysSelected[i] ? Colors.white : Colors.grey,
+                          ),
                         ),
                     ],
                   ),
                   const SizedBox(height: 16),
-                  // Action buttons
+                  // Tombol aksi
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
@@ -500,14 +481,14 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
                       ElevatedButton(
+                        // Inside dialog's ElevatedButton onPressed
                         onPressed: () {
                           if (_selectedMeal.isEmpty ||
                               !_daysSelected.contains(true)) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content: Text(
-                                    'Please select at least one day and a meal type!'),
-                              ),
+                                  content: Text(
+                                      'Please select at least one day and a meal type!')),
                             );
                             return;
                           }
@@ -517,17 +498,13 @@ class _HomePageState extends State<HomePage> {
                         style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.deepOrange,
                             foregroundColor: Colors.white),
-                        child: LayoutBuilder(
-                          builder: (context, constraints) {
-                            double textSize = constraints.maxWidth * 0.04;
-                            return Text(
-                              'Done',
-                              style: TextStyle(
-                                fontSize: textSize,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            );
-                          },
+                        child: Text(
+                          'Done',
+                          style: TextStyle(
+                            fontSize: MediaQuery.of(context).size.width *
+                                0.04, // Adjust font size based on screen width
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ],
@@ -587,10 +564,6 @@ class _HomePageState extends State<HomePage> {
       }
 
       if (mounted) {
-        double screenWidth = MediaQuery.of(context).size.width;
-        double fontSize =
-            screenWidth * 0.035; // Adjust font size based on screen width
-
         if (successfullyPlannedDates.isNotEmpty) {
           // Tampilkan SnackBar untuk tanggal yang berhasil direncanakan
           ScaffoldMessenger.of(context).showSnackBar(
@@ -600,9 +573,7 @@ class _HomePageState extends State<HomePage> {
                   Icon(Icons.add_task_rounded, color: Colors.white),
                   SizedBox(width: 8),
                   Text(
-                    'Recipe planned for ${successfullyPlannedDates.length} day(s)',
-                    style: TextStyle(fontSize: fontSize), // Dynamic font size
-                  ),
+                      'Recipe planned for ${successfullyPlannedDates.length} day(s)'),
                 ],
               ),
               backgroundColor: Colors.green,
@@ -618,8 +589,11 @@ class _HomePageState extends State<HomePage> {
                   SizedBox(width: 8),
                   Text(
                     'No new plans were added. All selected plans already exist.',
-                    style: TextStyle(fontSize: fontSize), // Dynamic font size
-                  ),
+                    style: TextStyle(
+                      fontSize: MediaQuery.of(context).size.width *
+                          0.035, // Adjust font size based on screen width
+                    ),
+                  )
                 ],
               ),
               backgroundColor: Colors.blue,
@@ -814,18 +788,6 @@ class _HomePageState extends State<HomePage> {
       backgroundColor: Colors.black,
       appBar: _buildAppBar(),
       body: _buildBody(),
-      floatingActionButton: _currentIndex == 1
-          ? null
-          : FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            SlideUpRoute(page: const AssistantPage()),
-          );
-        },
-        backgroundColor: Colors.deepOrange,
-        child: const Icon(Icons.add),
-      ),
       // Remove floating action button
       bottomNavigationBar: _buildBottomNavigationBar(),
     );
@@ -848,12 +810,13 @@ class _HomePageState extends State<HomePage> {
             width: 33.5,
             height: 33.5,
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 10), // Add some spacing between logo and text
           Text(
             'NutriGuide',
             style: TextStyle(
               color: Colors.white,
-              fontSize: MediaQuery.of(context).size.width * 0.06,
+              fontSize: MediaQuery.of(context).size.width *
+                  0.06, // Adjust font size based on screen width
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -930,7 +893,8 @@ class _HomePageState extends State<HomePage> {
                 title,
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: MediaQuery.of(context).size.width * 0.05,
+                  fontSize: MediaQuery.of(context).size.width *
+                      0.05, // Responsive font size based on screen width
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -971,7 +935,6 @@ class _HomePageState extends State<HomePage> {
                   ),
                   child: Stack(
                     children: [
-                      // Gradient Overlay
                       Container(
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(12),
@@ -984,17 +947,65 @@ class _HomePageState extends State<HomePage> {
                             ],
                           ),
                         ),
+                        padding: const EdgeInsets.all(12),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              recipe.title,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: MediaQuery.of(context).size.width *
+                                    0.04, // Adjust font size responsively based on screen width
+                                fontWeight: FontWeight.bold,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                const Icon(Icons.timer,
+                                    color: Colors.white, size: 16),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '${recipe.preparationTime} min',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: MediaQuery.of(context)
+                                            .size
+                                            .width *
+                                        0.03, // Adjust font size responsively based on screen width
+                                  ),
+                                ),
+                                const Spacer(),
+                                Icon(Icons.favorite,
+                                    color: _getHealthScoreColor(
+                                        recipe.healthScore),
+                                    size: 16),
+                                const SizedBox(width: 4),
+                                Text(
+                                  recipe.healthScore.toStringAsFixed(1),
+                                  style: TextStyle(
+                                    color: _getHealthScoreColor(
+                                        recipe.healthScore),
+                                    fontSize: MediaQuery.of(context)
+                                            .size
+                                            .width *
+                                        0.03, // Adjust font size responsively based on screen width
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
-
-                      // Top Area Buttons
-                      Positioned(
-                        top: 8,
-                        left: 8,
-                        right: 8,
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            // Area Tag
                             Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 8,
@@ -1008,91 +1019,125 @@ class _HomePageState extends State<HomePage> {
                                 recipe.area ?? 'International',
                                 style: TextStyle(
                                   color: Colors.white,
-                                  fontSize:
-                                      MediaQuery.of(context).size.width * 0.03,
+                                  fontSize: MediaQuery.of(context).size.width *
+                                      0.03, // Adjust font size responsively based on screen width
                                 ),
                               ),
                             ),
-
-                            // More Options Button with Improved Dropdown
-                            _buildRecipeOptionsMenu(recipe),
-                          ],
-                        ),
-                      ),
-
-                      // Bottom Content
-                      Positioned(
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        child: Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.only(
-                              bottomLeft: Radius.circular(12),
-                              bottomRight: Radius.circular(12),
-                            ),
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [
-                                Colors.transparent,
-                                Colors.black.withOpacity(0.7),
-                              ],
-                            ),
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                recipe.title,
-                                style: TextStyle(
+                            Container(
+                              width: 32.5,
+                              height: 32.5,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.black.withOpacity(0.5),
+                              ),
+                              child: PopupMenuButton<String>(
+                                padding: EdgeInsets.zero,
+                                iconSize: 24,
+                                icon: const Icon(
+                                  Icons.more_vert,
                                   color: Colors.white,
-                                  fontSize:
-                                      MediaQuery.of(context).size.width * 0.04,
-                                  fontWeight: FontWeight.bold,
                                 ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  const Icon(Icons.timer,
-                                      color: Colors.white, size: 16),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    '${recipe.preparationTime} min',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize:
-                                          MediaQuery.of(context).size.width *
-                                              0.03,
+                                onSelected: (String value) {
+                                  if (value == 'Save Recipe') {
+                                    _toggleSave(recipe);
+                                  } else if (value == 'Plan Meal') {
+                                    _togglePlan(recipe);
+                                  }
+                                },
+                                color: Colors.grey[
+                                    900], // Mengubah warna background PopupMenu menjadi grey[900]
+                                elevation: 4,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                                offset: const Offset(0, 45),
+                                constraints: const BoxConstraints(
+                                  minWidth: 175,
+                                  maxWidth: 175,
+                                ),
+                                itemBuilder: (BuildContext context) => [
+                                  PopupMenuItem<String>(
+                                    height: 60,
+                                    value: 'Save Recipe',
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 10),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                        children: [
+                                          Icon(
+                                            savedStatus[recipe.id] == true
+                                                ? Icons.bookmark
+                                                : Icons.bookmark_border_rounded,
+                                            size: 22,
+                                            color: savedStatus[recipe.id] ==
+                                                    true
+                                                ? Colors.deepOrange
+                                                : Colors
+                                                    .white, // Mengubah warna icon menjadi putih
+                                          ),
+                                          const SizedBox(width: 10),
+                                          Text(
+                                            savedStatus[recipe.id] == true
+                                                ? 'Saved'
+                                                : 'Save Recipe',
+                                            style: TextStyle(
+                                              fontSize: MediaQuery.of(context)
+                                                      .size
+                                                      .width *
+                                                  0.04, // Adjust font size based on screen width
+                                              color: savedStatus[recipe.id] ==
+                                                      true
+                                                  ? Colors.deepOrange
+                                                  : Colors
+                                                      .white, // Change color based on savedStatus
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
-                                  const Spacer(),
-                                  Icon(
-                                    Icons.favorite,
-                                    color: _getHealthScoreColor(
-                                        recipe.healthScore),
-                                    size: 16,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    recipe.healthScore.toStringAsFixed(1),
-                                    style: TextStyle(
-                                      color: _getHealthScoreColor(
-                                          recipe.healthScore),
-                                      fontSize:
-                                          MediaQuery.of(context).size.width *
-                                              0.03,
+                                  PopupMenuItem<String>(
+                                    height: 60,
+                                    value: 'Plan Meal',
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 10),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                        children: [
+                                          const Icon(
+                                            Icons.calendar_today_rounded,
+                                            size: 22,
+                                            color: Colors
+                                                .white, // Mengubah warna icon menjadi putih
+                                          ),
+                                          const SizedBox(width: 10),
+                                          Text(
+                                            'Plan Meal',
+                                            style: TextStyle(
+                                              fontSize: MediaQuery.of(context)
+                                                      .size
+                                                      .width *
+                                                  0.04, // Responsive font size based on screen width
+                                              color: Colors
+                                                  .white, // White color for the text
+                                              fontWeight: FontWeight
+                                                  .w500, // Adjusted font weight
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ],
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
@@ -1103,103 +1148,6 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
       ],
-    );
-  }
-
-// Extracted method for recipe options menu
-  Widget _buildRecipeOptionsMenu(Recipe recipe) {
-    return PopupMenuButton<String>(
-      padding: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
-      ),
-      offset: const Offset(0, 50),
-      constraints: const BoxConstraints(
-        minWidth: 200,
-        maxWidth: 200,
-      ),
-      iconSize: 24,
-      color: Colors.grey[900],
-      icon: Container(
-        width: 40,
-        height: 40,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: Colors.black.withOpacity(0.5),
-        ),
-        child: const Icon(
-          Icons.more_vert,
-          color: Colors.white,
-        ),
-      ),
-      onSelected: (String value) {
-        if (value == 'Save Recipe') {
-          _toggleSave(recipe);
-        } else if (value == 'Plan Meal') {
-          _togglePlan(recipe);
-        }
-      },
-      itemBuilder: (BuildContext context) => [
-        // Save Recipe Item
-        PopupMenuItem<String>(
-          height: 60,
-          value: 'Save Recipe',
-          child: _buildPopupMenuItem(
-            icon: savedStatus[recipe.id] == true
-                ? Icons.bookmark
-                : Icons.bookmark_border_rounded,
-            text: savedStatus[recipe.id] == true ? 'Saved' : 'Save Recipe',
-            iconColor: savedStatus[recipe.id] == true
-                ? Colors.deepOrange
-                : Colors.white,
-            textColor: savedStatus[recipe.id] == true
-                ? Colors.deepOrange
-                : Colors.white,
-          ),
-        ),
-        // Plan Meal Item
-        PopupMenuItem<String>(
-          height: 60,
-          value: 'Plan Meal',
-          child: _buildPopupMenuItem(
-            icon: Icons.calendar_today_rounded,
-            text: 'Plan Meal',
-            iconColor: Colors.white,
-            textColor: Colors.white,
-          ),
-        ),
-      ],
-    );
-  }
-
-// Helper method to build consistent popup menu items
-  Widget _buildPopupMenuItem({
-    required IconData icon,
-    required String text,
-    required Color iconColor,
-    required Color textColor,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Icon(
-            icon,
-            size: 22,
-            color: iconColor,
-          ),
-          const SizedBox(width: 10),
-          Text(
-            text,
-            style: TextStyle(
-              fontSize: 16,
-              color: textColor,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -1293,7 +1241,8 @@ class _HomePageState extends State<HomePage> {
             'Recipe Feed',
             style: TextStyle(
               color: Colors.white,
-              fontSize: MediaQuery.of(context).size.width * 0.05,
+              fontSize: MediaQuery.of(context).size.width *
+                  0.05, // Adjust font size based on screen width
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -1318,7 +1267,6 @@ class _HomePageState extends State<HomePage> {
                 ),
                 child: Stack(
                   children: [
-                    // Gradient Overlay
                     Container(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(12),
@@ -1331,17 +1279,64 @@ class _HomePageState extends State<HomePage> {
                           ],
                         ),
                       ),
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            recipe.title,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: MediaQuery.of(context).size.width *
+                                  0.05, // Adjust font size based on screen width
+                              fontWeight: FontWeight.bold,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Health Score: ${recipe.healthScore.toStringAsFixed(1)}',
+                                style: TextStyle(
+                                  color:
+                                      _getHealthScoreColor(recipe.healthScore),
+                                  fontSize: MediaQuery.of(context).size.width *
+                                      0.04, // Adjust font size based on screen width
+                                ),
+                              ),
+                              Row(
+                                children: [
+                                  const Icon(
+                                    Icons.timer,
+                                    color: Colors.white,
+                                    size: 16,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '${recipe.preparationTime} min',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize:
+                                          MediaQuery.of(context).size.width *
+                                              0.04,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
-
-                    // Top Area Buttons
-                    Positioned(
-                      top: 8,
-                      left: 8,
-                      right: 8,
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          // Area Tag
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 8,
@@ -1351,95 +1346,122 @@ class _HomePageState extends State<HomePage> {
                               color: Colors.black.withOpacity(0.5),
                               borderRadius: BorderRadius.circular(10),
                             ),
-                            child: Text(
-                              recipe.area ?? 'International',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize:
-                                    MediaQuery.of(context).size.width * 0.03,
-                              ),
+                            child: Text(recipe.area ?? 'International',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: MediaQuery.of(context).size.width *
+                                      0.03, // Adjust font size based on screen width
+                                )),
+                          ),
+                          Container(
+                            width: 32.5,
+                            height: 32.5,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.black.withOpacity(0.5),
                             ),
-                          ),
-
-                          // More Options Button with Improved Dropdown
-                          _buildFeedRecipeOptionsMenu(recipe),
-                        ],
-                      ),
-                    ),
-
-                    // Bottom Content
-                    Positioned(
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      child: Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.only(
-                            bottomLeft: Radius.circular(12),
-                            bottomRight: Radius.circular(12),
-                          ),
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Colors.transparent,
-                              Colors.black.withOpacity(0.7),
-                            ],
-                          ),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              recipe.title,
-                              style: TextStyle(
+                            child: PopupMenuButton<String>(
+                              padding: EdgeInsets.zero,
+                              iconSize: 24,
+                              icon: const Icon(
+                                Icons.more_vert,
                                 color: Colors.white,
-                                fontSize:
-                                    MediaQuery.of(context).size.width * 0.05,
-                                fontWeight: FontWeight.bold,
                               ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  'Health Score: ${recipe.healthScore.toStringAsFixed(1)}',
-                                  style: TextStyle(
-                                    color: _getHealthScoreColor(
-                                        recipe.healthScore),
-                                    fontSize:
-                                        MediaQuery.of(context).size.width *
-                                            0.04,
+                              onSelected: (String value) {
+                                if (value == 'Save Recipe') {
+                                  _toggleSave(recipe);
+                                } else if (value == 'Plan Meal') {
+                                  _togglePlan(recipe);
+                                }
+                              },
+                              color: Colors.grey[900],
+                              elevation: 4,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                              offset: const Offset(0, 45),
+                              constraints: const BoxConstraints(
+                                minWidth: 175, // Makes popup menu wider
+                                maxWidth: 175,
+                              ),
+                              itemBuilder: (BuildContext context) => [
+                                PopupMenuItem<String>(
+                                  height: 60, // Makes item taller
+                                  value: 'Save Recipe',
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 10),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      children: [
+                                        Icon(
+                                          savedStatus[recipe.id] == true
+                                              ? Icons.bookmark
+                                              : Icons.bookmark_border_rounded,
+                                          size: 22,
+                                          color: savedStatus[recipe.id] == true
+                                              ? Colors.deepOrange
+                                              : Colors
+                                                  .white, // Mengubah warna icon menjadi putih
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Text(
+                                          savedStatus[recipe.id] == true
+                                              ? 'Saved'
+                                              : 'Save Recipe',
+                                          style: TextStyle(
+                                            fontSize: MediaQuery.of(context)
+                                                    .size
+                                                    .width *
+                                                0.04, // Adjust font size based on screen width
+                                            color: savedStatus[recipe.id] ==
+                                                    true
+                                                ? Colors.deepOrange
+                                                : Colors
+                                                    .white, // Change text color based on savedStatus
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
-                                Row(
-                                  children: [
-                                    const Icon(
-                                      Icons.timer,
-                                      color: Colors.white,
-                                      size: 16,
+                                PopupMenuItem<String>(
+                                  height: 60, // Makes item taller
+                                  value: 'Plan Meal',
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 10),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      children: [
+                                        const Icon(
+                                          Icons.calendar_today_rounded,
+                                          size: 22,
+                                          color: Colors.white,
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Text(
+                                          'Plan Meal',
+                                          style: TextStyle(
+                                            fontSize: MediaQuery.of(context)
+                                                    .size
+                                                    .width *
+                                                0.04, // Adjust font size based on screen width
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      '${recipe.preparationTime} min',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize:
-                                            MediaQuery.of(context).size.width *
-                                                0.04,
-                                      ),
-                                    ),
-                                  ],
+                                  ),
                                 ),
                               ],
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -1449,103 +1471,6 @@ class _HomePageState extends State<HomePage> {
           },
         ),
       ],
-    );
-  }
-
-// Extracted method for recipe options menu with unique name
-  Widget _buildFeedRecipeOptionsMenu(Recipe recipe) {
-    return PopupMenuButton<String>(
-      padding: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
-      ),
-      offset: const Offset(0, 50),
-      constraints: const BoxConstraints(
-        minWidth: 200,
-        maxWidth: 200,
-      ),
-      iconSize: 24,
-      color: Colors.grey[900],
-      icon: Container(
-        width: 40,
-        height: 40,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: Colors.black.withOpacity(0.5),
-        ),
-        child: const Icon(
-          Icons.more_vert,
-          color: Colors.white,
-        ),
-      ),
-      onSelected: (String value) {
-        if (value == 'Save Recipe') {
-          _toggleSave(recipe);
-        } else if (value == 'Plan Meal') {
-          _togglePlan(recipe);
-        }
-      },
-      itemBuilder: (BuildContext context) => [
-        // Save Recipe Item
-        PopupMenuItem<String>(
-          height: 60,
-          value: 'Save Recipe',
-          child: _buildFeedPopupMenuItem(
-            icon: savedStatus[recipe.id] == true
-                ? Icons.bookmark
-                : Icons.bookmark_border_rounded,
-            text: savedStatus[recipe.id] == true ? 'Saved' : 'Save Recipe',
-            iconColor: savedStatus[recipe.id] == true
-                ? Colors.deepOrange
-                : Colors.white,
-            textColor: savedStatus[recipe.id] == true
-                ? Colors.deepOrange
-                : Colors.white,
-          ),
-        ),
-        // Plan Meal Item
-        PopupMenuItem<String>(
-          height: 60,
-          value: 'Plan Meal',
-          child: _buildFeedPopupMenuItem(
-            icon: Icons.calendar_today_rounded,
-            text: 'Plan Meal',
-            iconColor: Colors.white,
-            textColor: Colors.white,
-          ),
-        ),
-      ],
-    );
-  }
-
-// Helper method to build consistent popup menu items with unique name
-  Widget _buildFeedPopupMenuItem({
-    required IconData icon,
-    required String text,
-    required Color iconColor,
-    required Color textColor,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Icon(
-            icon,
-            size: 22,
-            color: iconColor,
-          ),
-          const SizedBox(width: 10),
-          Text(
-            text,
-            style: TextStyle(
-              fontSize: 16,
-              color: textColor,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
     );
   }
 
