@@ -11,6 +11,7 @@ import 'notifications_page.dart';
 import 'planner_page.dart';
 import 'package:intl/intl.dart';
 import 'services/cache_service.dart';
+import 'assistant_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -782,13 +783,27 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  @override
+ @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: _buildAppBar(),
       body: _buildBody(),
-      // Remove floating action button
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          // Navigate to chat page
+          Navigator.push(
+            context,
+            SlideUpRoute(page: const AssistantPage()),
+          );
+        },
+        backgroundColor: Colors.deepOrange,
+        child: const Icon(
+          Icons.chat_bubble_rounded,
+          color: Colors.white,
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       bottomNavigationBar: _buildBottomNavigationBar(),
     );
   }

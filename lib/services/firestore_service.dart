@@ -6,11 +6,21 @@ import 'storage_service.dart';
 import 'package:intl/intl.dart';
 import '../models/planned_recipe.dart';
 import '../models/nutrition_goals.dart';
-
+import '../models/chat_message.dart';
+import 'package:dash_chat_2/dash_chat_2.dart' as dash;
 class FirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final StorageService _storageService = StorageService();
+  final dash.ChatUser currentUser = dash.ChatUser(
+    id: FirebaseAuth.instance.currentUser?.uid ?? 'user',
+    firstName: FirebaseAuth.instance.currentUser?.displayName ?? 'User',
+  );
+
+  final dash.ChatUser geminiUser = dash.ChatUser(
+    id: 'gemini',
+    firstName: 'Gemini',
+  );
   // Existing methods...
 
   Future<void> saveUserPersonalization(Map<String, dynamic> data) async {
@@ -1188,6 +1198,68 @@ class FirestoreService {
 
     } catch (e) {
       print('Error in debugNutritionData: $e');
+    }
+  }
+  
+  Future<void> saveChatMessage(dash.ChatMessage message, bool isUser) async {
+    try {
+      String? userId = _auth.currentUser?.uid;
+      if (userId == null) throw Exception('No authenticated user found');
+
+      await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('chat_history')
+          .add({
+            'text': message.text,
+            'isUser': isUser,
+            'timestamp': FieldValue.serverTimestamp(),
+            'medias': message.medias?.map((media) => {
+              'url': media.url,
+              'type': media.type.toString(),
+              'fileName': media.fileName,
+            }).toList(),
+          });
+    } catch (e) {
+      print('Error saving chat message: $e');
+      rethrow;
+    }
+  }
+
+  Future<List<dash.ChatMessage>> getChatHistory() async {
+    try {
+      String? userId = _auth.currentUser?.uid;
+      if (userId == null) throw Exception('No authenticated user found');
+
+      final snapshot = await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('chat_history')
+          .orderBy('timestamp', descending: true)
+          .get();
+
+      return snapshot.docs.map((doc) {
+        final data = doc.data();
+        List<dash.ChatMedia>? medias;
+        
+        if (data['medias'] != null) {
+          medias = (data['medias'] as List).map((mediaData) => dash.ChatMedia(
+            url: mediaData['url'],
+            type: dash.MediaType.image,
+            fileName: mediaData['fileName'],
+          )).toList();
+        }
+
+        return dash.ChatMessage(
+          text: data['text'],
+          user: data['isUser'] ? currentUser : geminiUser,
+          createdAt: (data['timestamp'] as Timestamp).toDate(),
+          medias: medias,
+        );
+      }).toList();
+    } catch (e) {
+      print('Error getting chat history: $e');
+      return [];
     }
   }
 
