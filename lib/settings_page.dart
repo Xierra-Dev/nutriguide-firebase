@@ -58,7 +58,6 @@ class _SettingsPageState extends State<SettingsPage> {
   String? displayName;
   String? firstName;
   String? lastName;
-  bool _isLoading = true;
 
   @override
   void initState() {
@@ -75,12 +74,10 @@ class _SettingsPageState extends State<SettingsPage> {
       firstName = userNames['firstName'];
       lastName = userNames['lastName'];
       setState(() {
-        _isLoading = false;
       });
     } catch (e) {
       print('Error fetching user data: $e');
       setState(() {
-        _isLoading = false;
       });
     }
   }
@@ -89,113 +86,116 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
-    final textScaleFactor = MediaQuery.of(context).textScaleFactor;
 
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: screenWidth * 0.04,
-                vertical: screenHeight * 0.01,
-              ),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: Icon(
-                      Icons.arrow_back,
-                      color: Colors.white,
-                      size: screenHeight * 0.03,
-                    ),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                  SizedBox(width: screenWidth * 0.02),
-                  Container(
-                    constraints: BoxConstraints(
-                      maxWidth: screenWidth * 0.375,
-                    ),
-                    child: Text(
-                      'Settings',
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: screenHeight * 0.03,
-                        fontWeight: FontWeight.bold,
+    return MediaQuery(
+      data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
+      child: Scaffold(
+        backgroundColor: Colors.black,
+        body: SafeArea(
+          child: Column(
+            children: [
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: screenWidth * 0.04,
+                  vertical: screenHeight * 0.01,
+                ),
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: Icon(
+                        Icons.arrow_back,
                         color: Colors.white,
+                        size: screenHeight * 0.03,
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                    SizedBox(width: screenWidth * 0.02),
+                    Container(
+                      constraints: BoxConstraints(
+                        maxWidth: screenWidth * 0.375,
+                      ),
+                      child: Text(
+                        'Settings',
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: screenHeight * 0.03,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                        textScaler: TextScaler.linear(1.0), // Override text scaling
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            Expanded(
-              child: ListView(
-                padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04),
-                children: [
-                  _buildSettingsListTile(
-                    context: context,
-                    leadingText: 'Account',
-                    trailingText: email ?? '',
-                    onTap: () {
-                      Navigator.of(context).pushReplacement(
-                        SlideLeftRoute(page: const AccountPage()),
-                      );
-                    },
-                  ),
-                  _buildDivider(screenHeight),
-                  _buildSettingsListTile(
-                    context: context,
-                    leadingText: 'Profile',
-                    trailingText: displayName ?? '',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        SlideLeftRoute(page: const ProfileEditPage()),
-                      );
-                    },
-                  ),
-                  _buildDivider(screenHeight),
-                  _buildSettingsListTile(
-                    context: context,
-                    leadingText: 'Notifications',
-                    trailingText: '',
-                    onTap: () {
-                      Navigator.of(context).push(
-                        SlideLeftRoute(page: const NotificationsPage()),
-                      );
-                    },
-                  ),
-                  _buildDivider(screenHeight),
-                  _buildSettingsListTile(
-                    context: context,
-                    leadingText: 'Preferences',
-                    trailingText: '',
-                    onTap: () {
-                      Navigator.pushReplacement(
-                        context,
-                        SlideLeftRoute(page: const PreferencePage()),
-                      );
-                    },
-                  ),
-                  _buildDivider(screenHeight),
-                  _buildSettingsListTile(
-                    context: context,
-                    leadingText: 'About NutriGuide',
-                    trailingText: '',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        SlideLeftRoute(page: const AboutNutriguidePage()),
-                      );
-                    },
-                  ),
-                ],
+              Expanded(
+                child: ListView(
+                  padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04),
+                  children: [
+                    _buildSettingsListTile(
+                      context: context,
+                      leadingText: 'Account',
+                      trailingText: email ?? '',
+                      onTap: () {
+                        Navigator.of(context).pushReplacement(
+                          SlideLeftRoute(page: const AccountPage()),
+                        );
+                      },
+                    ),
+                    _buildDivider(screenHeight),
+                    _buildSettingsListTile(
+                      context: context,
+                      leadingText: 'Profile',
+                      trailingText: displayName ?? '',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          SlideLeftRoute(page: const ProfileEditPage()),
+                        );
+                      },
+                    ),
+                    _buildDivider(screenHeight),
+                    _buildSettingsListTile(
+                      context: context,
+                      leadingText: 'Notifications',
+                      trailingText: '',
+                      onTap: () {
+                        Navigator.of(context).push(
+                          SlideLeftRoute(page: const NotificationsPage()),
+                        );
+                      },
+                    ),
+                    _buildDivider(screenHeight),
+                    _buildSettingsListTile(
+                      context: context,
+                      leadingText: 'Preferences',
+                      trailingText: '',
+                      onTap: () {
+                        Navigator.pushReplacement(
+                          context,
+                          SlideLeftRoute(page: const PreferencePage()),
+                        );
+                      },
+                    ),
+                    _buildDivider(screenHeight),
+                    _buildSettingsListTile(
+                      context: context,
+                      leadingText: 'About NutriGuide',
+                      trailingText: '',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          SlideLeftRoute(page: const AboutNutriguidePage()),
+                        );
+                      },
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -209,7 +209,6 @@ class _SettingsPageState extends State<SettingsPage> {
   }) {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
-    final textScaleFactor = MediaQuery.of(context).textScaleFactor;
 
     return ListTile(
       contentPadding: EdgeInsets.symmetric(vertical: screenHeight * 0.01),
@@ -222,8 +221,9 @@ class _SettingsPageState extends State<SettingsPage> {
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
             color: Colors.white,
-            fontSize: screenHeight * 0.02 * textScaleFactor,
+            fontSize: screenHeight * 0.02,
           ),
+          textScaler: TextScaler.linear(1.0), // Override text scaling
         ),
       ),
       trailing: Row(
@@ -240,8 +240,9 @@ class _SettingsPageState extends State<SettingsPage> {
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   color: Colors.white70,
-                  fontSize: screenHeight * 0.018 * textScaleFactor,
+                  fontSize: screenHeight * 0.018,
                 ),
+                textScaler: TextScaler.linear(1.0), // Override text scaling
               ),
             ),
           Icon(

@@ -85,11 +85,6 @@ class _AccountPageState extends State<AccountPage> {
   bool _isPasswordVisible = false;
   bool _isLoading = true;
 
-  bool isGoogleUser() {
-    User? user = _auth.currentUser;
-    return user?.providerData.any((userInfo) =>
-    userInfo.providerId == 'google.com') ?? false;
-  }
 
   @override
   void initState() {
@@ -108,20 +103,22 @@ class _AccountPageState extends State<AccountPage> {
     } catch (e) {
       print('Error fetching user data: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to load user data: $e'),
-          backgroundColor: Colors.red,),
+          SnackBar(content: Text('Failed to load user data: $e',
+            textScaleFactor: 1.0,
+             ),
+            backgroundColor: Colors.red,
+          ),
       );
-      setState(() {
+          setState(() {
         _isLoading = false;
       });
-    }
+  }
   }
 
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
-    final textScaleFactor = MediaQuery.of(context).textScaleFactor;
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -155,6 +152,7 @@ class _AccountPageState extends State<AccountPage> {
                     child: Text(
                       'Account Settings',
                       overflow: TextOverflow.ellipsis,
+                      textScaleFactor: 1.0,
                       style: TextStyle(
                         fontSize: screenHeight * 0.03,
                         fontWeight: FontWeight.bold,
@@ -173,23 +171,22 @@ class _AccountPageState extends State<AccountPage> {
                     context: context,
                     leadingText: 'Email',
                     trailingText: email ?? '',
-                    onTap: isGoogleUser() ? null : _showChangeEmailDialog,
+                    onTap: () {},
                   ),
                   _buildDivider(screenHeight),
-                  if (!isGoogleUser())
                     _buildSettingsListTile(
                       context: context,
                       leadingText: 'Password',
                       trailingText: displayPassword,
                       onTap: _showChangePasswordDialog,
                     ),
-                  if (!isGoogleUser()) _buildDivider(screenHeight),
-                  _buildSettingsListTile(
-                    context: context,
-                    leadingText: 'Logout',
-                    trailingText: '',
-                    onTap: () => confirmLogout(context),
-                  ),
+                  _buildDivider(screenHeight),
+                    _buildSettingsListTile(
+                      context: context,
+                      leadingText: 'Logout',
+                      trailingText: '',
+                      onTap: () => confirmLogout(context),
+                    ),
                   _buildDivider(screenHeight),
                   _buildSettingsListTile(
                     context: context,
@@ -216,7 +213,6 @@ class _AccountPageState extends State<AccountPage> {
   }) {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
-    final textScaleFactor = MediaQuery.of(context).textScaleFactor;
 
     return ListTile(
       contentPadding: EdgeInsets.symmetric(vertical: screenHeight * 0.01),
@@ -227,9 +223,10 @@ class _AccountPageState extends State<AccountPage> {
         child: Text(
           leadingText,
           overflow: TextOverflow.ellipsis,
+          textScaleFactor: 1.0,
           style: TextStyle(
             color: isDestructive ? Colors.red : Colors.white,
-            fontSize: screenHeight * 0.02 * textScaleFactor,
+            fontSize: screenHeight * 0.02,
           ),
         ),
       ),
@@ -245,9 +242,10 @@ class _AccountPageState extends State<AccountPage> {
               child: Text(
                 trailingText,
                 overflow: TextOverflow.ellipsis,
+                textScaleFactor: 1.0,
                 style: TextStyle(
                   color: isDestructive ? Colors.red : Colors.white70,
-                  fontSize: screenHeight * 0.018 * textScaleFactor,
+                  fontSize: screenHeight * 0.018,
                 ),
               ),
             ),
@@ -268,204 +266,6 @@ class _AccountPageState extends State<AccountPage> {
       height: screenHeight * 0.001,
     );
   }
-
-  Future<void> changeEmail() async {
-    if (_currentPasswordController.text.isEmpty ||
-        _newEmailController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill in all fields')),
-      );
-      return;
-    }
-
-    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(
-        _newEmailController.text)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Invalid email format')),
-      );
-      return;
-    }
-
-    try {
-      User? currentUser = _auth.currentUser;
-      if (currentUser != null) {
-        // Reauthenticate user first
-        AuthCredential credential = EmailAuthProvider.credential(
-            email: currentUser.email!,
-            password: _currentPasswordController.text
-        );
-
-        await currentUser.reauthenticateWithCredential(credential);
-
-        // Update email
-        await currentUser.verifyBeforeUpdateEmail(_newEmailController.text);
-
-        // Reset controllers
-        _currentPasswordController.clear();
-        _newEmailController.clear();
-
-        // Update email locally
-        setState(() {
-          email = _newEmailController.text;
-        });
-
-        // Show success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Email successfully changed'),
-            backgroundColor: Colors.green,),
-        );
-        // Optional: Close email change dialog
-        Navigator.of(context).pop();
-      }
-    } on FirebaseAuthException catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to change email: ${e.message}'),
-          backgroundColor: Colors.red,),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('An error occurred: $e'),
-          backgroundColor: Colors.red,),
-      );
-    }
-  }
-
-  void _showChangeEmailDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      barrierColor: Colors.black.withOpacity(0.25),
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15.0),
-        ),
-        backgroundColor: Colors.grey[800],
-        child: Container(
-          constraints: BoxConstraints(
-            maxWidth: MediaQuery.of(context).size.width * 0.95,
-          ),
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(height: 10),
-              const Text(
-                'Change Email',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _newEmailController,
-                keyboardType: TextInputType.emailAddress,
-                decoration: InputDecoration(
-                    labelText: 'New Email',
-                    labelStyle: const TextStyle(color: Colors.white),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(50),
-                      borderSide: const BorderSide(color: Colors.white),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(50),
-                      borderSide: const BorderSide(color: Colors.deepOrange),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 25,
-                      vertical: 12,
-                    )
-                ),
-                style: const TextStyle(color: Colors.white),
-              ),
-              const SizedBox(height: 15),
-              TextField(
-                controller: _currentPasswordController,
-                obscureText: !_isPasswordVisible,
-                decoration: InputDecoration(
-                    labelText: 'Current Password',
-                    labelStyle: const TextStyle(color: Colors.white),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(50),
-                      borderSide: const BorderSide(color: Colors.white),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(50),
-                      borderSide: const BorderSide(color: Colors.deepOrange),
-                    ),
-                    suffixIcon: Padding(
-                      padding: const EdgeInsets.only(right: 12.5),
-                      child: IconButton(
-                        icon: Icon(
-                          _isPasswordVisible ? MdiIcons.eyeOff : MdiIcons.eye,
-                          color: Colors.grey,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _isPasswordVisible = !_isPasswordVisible;
-                          });
-                        },
-                      ),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 25,
-                      vertical: 12,
-                    )
-                ),
-                style: const TextStyle(color: Colors.white),
-              ),
-              const SizedBox(height: 32),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ElevatedButton(
-                    onPressed: changeEmail,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      minimumSize: const Size(100, 40),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20.0),
-                      ),
-                    ),
-                    child: const Text(
-                      'Change Email',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 13.5,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 20),
-                  OutlinedButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    style: OutlinedButton.styleFrom(
-                      minimumSize: const Size(100, 40),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20.0),
-                      ),
-                    ),
-                    child: const Text(
-                      'Cancel',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 13.5,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 7),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   Future<void> changePassword() async {
     if (_currentPasswordController.text.isEmpty ||
         _newPasswordController.text.isEmpty ||
@@ -536,7 +336,9 @@ class _AccountPageState extends State<AccountPage> {
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
-    final textScaleFactor = mediaQuery.textScaleFactor;
+
+    // Tetapkan textScaleFactor ke 1.0 agar tidak terpengaruh pengaturan font HP
+    const double textScaleFactor = 1.0;
 
     final double baseWidth = 375; // iPhone 12 Pro width as base
     final double widthRatio = screenWidth / baseWidth;
@@ -671,7 +473,7 @@ class _AccountPageState extends State<AccountPage> {
       String label,
       TextEditingController controller,
       double scaleFactor,
-      double textScaleFactor
+      double textScaleFactor,
       ) {
     return StatefulBuilder(
       builder: (context, setState) {
@@ -682,7 +484,7 @@ class _AccountPageState extends State<AccountPage> {
             labelText: label,
             labelStyle: TextStyle(
               color: Colors.white,
-              fontSize: 14 * textScaleFactor,
+              fontSize: 14 * textScaleFactor, // Pastikan textScaleFactor tetap 1.0
             ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(50),
@@ -714,7 +516,7 @@ class _AccountPageState extends State<AccountPage> {
           ),
           style: TextStyle(
             color: Colors.white,
-            fontSize: 15 * textScaleFactor,
+            fontSize: 15 * textScaleFactor, // Skala teks tetap konstan
           ),
         );
       },
@@ -722,125 +524,119 @@ class _AccountPageState extends State<AccountPage> {
   }
 
 
+
   Future<void> confirmLogout(BuildContext context) async {
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
-    final textScaleFactor = mediaQuery.textScaleFactor;
-    final size = mediaQuery.size;
-
-    final double baseWidth = 375; // iPhone 12 Pro width as base
-    final double widthRatio = screenWidth / baseWidth;
-    final double scaleFactor = widthRatio.clamp(0.8, 1.2);
 
     bool? loggedOut = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
       barrierColor: Colors.black.withOpacity(0.5),
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24.0),
-        ),
-        backgroundColor: const Color(0xFF2C2C2C),
-        child: SingleChildScrollView(
-          child: IntrinsicWidth(
-            child: Container(
-              width: screenWidth * 0.925,  // Maintain max width
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Logout Icon
-                  Align(
-                    alignment: Alignment.center,
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.deepOrange[800]!.withOpacity(0.1),
-                        shape: BoxShape.circle,
+      builder: (context) => MediaQuery(
+        data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0), // Override text scale factor
+        child: Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24.0),
+          ),
+          backgroundColor: const Color(0xFF2C2C2C),
+          child: SingleChildScrollView(
+            child: IntrinsicWidth(
+              child: Container(
+                width: screenWidth * 0.925,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Align(
+                      alignment: Alignment.center,
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.deepOrange[800]!.withOpacity(0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.logout,
+                          color: Colors.deepOrange[800],
+                          size: 32,
+                        ),
                       ),
-                      child: Icon(
-                        Icons.logout,
-                        color: Colors.deepOrange[800],
-                        size: 32,
+                    ),
+                    SizedBox(height: screenHeight * 0.0225),
+                    Text(
+                      'Log Out',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        letterSpacing: 0.5,
                       ),
                     ),
-                  ),
-                  SizedBox(height: screenHeight * 0.0225),
-                  // Title
-                  Text(
-                    'Log Out',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      letterSpacing: 0.5,
+                    SizedBox(height: screenHeight * 0.0175),
+                    Text(
+                      'Are you sure you want to log out of the application?',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: Colors.grey,
+                        height: 1.5,
+                      ),
                     ),
-                  ),
-                  SizedBox(height: screenHeight * 0.0175),
-                  // Description
-                  Text(
-                    'Are you sure you want to log out of the application?',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: Colors.grey,
-                      height: 1.5,
-                    ),
-                  ),
-                  SizedBox(height: screenHeight * 0.0425),
-                  // Buttons
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () => Navigator.of(context).pop(true),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.deepOrange[800],
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(50),
+                    SizedBox(height: screenHeight * 0.0425),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () => Navigator.of(context).pop(true),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.deepOrange[800],
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(50),
+                              ),
+                              elevation: 0,
                             ),
-                            elevation: 0,
-                          ),
-                          child: const Text(
-                            'Log Out',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
+                            child: const Text(
+                              'Log Out',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      SizedBox(width: screenWidth * 0.04),
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () => Navigator.of(context).pop(false),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.grey[800],
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(50),
+                        SizedBox(width: screenWidth * 0.04),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () => Navigator.of(context).pop(false),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.grey[800],
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(50),
+                              ),
+                              elevation: 0,
                             ),
-                            elevation: 0,
-                          ),
-                          child: const Text(
-                            'Cancel',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
+                            child: const Text(
+                              'Cancel',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -868,127 +664,120 @@ class _AccountPageState extends State<AccountPage> {
   }
 
   Future<void> confirmDeleteAccount(BuildContext context) async {
-    bool isGoogle = isGoogleUser();
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
-
-    final textScaleFactor = mediaQuery.textScaleFactor;
-    final double baseWidth = 375; // iPhone 12 Pro width as base
-    final double widthRatio = screenWidth / baseWidth;
-    final double scaleFactor = widthRatio.clamp(0.8, 1.2);
 
     bool? confirmed = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
       barrierColor: Colors.black.withOpacity(0.5),
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24.0),
-        ),
-        backgroundColor: const Color(0xFF2C2C2C),
-        child: SingleChildScrollView(
-          child: IntrinsicWidth(
-            child: Container(
-              width: screenWidth * 0.925,  // Maintain max width
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Warning Icon
-                  Align(
-                    alignment: Alignment.center,
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.red.withOpacity(0.1),
-                        shape: BoxShape.circle,
+      builder: (context) => MediaQuery(
+        data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0), // Override text scale factor
+        child: Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24.0),
+          ),
+          backgroundColor: const Color(0xFF2C2C2C),
+          child: SingleChildScrollView(
+            child: IntrinsicWidth(
+              child: Container(
+                width: screenWidth * 0.925,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Align(
+                      alignment: Alignment.center,
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.red.withOpacity(0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.warning_rounded,
+                          color: Colors.red,
+                          size: 32,
+                        ),
                       ),
-                      child: const Icon(
-                        Icons.warning_rounded,
-                        color: Colors.red,
-                        size: 32,
+                    ),
+                    SizedBox(height: screenHeight * 0.0225),
+                    const Text(
+                      'Delete Account',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        letterSpacing: 0.5,
                       ),
                     ),
-                  ),
-                  SizedBox(height: screenHeight * 0.0225),
-                  // Title
-                  const Text(
-                    'Delete Account',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      letterSpacing: 0.5,
+                    SizedBox(height: screenHeight * 0.0175),
+                    const Text(
+                      'Are you sure you want to delete your account? This action cannot be undone.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: Colors.grey,
+                        height: 1.5,
+                      ),
                     ),
-                  ),
-                  SizedBox(height: screenHeight * 0.0175),
-                  // Description
-                  const Text(
-                    'Are you sure you want to delete your account? This action cannot be undone.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: Colors.grey,
-                      height: 1.5,
-                    ),
-                  ),
-                  SizedBox(height: screenHeight * 0.0225),
-                  // Input Field
-                  _buildAdaptivePasswordField('Current Password', _currentPasswordController, scaleFactor, textScaleFactor),
-                  SizedBox(height: screenHeight * 0.0425),
-                  // Buttons
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () => Navigator.of(context).pop(true),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(50),
+                    SizedBox(height: screenHeight * 0.0225),
+                    _buildAdaptivePasswordField(
+                        'Current Password', _currentPasswordController, 1.0, 1.0),
+                    SizedBox(height: screenHeight * 0.0425),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () => Navigator.of(context).pop(true),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(50),
+                              ),
+                              elevation: 0,
                             ),
-                            elevation: 0,
-                          ),
-                          child: const Text(
-                            'Delete',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
+                            child: const Text(
+                              'Delete',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      SizedBox(width: screenWidth * 0.04),
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () => Navigator.of(context).pop(false),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.grey[800],
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(50),
+                        SizedBox(width: screenWidth * 0.04),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () => Navigator.of(context).pop(false),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.grey[800],
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(50),
+                              ),
+                              elevation: 0,
                             ),
-                            elevation: 0,
-                          ),
-                          child: const Text(
-                            'Cancel',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
+                            child: const Text(
+                              'Cancel',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -996,18 +785,15 @@ class _AccountPageState extends State<AccountPage> {
       ),
     );
 
-    // Rest of the code remains the same...
     if (confirmed ?? false) {
       try {
         User? currentUser = _auth.currentUser;
         if (currentUser != null) {
-          // For email/password users, re-authenticate
           AuthCredential credential = EmailAuthProvider.credential(
-              email: currentUser.email!,
-              password: _currentPasswordController.text
+            email: currentUser.email!,
+            password: _currentPasswordController.text,
           );
           await currentUser.reauthenticateWithCredential(credential);
-
           await currentUser.delete();
           _currentPasswordController.clear();
 
@@ -1031,7 +817,6 @@ class _AccountPageState extends State<AccountPage> {
             errorMessage = 'Incorrect password. Please try again.';
           }
         }
-
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(errorMessage),

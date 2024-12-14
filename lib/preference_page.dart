@@ -16,87 +16,89 @@ class _PreferencePageState extends State<PreferencePage> {
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
-    final textScaleFactor = MediaQuery.of(context).textScaleFactor;
 
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: screenWidth * 0.04,
-                vertical: screenHeight * 0.01,
-              ),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: Icon(
-                      Icons.arrow_back,
-                      color: Colors.white,
-                      size: screenHeight * 0.03,
-                    ),
-                    onPressed: () {
-                      Navigator.of(context).pushReplacement(
-                        SlideRightRoute(page: const SettingsPage()),
-                      );
-                    },
-                  ),
-                  SizedBox(width: screenWidth * 0.02),
-                  Container(
-                    constraints: BoxConstraints(
-                      maxWidth: screenWidth * 0.375,
-                    ),
-                    child: Text(
-                      'Preferences',
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: screenHeight * 0.03,
-                        fontWeight: FontWeight.bold,
+    return MediaQuery(
+      data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
+      child: Scaffold(
+        backgroundColor: Colors.black,
+        body: SafeArea(
+          child: Column(
+            children: [
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: screenWidth * 0.04,
+                  vertical: screenHeight * 0.01,
+                ),
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: Icon(
+                        Icons.arrow_back,
                         color: Colors.white,
+                        size: screenHeight * 0.03,
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).pushReplacement(
+                          SlideRightRoute(page: const SettingsPage()),
+                        );
+                      },
+                    ),
+                    SizedBox(width: screenWidth * 0.02),
+                    Container(
+                      constraints: BoxConstraints(
+                        maxWidth: screenWidth * 0.375,
+                      ),
+                      child: Text(
+                        'Preferences',
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: screenHeight * 0.03,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            Expanded(
-              child: ListView(
-                padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04),
-                children: [
-                  _buildPreferenceListTile(
-                    context: context,
-                    leadingText: 'Health Data',
-                    onTap: () {
-                      Navigator.of(context).push(
-                        SlideLeftRoute(page: const HealthDataPage()),
-                      );
-                    },
-                  ),
-                  _buildDivider(screenHeight),
-                  _buildPreferenceListTile(
-                    context: context,
-                    leadingText: 'Personalized Goals',
-                    onTap: () {
-                      Navigator.of(context).push(
-                        SlideLeftRoute(page: const GoalsSettingsPage()),
-                      );
-                    },
-                  ),
-                  _buildDivider(screenHeight),
-                  _buildPreferenceListTile(
-                    context: context,
-                    leadingText: 'Allergies',
-                    onTap: () {
-                      Navigator.of(context).push(
-                        SlideLeftRoute(page: const AllergiesSettingsPage()),
-                      );
-                    },
-                  ),
-                ],
+              Expanded(
+                child: ListView(
+                  padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04),
+                  children: [
+                    _buildPreferenceListTile(
+                      context: context,
+                      leadingText: 'Health Data',
+                      onTap: () {
+                        Navigator.of(context).push(
+                          SlideLeftRoute(page: const HealthDataPage()),
+                        );
+                      },
+                    ),
+                    _buildDivider(screenHeight),
+                    _buildPreferenceListTile(
+                      context: context,
+                      leadingText: 'Personalized Goals',
+                      onTap: () {
+                        Navigator.of(context).push(
+                          SlideLeftRoute(page: const GoalsSettingsPage()),
+                        );
+                      },
+                    ),
+                    _buildDivider(screenHeight),
+                    _buildPreferenceListTile(
+                      context: context,
+                      leadingText: 'Allergies',
+                      onTap: () {
+                        Navigator.of(context).push(
+                          SlideLeftRoute(page: const AllergiesSettingsPage()),
+                        );
+                      },
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -109,7 +111,6 @@ class _PreferencePageState extends State<PreferencePage> {
   }) {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
-    final textScaleFactor = MediaQuery.of(context).textScaleFactor;
 
     return ListTile(
       contentPadding: EdgeInsets.symmetric(vertical: screenHeight * 0.01),
@@ -122,7 +123,7 @@ class _PreferencePageState extends State<PreferencePage> {
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
             color: Colors.white,
-            fontSize: screenHeight * 0.02 * textScaleFactor,
+            fontSize: screenHeight * 0.02,
           ),
         ),
       ),

@@ -16,7 +16,6 @@ class _HealthDataPageState extends State<HealthDataPage> {
   final FirestoreService _firestoreService = FirestoreService();
   bool isLoading = true;
 
-
   // Original values from Firestore
   String? originalGender;
   int? originalBirthYear;
@@ -41,7 +40,7 @@ class _HealthDataPageState extends State<HealthDataPage> {
   Future<void> _loadHealthData() async {
     try {
       final userData = await _firestoreService.getUserPersonalization();
-      if (mounted) {  // Check if widget is still mounted
+      if (mounted) {
         setState(() {
           // Save original values
           originalGender = userData?['gender'];
@@ -75,7 +74,6 @@ class _HealthDataPageState extends State<HealthDataPage> {
     }
   }
 
-  // Check if any changes have been made
   bool get _hasChanges {
     return gender != originalGender ||
         birthYear != originalBirthYear ||
@@ -86,7 +84,6 @@ class _HealthDataPageState extends State<HealthDataPage> {
 
   Future<bool> _onWillPop() async {
     if (_hasChanges) {
-      // Jika ada perubahan, tampilkan dialog konfirmasi
       bool? shouldExit = await showGeneralDialog(
         context: context,
         barrierDismissible: true,
@@ -97,15 +94,15 @@ class _HealthDataPageState extends State<HealthDataPage> {
             child: Material(
               color: Colors.transparent,
               child: Container(
-                width: MediaQuery.of(context).size.width * 0.9, // Lebar 90% dari layar
+                width: MediaQuery.of(context).size.width * 0.9,
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1E1E1E), // Warna latar belakang gelap
-                  borderRadius: BorderRadius.circular(28), // Sudut yang lebih bulat
+                  color: const Color(0xFF1E1E1E),
+                  borderRadius: BorderRadius.circular(28),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
-                  mainAxisSize: MainAxisSize.min ,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Padding(
                       padding: const EdgeInsets.only(top: 8),
@@ -118,6 +115,7 @@ class _HealthDataPageState extends State<HealthDataPage> {
                             fontWeight: FontWeight.bold,
                           ),
                           textAlign: TextAlign.center,
+                          textScaler: TextScaler.linear(1.0),
                         ),
                       ),
                     ),
@@ -129,9 +127,9 @@ class _HealthDataPageState extends State<HealthDataPage> {
                         color: Colors.white70,
                         fontSize: 16,
                       ),
+                      textScaler: TextScaler.linear(1.0),
                     ),
                     const SizedBox(height: 37),
-                    // Tombol disusun secara vertikal
                     ElevatedButton(
                       onPressed: () {
                         Navigator.push(
@@ -147,7 +145,6 @@ class _HealthDataPageState extends State<HealthDataPage> {
                         elevation: 0,
                         padding: const EdgeInsets.symmetric(
                           vertical: 12,
-
                         ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(25),
@@ -159,6 +156,7 @@ class _HealthDataPageState extends State<HealthDataPage> {
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                         ),
+                        textScaler: TextScaler.linear(1.0),
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -180,6 +178,7 @@ class _HealthDataPageState extends State<HealthDataPage> {
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                         ),
+                        textScaler: TextScaler.linear(1.0),
                       ),
                     ),
                   ],
@@ -219,6 +218,7 @@ class _HealthDataPageState extends State<HealthDataPage> {
               fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
+            textScaler: TextScaler.linear(1.0),
           ),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.white),
@@ -253,10 +253,8 @@ class _HealthDataPageState extends State<HealthDataPage> {
                   style: ButtonStyle(
                     backgroundColor: WidgetStateProperty.resolveWith<Color>((states) {
                       if (states.contains(WidgetState.disabled)) {
-                        // Warna tombol saat nonaktif
                         return Colors.grey.shade800;
                       }
-                      // Warna tombol saat aktif
                       return Colors.deepOrange;
                     }),
                     animationDuration: const Duration(milliseconds: 300),
@@ -267,7 +265,7 @@ class _HealthDataPageState extends State<HealthDataPage> {
                       ),
                     ),
                   ),
-                  onPressed: _hasChanges ? _saveHealthData : null, // Aktif/nonaktif
+                  onPressed: _hasChanges ? _saveHealthData : null,
                   child: Text(
                     'SAVE',
                     style: TextStyle(
@@ -275,8 +273,9 @@ class _HealthDataPageState extends State<HealthDataPage> {
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
+                    textScaler: TextScaler.linear(1.0),
                   ),
-                )
+                ),
               ),
           ],
         ),
@@ -285,7 +284,6 @@ class _HealthDataPageState extends State<HealthDataPage> {
   }
 
   Widget _buildDataItem(String label, String value, VoidCallback onEdit) {
-    // Check if the value is 'Not Set' to determine text color
     final bool isNotSet = value == 'Not Set';
 
     return Column(
@@ -298,6 +296,7 @@ class _HealthDataPageState extends State<HealthDataPage> {
               fontSize: 16,
               fontWeight: FontWeight.w500,
             ),
+            textScaler: TextScaler.linear(1.0),
           ),
           trailing: Container(
             child: Row(
@@ -312,6 +311,7 @@ class _HealthDataPageState extends State<HealthDataPage> {
                       fontSize: 16,
                     ),
                     overflow: TextOverflow.ellipsis,
+                    textScaler: TextScaler.linear(1.0),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -351,9 +351,9 @@ class _HealthDataPageState extends State<HealthDataPage> {
         SnackBar(
           backgroundColor: Colors.green,
           content: Row(
-            children: [
+            children: const [
               Icon(Icons.check_circle_rounded, color: Colors.white),
-              SizedBox(width: 10), // Add some spacing between icon and text
+              SizedBox(width: 10),
               Text('Health data saved successfully'),
             ],
           ),
