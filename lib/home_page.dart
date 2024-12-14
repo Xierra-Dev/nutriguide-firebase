@@ -784,15 +784,14 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
- @override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: _buildAppBar(),
       body: _buildBody(),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: _currentIndex != 1 ? FloatingActionButton( // Tampilkan di semua halaman kecuali search page (index 1)
         onPressed: () {
-          // Navigate to chat page
           Navigator.push(
             context,
             SlideUpRoute(page: const AssistantPage()),
@@ -803,7 +802,7 @@ class _HomePageState extends State<HomePage> {
           Icons.chat_bubble_rounded,
           color: Colors.white,
         ),
-      ),
+      ) : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       bottomNavigationBar: _buildBottomNavigationBar(),
     );

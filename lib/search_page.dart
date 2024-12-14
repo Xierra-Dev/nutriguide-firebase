@@ -61,7 +61,7 @@ class _SearchPageState extends State<SearchPage> {
   bool _showPopularSection = true;
   bool _isSearching = false;
   bool _isYouMightAlsoLikeSectionExpanded = true;
-
+  double _currentScale = 1.0;
   DateTime _selectedDate = DateTime.now();
   String _selectedMeal = 'Dinner';
   List<bool> _daysSelected = List.generate(7, (index) => false);
@@ -727,218 +727,217 @@ class _SearchPageState extends State<SearchPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Text(
-            '',
-            style: TextStyle(
-              color: Colors.deepOrange,
-              fontSize: MediaQuery.of(context).size.width *
-                  0.06, // Adjust font size based on screen width
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-        // Only show the main search bar when not searching
-        if (!_isSearching)
+    return Scaffold(
+      backgroundColor: Colors.black,
+      floatingActionButton: null, // Menghilangkan button assistant chat
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(25),
-              ),
-              child: TextField(
-                controller: _searchController,
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  hintText: 'Search...',
-                  hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
-                  prefixIcon: const Icon(Icons.search, color: Colors.white),
-                  border: InputBorder.none,
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                ),
-                onSubmitted: (value) {
-                  if (value.isNotEmpty) {
-                    _searchRecipes(value);
-                  } else {
-                    setState(() {
-                      _isSearching = false;
-                    });
-                  }
-                },
+            padding: const EdgeInsets.all(16.0),
+            child: Text(
+              '',
+              style: TextStyle(
+                color: Colors.deepOrange,
+                fontSize: MediaQuery.of(context).size.width * 0.06,
+                fontWeight: FontWeight.bold,
               ),
             ),
           ),
-        if (!_isSearching) ...[
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            height: _showPopularSection ? 160 : 0,
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+          if (!_isSearching)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(25),
+                ),
+                child: TextField(
+                  controller: _searchController,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    hintText: 'Search...',
+                    hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
+                    prefixIcon: const Icon(Icons.search, color: Colors.white),
+                    border: InputBorder.none,
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  ),
+                  onSubmitted: (value) {
+                    if (value.isNotEmpty) {
+                      _searchRecipes(value);
+                    } else {
+                      setState(() {
+                        _isSearching = false;
+                      });
+                    }
+                  },
+                ),
+              ),
+            ),
+          if (!_isSearching) ...[
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              height: _showPopularSection ? 160 : 0,
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                      child: Text(
+                        'Popular Ingredients',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: MediaQuery.of(context).size.width * 0.05,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      height: 120,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        itemCount: popularIngredients.length,
+                        itemBuilder: (context, index) {
+                          final ingredient = popularIngredients[index];
+                          return StatefulBuilder(
+                            builder: (context, setState) {
+                              return GestureDetector(
+                                onTapDown: (_) => setState(() => _currentScale = 0.95),
+                                onTapUp: (_) {
+                                  setState(() => _currentScale = 1.0);
+                                  _searchRecipesByIngredient(ingredient['name']!);
+                                },
+                                onTapCancel: () => setState(() => _currentScale = 1.0),
+                                child: AnimatedScale(
+                                  scale: _currentScale,
+                                  duration: const Duration(milliseconds: 150),
+                                  child: Container(
+                                    width: 100,
+                                    margin: const EdgeInsets.only(right: 12),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(12),
+                                      image: DecorationImage(
+                                        image: NetworkImage(ingredient['image']!),
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(12),
+                                        gradient: LinearGradient(
+                                          begin: Alignment.topCenter,
+                                          end: Alignment.bottomCenter,
+                                          colors: [
+                                            Colors.transparent,
+                                            Colors.black.withOpacity(0.7),
+                                          ],
+                                        ),
+                                      ),
+                                      alignment: Alignment.bottomCenter,
+                                      padding: const EdgeInsets.all(8),
+                                      child: Text(
+                                        ingredient['name']!.toUpperCase(),
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: MediaQuery.of(context).size.width * 0.04,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Padding(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                    child: Builder(
-                      builder: (BuildContext context) {
-                        return Text(
-                          'Popular Ingredients',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: MediaQuery.of(context).size.width *
-                                0.05, // Adjusting font size based on screen width
-                            fontWeight: FontWeight.bold,
-                          ),
-                        );
-                      },
+                  Text(
+                    'Recipes you may like',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: MediaQuery.of(context).size.width * 0.05,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                  SizedBox(
-                    height: 120,
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      itemCount: popularIngredients.length,
-                      itemBuilder: (context, index) {
-                        final ingredient = popularIngredients[index];
-                        return GestureDetector(
-                          onTap: () =>
-                              _searchRecipesByIngredient(ingredient['name']!),
-                          child: Container(
-                            width: 100,
-                            margin: const EdgeInsets.only(right: 12),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12),
-                              image: DecorationImage(
-                                image: NetworkImage(ingredient['image']!),
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(12),
-                                gradient: LinearGradient(
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                  colors: [
-                                    Colors.transparent,
-                                    Colors.black.withOpacity(0.7),
-                                  ],
-                                ),
-                              ),
-                              alignment: Alignment.bottomCenter,
-                              padding: const EdgeInsets.all(8),
-                              child: Text(ingredient['name']!.toUpperCase(),
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: MediaQuery.of(context)
-                                            .size
-                                            .width *
-                                        0.04, // Menyesuaikan fontSize dengan lebar layar
-                                  )),
-                            ),
-                          ),
-                        );
-                      },
+                  PopupMenuButton<String>(
+                    initialValue: sortBy,
+                    onSelected: (String value) {
+                      setState(() {
+                        sortBy = value;
+                        _sortRecipes();
+                      });
+                    },
+                    offset: const Offset(0, 40),
+                    color: Colors.grey[850],
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
                     ),
+                    constraints: const BoxConstraints(
+                      minWidth: 180,
+                      maxWidth: 180,
+                    ),
+                    child: Row(
+                      children: [
+                        Text(
+                          sortBy,
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                        const Icon(Icons.arrow_drop_down, color: Colors.white),
+                      ],
+                    ),
+                    itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                      const PopupMenuItem<String>(
+                        value: 'Newest',
+                        height: 50,
+                        child: Text(
+                          'Newest',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                      const PopupMenuItem<String>(
+                        value: 'Popular',
+                        height: 50,
+                        child: Text(
+                          'Popular',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                      const PopupMenuItem<String>(
+                        value: 'Rating',
+                        height: 50,
+                        child: Text(
+                          'Rating',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Recipes you may like',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: MediaQuery.of(context).size.width *
-                        0.05, // Adjust font size based on screen width
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                PopupMenuButton<String>(
-                  initialValue: sortBy,
-                  onSelected: (String value) {
-                    setState(() {
-                      sortBy = value;
-                      _sortRecipes();
-                    });
-                  },
-                  offset: const Offset(
-                      0, 40), // Mengatur posisi popup di bawah icon
-                  color: Colors.grey[850],
-                  shape: RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.circular(15), // Menambahkan border radius
-                  ),
-                  constraints: const BoxConstraints(
-                    // Mengatur ukuran minimum popup
-                    minWidth: 180, // Lebar minimum
-                    maxWidth: 180, // Lebar maximum
-                  ),
-                  child: Row(
-                    children: [
-                      Text(
-                        sortBy,
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                      const Icon(Icons.arrow_drop_down, color: Colors.white),
-                    ],
-                  ),
-                  itemBuilder: (BuildContext context) =>
-                      <PopupMenuEntry<String>>[
-                    const PopupMenuItem<String>(
-                      value: 'Newest',
-                      height: 50, // Menambah tinggi setiap item
-                      child: Text(
-                        'Newest',
-                        style: TextStyle(
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                    const PopupMenuItem<String>(
-                      value: 'Popular',
-                      height: 50, // Menambah tinggi setiap item
-                      child: Text(
-                        'Popular',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                    const PopupMenuItem<String>(
-                      value: 'Rating',
-                      height: 50, // Menambah tinggi setiap item
-                      child: Text(
-                        'Rating',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ],
-                )
-              ],
-            ),
+          ],
+          Expanded(
+            child: isLoading
+                ? const Center(child: CircularProgressIndicator(color: Colors.deepOrange))
+                : _isSearching
+                    ? _buildSearchResults()
+                    : _buildRecipeGrid(recipes),
           ),
         ],
-        Expanded(
-          child: isLoading
-              ? const Center(
-                  child: CircularProgressIndicator(color: Colors.deepOrange))
-              : _isSearching
-                  ? _buildSearchResults()
-                  : _buildRecipeGrid(recipes),
-        ),
-      ],
+      ),
     );
   }
 
