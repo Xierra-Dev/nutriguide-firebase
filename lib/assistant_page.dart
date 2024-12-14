@@ -4,7 +4,6 @@ import 'dart:typed_data';
 import 'package:dash_chat_2/dash_chat_2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
-import 'package:image_picker/image_picker.dart';
 import '../services/firestore_service.dart';
 import 'package:dash_chat_2/dash_chat_2.dart' as dash;
 
@@ -83,36 +82,7 @@ class _AssistantPageState extends State<AssistantPage> {
         scrollController: ScrollController(),
         chatFooterBuilder: Container(),
       ),
-      inputOptions: InputOptions(
-        trailing: [
-          IconButton(
-            onPressed: _sendMediaMessage,
-            icon: const Icon(Icons.image),
-          ),
-        ],
-      ),
     );
-  }
-
-  void _sendMediaMessage() async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-    
-    if (image != null) {
-      ChatMessage message = ChatMessage(
-        text: "Image",
-        user: currentUser,
-        createdAt: DateTime.now(),
-        medias: [
-          ChatMedia(
-            url: image.path,
-            type: MediaType.image,
-            fileName: image.name,
-          ),
-        ],
-      );
-      _sendMessage(message);
-    }
   }
 
   Future<void> _loadChatHistory() async {
