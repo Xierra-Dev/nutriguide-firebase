@@ -201,144 +201,135 @@ class _AllergiesSettingsPageState extends State<AllergiesSettingsPage> {
   }
 
   @override
+  @override
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: _onWillPop,
-      child: Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        title: const Text(
-          'Allergies',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
+      child: MediaQuery(
+        data: MediaQuery.of(context).copyWith(textScaleFactor: 1), // Set textScaleFactor ke 1
+        child: Scaffold(
+          backgroundColor: Colors.black,
+          appBar: AppBar(
+            backgroundColor: Colors.black,
+            title: const Text(
+              'Allergies',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
+              onPressed: () => _onBackPressed(context),
+            ),
+          ),
+          body: isLoading
+              ? const Center(child: CircularProgressIndicator(color: Colors.deepOrange,))
+              : Column(
+            children: [
+              Expanded(
+                child: ListView.builder(
+                  itemCount: allergies.length,
+                  itemBuilder: (context, index) {
+                    final allergy = allergies[index];
+                    final isSelected = selectedAllergies.contains(allergy);
+                    return Column(
+                      children: [
+                        ListTile(
+                          title: Text(
+                            allergy,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          trailing: Icon(
+                            isSelected ? Icons.check_circle : Icons.circle_outlined,
+                            color: isSelected ? Colors.green : Colors.grey,
+                            size: 24,
+                          ),
+                          onTap: isEditing
+                              ? () {
+                            setState(() {
+                              if (isSelected) {
+                                selectedAllergies.remove(allergy);
+                              } else {
+                                selectedAllergies.add(allergy);
+                              }
+                              _hasChanges = true;
+                            });
+                          }
+                              : null,
+                        ),
+                        const Divider(
+                          color: Colors.grey,
+                          height: 1,
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    ElevatedButton(
+                      onPressed: _hasChanges ? _saveAllergies : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _hasChanges
+                            ? Colors.deepOrange
+                            : Colors.grey.shade800,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(50),
+                        ),
+                      ),
+                      child: const Text(
+                        'SAVE',
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: isEditing
+                              ? Colors.grey[900]
+                              : Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(25),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 12)),
+                      onPressed: () {
+                        setState(() {
+                          isEditing = !isEditing;
+                          if (!isEditing) {
+                            _hasChanges = false; // Reset changes if editing is canceled
+                          }
+                        });
+                      },
+                      child: Text(
+                        isEditing ? 'CANCEL' : 'EDIT',
+                        style: TextStyle(
+                          color: isEditing ? Colors.red : Colors.black,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => _onBackPressed(context),
-        ),
       ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator(color: Colors.deepOrange,))
-          : Column(
-              children: [
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: allergies.length,
-                    itemBuilder: (context, index) {
-                      final allergy = allergies[index];
-                      final isSelected = selectedAllergies.contains(allergy);
-                      return Column(
-                        children: [
-                          ListTile(
-                            title: Text(
-                              allergy,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            trailing: Icon(
-                              isSelected ? Icons.check_circle : Icons.circle_outlined,
-                              color: isSelected ? Colors.green : Colors.grey,
-                              size: 24,
-                            ),
-                            onTap: isEditing
-                                ? () {
-                                    setState(() {
-                                      if (isSelected) {
-                                        selectedAllergies.remove(allergy);
-                                      } else {
-                                        selectedAllergies.add(allergy);
-                                      }
-                                      _hasChanges = true;
-                                    });
-                                  }
-                                : null,
-                          ),
-                          const Divider(
-                            color: Colors.grey,
-                            height: 1,
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // Tombol 'Save' di atas
-                      ElevatedButton(
-                        style: ButtonStyle(
-                          backgroundColor: WidgetStateProperty.resolveWith<Color>((states) {
-                            if (states.contains(WidgetState.disabled)) {
-                              // Warna tombol saat nonaktif
-                              return Colors.grey.shade800;
-                            }
-                            // Warna tombol saat aktif
-                            return Colors.deepOrange;
-                          }),
-                          animationDuration: const Duration(milliseconds: 300),
-                          minimumSize: WidgetStateProperty.all(const Size(double.infinity, 50)),
-                          shape: WidgetStateProperty.all(
-                            RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(50),
-                            ),
-                          ),
-                        ),
-                        onPressed: _hasChanges ? _saveAllergies: null, // Aktif/nonaktif
-                        child: Text(
-                          'SAVE',
-                          style: TextStyle(
-                            color: _hasChanges ? Colors.black : Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      // Tombol 'Edit' di bawah
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                            backgroundColor: isEditing
-                                ? Colors.grey[900]
-                                : Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(25),
-                            ),
-                            padding: EdgeInsets.symmetric(vertical: 12)
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            isEditing = !isEditing;
-                            if (!isEditing) {
-                              _hasChanges = false; // Reset changes if editing is canceled
-                            }
-                          });
-                        },
-                        child: Text(
-                          isEditing ? 'CANCEL' : 'EDIT',
-                          style: TextStyle(
-                            color: isEditing ? Colors.red : Colors.black,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-              ],
-            ),
-    ),
     );
   }
 }

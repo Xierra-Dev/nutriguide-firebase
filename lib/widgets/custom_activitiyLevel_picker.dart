@@ -31,82 +31,118 @@ class _CustomActivityLevelPickerState extends State<CustomActivityLevelPicker> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Custom Back Button
-            Align(
-              alignment: Alignment.topLeft,
-              child: Padding(
-                padding: const EdgeInsets.only(left: 10, top: 10),
-                child: IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.white),
-                  onPressed: () => Navigator.of(context).pop(),
+    // Get screen size
+    final screenSize = MediaQuery.of(context).size;
+
+    // Calculate responsive sizes
+    final double titleFontSize = screenSize.width * 0.06;
+    final double optionFontSize = screenSize.width * 0.045;
+    final double buttonFontSize = screenSize.width * 0.04;
+    final double iconSize = screenSize.width * 0.06;
+    final double verticalPadding = screenSize.height * 0.015;
+    final double horizontalPadding = screenSize.width * 0.05;
+
+    return MediaQuery(
+      // Prevent system font scaling
+      data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
+      child: Scaffold(
+        backgroundColor: Colors.black,
+        body: SafeArea(
+          child: Column(
+            children: [
+              // Custom Back Button
+              Align(
+                alignment: Alignment.topLeft,
+                child: Padding(
+                  padding: EdgeInsets.only(
+                      left: horizontalPadding * 0.5,
+                      top: verticalPadding
+                  ),
+                  child: IconButton(
+                    icon: Icon(
+                      Icons.arrow_back,
+                      color: Colors.white,
+                      size: iconSize,
+                    ),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
                 ),
               ),
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  children: [
-                    const Text(
-                      'Select Your Activity Level',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    ..._activityLevels.map((level) => _buildActivityLevelOption(level)),
-                    const Spacer(),
-                    Padding(
-                        padding: const EdgeInsets.only(
-                          bottom: 10,
-                          left: 8,
-                          right: 8,
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsets.all(horizontalPadding),
+                  child: Column(
+                    children: [
+                      Text(
+                        'Select Your Activity Level',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: titleFontSize,
+                            fontWeight: FontWeight.bold
                         ),
-                      child: SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.of(context).pop(_selectedActivityLevel);
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.deepOrange,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(50)
+                      ),
+                      SizedBox(height: verticalPadding),
+                      ..._activityLevels.map((level) =>
+                          _buildActivityLevelOption(
+                              level,
+                              optionFontSize,
+                              iconSize
+                          )
+                      ),
+                      const Spacer(),
+                      Padding(
+                        padding: EdgeInsets.only(
+                          bottom: verticalPadding * 0.5,
+                          left: horizontalPadding * 0.4,
+                          right: horizontalPadding * 0.4,
+                        ),
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              Navigator.of(context).pop(_selectedActivityLevel);
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.deepOrange,
+                              foregroundColor: Colors.white,
+                              padding: EdgeInsets.symmetric(
+                                  vertical: verticalPadding * 0.8
+                              ),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(50)
+                              ),
                             ),
-                          ),
-                          child: const Text(
+                            child: Text(
                               'SAVE',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w800,
+                              style: TextStyle(
+                                fontSize: buttonFontSize,
+                                fontWeight: FontWeight.w800,
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildActivityLevelOption(String level) {
+  Widget _buildActivityLevelOption(
+      String level,
+      double fontSize,
+      double iconSize
+      ) {
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 10),
+      margin: EdgeInsets.symmetric(
+          vertical: MediaQuery.of(context).size.height * 0.01
+      ),
       decoration: BoxDecoration(
         color: _selectedActivityLevel == level
             ? Colors.deepOrange.withOpacity(0.2)
@@ -116,9 +152,9 @@ class _CustomActivityLevelPickerState extends State<CustomActivityLevelPicker> {
       child: ListTile(
         title: Text(
           level,
-          style: const TextStyle(
+          style: TextStyle(
             color: Colors.white,
-            fontSize: 18,
+            fontSize: fontSize,
           ),
         ),
         trailing: Icon(
@@ -128,6 +164,7 @@ class _CustomActivityLevelPickerState extends State<CustomActivityLevelPicker> {
           color: _selectedActivityLevel == level
               ? Colors.deepOrange
               : Colors.white70,
+          size: iconSize,
         ),
         onTap: () {
           setState(() {
