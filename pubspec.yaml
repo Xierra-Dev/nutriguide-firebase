@@ -44,6 +44,7 @@ dependencies:
   timeago: ^3.0.2
   app_settings: ^5.1.1
   firebase_messaging: ^15.1.6
+  flutter_local_notifications: ^18.0.1
   permission_handler: ^10.2.0
   flutter_timezone: ^4.0.0
   rxdart: ^0.28.0

@@ -1,13 +1,43 @@
+// notifications_page.dart
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 
-class NotificationsPage extends StatelessWidget {
+class NotificationsPage extends StatefulWidget {
   const NotificationsPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // For now, we'll assume there are no notifications
-    bool hasNotifications = false;
+  _NotificationsPageState createState() => _NotificationsPageState();
+}
 
+class _NotificationsPageState extends State<NotificationsPage> {
+  bool _notificationsEnabled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkNotificationStatus();
+  }
+
+  Future<void> _checkNotificationStatus() async {
+    final status = await Permission.notification.status;
+    setState(() {
+      _notificationsEnabled = status.isGranted;
+    });
+  }
+
+  Future<void> _toggleNotifications() async {
+    if (_notificationsEnabled) {
+      openAppSettings(); // Buka pengaturan aplikasi untuk menonaktifkan notifikasi
+    } else {
+      final status = await Permission.notification.request();
+      setState(() {
+        _notificationsEnabled = status.isGranted;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -15,31 +45,47 @@ class NotificationsPage extends StatelessWidget {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () {
-            // Navigasi kembali ke tempat awal
-            Navigator.of(context).pop();
-          },
+          onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           'Notifications',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
-      body: Center(
-        child:  Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.notifications_off,
-                      size: 64, color: Colors.grey[600]),
-                  const SizedBox(height: 16),
-                  Text(
-                    'No notifications',
-                    style: TextStyle(color: Colors.grey[400], fontSize: 18),
-                  ),
-                ],
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Enable push notifications now to get personalized recipe ideas, feature updates, and access to NutriGuide offers.',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
               ),
+            ),
+            const SizedBox(height: 24),
+            ListTile(
+              title: const Text(
+                'Push Notifications',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                ),
+              ),
+              trailing: Switch(
+                value: _notificationsEnabled,
+                onChanged: (value) => _toggleNotifications(),
+                activeColor: Colors.deepOrange,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
-
