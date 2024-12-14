@@ -8,6 +8,8 @@ import '../models/planned_recipe.dart';
 import '../models/nutrition_goals.dart';
 import '../models/chat_message.dart';
 import 'package:dash_chat_2/dash_chat_2.dart' as dash;
+import '../models/notification.dart';
+
 class FirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -1275,6 +1277,132 @@ class FirestoreService {
     } catch (e) {
       print('Error getting chat history: $e');
       return [];
+    }
+  }
+
+  Future<List<NotificationModel>> getNotifications() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) throw 'User not logged in';
+
+      print('Fetching notifications for user: ${user.uid}');
+
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('notifications')
+          .orderBy('timestamp', descending: true)
+          .get();
+
+      print('Found ${querySnapshot.docs.length} notifications');
+
+      final notifications = querySnapshot.docs
+          .map((doc) {
+            print('Processing notification doc: ${doc.id}');
+            print('Doc data: ${doc.data()}');
+            return NotificationModel.fromMap(doc.data(), doc.id);
+          })
+          .toList();
+
+      print('Processed ${notifications.length} notifications');
+      return notifications;
+    } catch (e) {
+      print('Error getting notifications: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> markNotificationAsRead(String notificationId) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) throw 'User not logged in';
+
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('notifications')
+          .doc(notificationId)
+          .update({'isRead': true});
+    } catch (e) {
+      print('Error marking notification as read: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> markAllNotificationsAsRead() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) throw 'User not logged in';
+
+      final batch = FirebaseFirestore.instance.batch();
+      
+      final notifications = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('notifications')
+          .where('isRead', isEqualTo: false)
+          .get();
+
+      for (var doc in notifications.docs) {
+        batch.update(doc.reference, {'isRead': true});
+      }
+
+      await batch.commit();
+    } catch (e) {
+      print('Error marking all notifications as read: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> addNotification({
+    required String title,
+    required String message,
+    required String type,
+    String? relatedId,
+  }) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) throw 'User not logged in';
+
+      print('Adding notification for user: ${user.uid}');
+
+      final notificationData = {
+        'title': title,
+        'message': message,
+        'timestamp': FieldValue.serverTimestamp(),
+        'isRead': false,
+        'type': type,
+        'relatedId': relatedId,
+      };
+
+      print('Notification data: $notificationData');
+
+      final docRef = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('notifications')
+          .add(notificationData);
+
+      print('Notification added with ID: ${docRef.id}');
+    } catch (e) {
+      print('Error adding notification: $e');
+      rethrow;
+    }
+  }
+
+  Future<Recipe?> getRecipeById(String recipeId) async {
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('recipes')
+          .doc(recipeId)
+          .get();
+      
+      if (!doc.exists) return null;
+      
+      return Recipe.fromMap(doc.data()!);
+    } catch (e) {
+      print('Error getting recipe by id: $e');
+      return null;
     }
   }
 

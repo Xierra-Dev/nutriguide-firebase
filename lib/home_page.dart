@@ -12,6 +12,7 @@ import 'planner_page.dart';
 import 'package:intl/intl.dart';
 import 'services/cache_service.dart';
 import 'assistant_page.dart';
+import 'home_notifications_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -843,7 +844,7 @@ class _HomePageState extends State<HomePage> {
           onPressed: () {
             Navigator.push(
               context,
-              SlideLeftRoute(page: const NotificationsPage()),
+              SlideLeftRoute(page: const HomeNotificationsPage()),
             );
           },
         ),
