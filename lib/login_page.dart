@@ -254,13 +254,6 @@ class _LoginPageState extends State<LoginPage> {
       barrierDismissible: false,
       barrierColor: Colors.transparent,
       builder: (BuildContext context) {
-        // Get screen size for responsiveness
-        final screenWidth = MediaQuery.of(context).size.width;
-        final screenHeight = MediaQuery.of(context).size.height;
-
-        // Scale factor for text and widget sizes
-        final scaleFactor = screenWidth / 400.0; // Assuming 400 as base width
-
         return Stack(
           children: [
             Positioned.fill(
@@ -275,50 +268,47 @@ class _LoginPageState extends State<LoginPage> {
               child: AlertDialog(
                 backgroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(50 * scaleFactor),
+                  borderRadius: BorderRadius.circular(50),
                 ),
-                insetPadding: EdgeInsets.symmetric(
-                  horizontal: 10 * scaleFactor,
-                  vertical: 40 * scaleFactor,
-                ),
-                contentPadding: EdgeInsets.all(20 * scaleFactor),
+                insetPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 40),
+                contentPadding: const EdgeInsets.all(20),
                 content: Stack(
                   clipBehavior: Clip.none,
                   children: [
                     Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        SizedBox(height: 30 * scaleFactor),
+                        const SizedBox(height: 30),
                         Image.asset(
                           specificImage ?? 'assets/images/error-occur.png',
-                          height: 100 * scaleFactor,
-                          width: 100 * scaleFactor,
+                          height: 100,
+                          width: 100,
                         ),
-                        SizedBox(height: 25 * scaleFactor),
+                        const SizedBox(height: 25),
                         Text(
                           title ?? 'AN ERROR OCCUR WHEN LOGGING IN TO YOUR ACCOUNT',
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: Colors.red,
                             fontWeight: FontWeight.bold,
-                            fontSize: 22 * scaleFactor,
+                            fontSize: 22,
                           ),
                           textAlign: TextAlign.center,
                         ),
-                        SizedBox(height: 25 * scaleFactor),
+                        const SizedBox(height: 25),
                         if (message != null)
                           Text(
                             message,
                             textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 18 * scaleFactor,
+                            style: const TextStyle(
+                              fontSize: 18,
                             ),
                           ),
-                        SizedBox(height: 20 * scaleFactor),
+                        const SizedBox(height: 20),
                       ],
                     ),
                     Positioned(
-                      top: -2 * scaleFactor,
-                      right: 7 * scaleFactor,
+                      top: -2,
+                      right: 7,
                       child: GestureDetector(
                         onTap: () {
                           setState(() {
@@ -327,16 +317,16 @@ class _LoginPageState extends State<LoginPage> {
                           Navigator.of(context).pop();
                         },
                         child: Container(
-                          width: 35 * scaleFactor,
-                          height: 35 * scaleFactor,
+                          width: 35,
+                          height: 35,
                           decoration: BoxDecoration(
                             color: Colors.grey.shade300,
                             shape: BoxShape.circle,
                           ),
-                          child: Icon(
+                          child: const Icon(
                             Icons.close,
                             color: Colors.black,
-                            size: 20 * scaleFactor,
+                            size: 20,
                           ),
                         ),
                       ),
@@ -360,93 +350,80 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
-    final textScaleFactor = MediaQuery.of(context).textScaleFactor;
+    final formTopPosition = screenSize.height * 0.35; // Position for form
 
-    return MediaQuery(
-      // This prevents system font scaling
-      data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
-      child: Scaffold(
-        body: SizedBox(
-          height: screenSize.height,
-          child: Stack(
-            children: [
-              // Image Container (positioned at top)
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                child: Container(
-                  height: screenSize.height * 0.43,
-                  decoration: const BoxDecoration(
-                    image: DecorationImage(
-                      image: AssetImage('assets/images/register_page.jpg'),
-                      fit: BoxFit.cover,
-                    ),
+    return Scaffold(
+      body: SizedBox(
+        height: screenSize.height,
+        child: Stack(
+          children: [
+            // Image Container (positioned at top)
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                height: screenSize.height * 0.43,
+                decoration: const BoxDecoration(
+                  image: DecorationImage(
+                    image: AssetImage('assets/images/register_page.jpg'),
+                    fit: BoxFit.cover,
                   ),
                 ),
               ),
+            ),
 
-              Positioned(
-                top: screenSize.height * 0.39,
-                left: 0,
-                right: 0,
-                child: Container(
-                  width: double.infinity,
-                  height: screenSize.height * 0.1,
-                  decoration: BoxDecoration(
-                    color: Colors.lightGreen,
-                    borderRadius: BorderRadius.circular(25),
+            Positioned(
+              top: MediaQuery.of(context).size.height * 0.39,
+              left: 0,
+              right: 0,
+              child: Container(
+                width: double.infinity,
+                height: 300,
+                decoration: BoxDecoration(
+                  color: Colors.lightGreen,
+                  borderRadius: BorderRadius.circular(25),
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                child: const Text(
+                  'Login',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
                   ),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  child: Center(
-                    child: Text(
-                      'Login',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
+                  textAlign: TextAlign.center,
                 ),
               ),
-
-              // Login Form Container
-              Positioned(
-                top: screenSize.height * 0.46,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: Container(
-                  decoration: const BoxDecoration(
-                    color: Colors.amber,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(30),
-                      topRight: Radius.circular(30),
-                    ),
+            ),
+            // Login Form Container (positioned independently)
+            Positioned(
+              top: MediaQuery.of(context).size.height * 0.46,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: Container(
+                decoration: const BoxDecoration(
+                  color: Colors.amber,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(30),
+                    topRight: Radius.circular(30),
                   ),
-                  child: Center(
-                    child: SingleChildScrollView(
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: screenSize.width * 0.06,
-                          vertical: 0,
-                        ),
-                        child: Form(
-                          key: _formKey,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              // Email TextField
-                              TextFormField(
-                                controller: _emailController,
-                                decoration: InputDecoration(
-                                  labelText: (_isEmailEmpty && !_isEmailFocused)
-                                      ? 'Enter Your Email'
-                                      : 'Email',
-                                  labelStyle: TextStyle(fontSize: 16),
+                ),
+                child: Center(
+                  child: SingleChildScrollView(
+                    child: Padding(
+                      padding:  const EdgeInsets.fromLTRB(25, 0, 25, 0),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            TextFormField(
+                              controller: _emailController,
+                              decoration: InputDecoration(
+                                  labelText: (_isEmailEmpty && !_isEmailFocused) ? 'Enter Your Email' : 'Email',
                                   floatingLabelBehavior: FloatingLabelBehavior.auto,
                                   filled: true,
                                   fillColor: Colors.grey[100],
@@ -456,32 +433,27 @@ class _LoginPageState extends State<LoginPage> {
                                   ),
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(50),
-                                    borderSide: const BorderSide(color: Colors.deepOrange),
+                                    borderSide: const BorderSide(color: Colors.deepOrange,
+                                    ),
                                   ),
                                   contentPadding: const EdgeInsets.symmetric(
                                     horizontal: 25,
                                     vertical: 12,
-                                  ),
-                                ),
-                                style: TextStyle(fontSize: 16),
-                                focusNode: _emailFocusNode,
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Please enter your email';
-                                  }
-                                  return null;
-                                },
+                                  )
                               ),
-                              SizedBox(height: screenSize.height * 0.03),
-
-                              // Password TextField
-                              TextFormField(
-                                controller: _passwordController,
-                                decoration: InputDecoration(
-                                  labelText: (_isPasswordEmpty && !_isPasswordFocused)
-                                      ? 'Enter Your Password'
-                                      : 'Password',
-                                  labelStyle: TextStyle(fontSize: 16),
+                              focusNode: _emailFocusNode, // Add this
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Please enter your email';
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 30),
+                            TextFormField(
+                              controller: _passwordController,
+                              decoration: InputDecoration(
+                                  labelText: (_isPasswordEmpty && !_isPasswordFocused) ? 'Enter Your Password' : 'Password',
                                   filled: true,
                                   fillColor: Colors.grey[100],
                                   border: OutlineInputBorder(
@@ -490,7 +462,8 @@ class _LoginPageState extends State<LoginPage> {
                                   ),
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(50),
-                                    borderSide: const BorderSide(color: Colors.deepOrange),
+                                    borderSide: const BorderSide(color: Colors.deepOrange,
+                                    ),
                                   ),
                                   suffixIcon: Padding(
                                     padding: const EdgeInsets.only(right: 12.5),
@@ -509,130 +482,119 @@ class _LoginPageState extends State<LoginPage> {
                                   contentPadding: const EdgeInsets.symmetric(
                                     horizontal: 25,
                                     vertical: 12,
-                                  ),
-                                ),
-                                style: TextStyle(fontSize: 16),
-                                obscureText: !_isPasswordVisible,
-                                focusNode: _passwordFocusNode,
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Please enter your password';
-                                  }
-                                  return null;
-                                },
+                                  )
                               ),
-                              SizedBox(height: screenSize.height * 0.15),
-
-                              // Login Button
-                              SizedBox(
-                                width: double.infinity,
-                                height: 45,
-                                child: ElevatedButton(
-                                  onPressed: _isLoading ? null : _login,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.blue[300],
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(50),
-                                    ),
-                                  ),
-                                  child: _isLoading
-                                      ? const CircularProgressIndicator(color: Colors.deepOrange)
-                                      : Text(
-                                    'Login',
-                                    style: TextStyle(
-                                      fontSize: 18.5,
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ),
-
-                              // Register Link
-                              Align(
-                                alignment: Alignment.center,
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      'Already have an account?',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 5),
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.pushReplacement(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => const RegisterPage(),
-                                          ),
-                                        );
-                                      },
-                                      child: Text(
-                                        'Register here',
-                                        style: TextStyle(
-                                          color: Colors.red,
-                                          fontWeight: FontWeight.w900,
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-
-              // Back Button
-              Positioned(
-                top: 45,
-                left: 25,
-                child: Container(
-                  decoration: const BoxDecoration(
-                    color: Colors.black54,
-                    shape: BoxShape.circle,
-                  ),
-                  child: ClipOval(
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: () {
-                          Navigator.of(context).pop(
-                            SlideRightRoute(
-                              page: const LandingPage(),
+                              obscureText: !_isPasswordVisible,
+                              focusNode: _passwordFocusNode, // Add this
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Please enter your password';
+                                }
+                                return null;
+                              },
                             ),
-                          );
-                        },
-                        child: const SizedBox(
-                          width: 40,
-                          height: 40,
-                          child: Icon(
-                            Icons.arrow_back,
-                            color: Colors.white,
-                            size: 20,
-                          ),
+                            const SizedBox(height: 145),
+                            SizedBox(
+                              width: double.infinity,
+                              height: 45,
+                              child: ElevatedButton(
+                                onPressed: _isLoading ? null : _login,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.blue[300],
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(50),
+                                  ),
+                                ),
+                                child: _isLoading
+                                    ? const CircularProgressIndicator(color: Colors.deepOrange)
+                                    : const Text(
+                                  'Login',
+                                  style: TextStyle(
+                                    fontSize: 18.5,
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Align(
+                              alignment: Alignment.center,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Text(
+                                    'Already have an account?',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 0), // Added spacing between text and TextButton
+                                  TextButton(
+                                    onPressed: () {
+                                      // Navigate to Register Page
+                                      Navigator.pushReplacement(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => const RegisterPage(),
+                                        ),
+                                      );
+                                    },
+                                    child: const Text(
+                                      'Register here',
+                                      style: TextStyle(
+                                        color: Colors.red,
+                                        fontWeight: FontWeight.w900,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ], //children
                         ),
                       ),
                     ),
                   ),
                 ),
               ),
-
-              if (_isDialogShowing)
-                Positioned.fill(
-                  child: Container(color: Colors.black.withOpacity(0.4)),
-                )
-            ],
-          ),
+            ),
+            // Back Button
+            Positioned(
+              top: 45,
+              left: 25,
+              child: Container(
+                decoration: const BoxDecoration(
+                  color: Colors.black54,
+                  shape: BoxShape.circle,
+                ),
+                child: ClipOval(
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () {
+                        Navigator.of(context).pop(
+                          SlideRightRoute(
+                            page: const LandingPage(), // Replace with the page you want to go back to
+                          ),
+                        );
+                      },
+                      child: const SizedBox(
+                        width: 40,
+                        height: 40,
+                        child: Icon(
+                          Icons.arrow_back,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            if (_isDialogShowing)
+              Positioned.fill(child: Container(color: Colors.black.withOpacity(0.4),))
+          ],
         ),
       ),
     );

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'email_verification_page.dart';
-import 'personalization_page.dart';
+import 'personalization_page.dart'; // Assuming you have a PersonalizationPage
 import 'dart:async';
 import 'login_page.dart';
 import 'register_page.dart';
 import 'services/themealdb_service.dart';
-import 'services/auth_service.dart';
+import 'services/auth_service.dart'; // Import the auth service
 import 'permission/notifications_permission.dart';
 
 class LandingPage extends StatefulWidget {
@@ -51,7 +51,7 @@ class _LandingPageState extends State<LandingPage> with SingleTickerProviderStat
   String? _previousImageUrl;
   bool _isLoading = true;
   final TheMealDBService _mealService = TheMealDBService();
-  final AuthService _authService = AuthService();
+  final AuthService _authService = AuthService(); // Add AuthService instance
   Timer? _imageChangeTimer;
   AnimationController? _controller;
   Animation<double>? _animation;
@@ -62,6 +62,7 @@ class _LandingPageState extends State<LandingPage> with SingleTickerProviderStat
   void initState() {
     super.initState();
 
+    // Existing initialization code remains the same
     _controller = AnimationController(
       duration: const Duration(milliseconds: 1000),
       vsync: this,
@@ -107,243 +108,329 @@ class _LandingPageState extends State<LandingPage> with SingleTickerProviderStat
     }
   }
 
-  // Responsive text style method
-  TextStyle _responsiveTextStyle(BuildContext context, {
-    required double baseSize,
-    FontWeight fontWeight = FontWeight.bold,
-    List<Color>? gradientColors,
-  }) {
-    final mediaQuery = MediaQuery.of(context);
-    final screenWidth = mediaQuery.size.width;
-    final scaleFactor = screenWidth / 375.0; // Base design width
-
-    // Calculate responsive font size
-    double fontSize = baseSize * scaleFactor;
-    fontSize = fontSize.clamp(baseSize * 0.5, baseSize * 1.5);
-
-    return TextStyle(
-      fontSize: fontSize,
-      fontWeight: fontWeight,
-      fontFamily: 'Pacifico',
-      foreground: Paint()
-        ..shader = LinearGradient(
-          colors: gradientColors ?? [
-            const Color(0xFFFF6A00),
-            const Color(0xFF00BFFF),
-          ],
-        ).createShader(
-          Rect.fromLTWH(0.0, 0.0, screenWidth, mediaQuery.size.height),
-        ),
-      shadows: [
-        Shadow(
-          offset: const Offset(2, 2),
-          blurRadius: 4,
-          color: Colors.black.withOpacity(0.4),
-        ),
-      ],
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    return MediaQuery.withClampedTextScaling(
-      child: Scaffold(
-        body: LayoutBuilder(
-          builder: (context, constraints) {
-            // Determine if it's a narrow or wide screen
-            final isNarrowScreen = constraints.maxWidth < 600;
-
-            return Stack(
-              fit: StackFit.expand,
+    return Scaffold(
+      body: Stack(
+        children: [
+          // Previous image (fading out)
+          if (_previousImageUrl != null)
+            Container(
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  image: NetworkImage(_previousImageUrl!),
+                  fit: BoxFit.cover,
+                  colorFilter: ColorFilter.mode(
+                    Colors.black.withOpacity(0.3),
+                    BlendMode.darken,
+                  ),
+                ),
+              ),
+            ),
+          // Current image (fading in)
+          if (_currentImageUrl != null && _animation != null)
+            FadeTransition(
+              opacity: _animation!,
+              child: Container(
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: NetworkImage(_currentImageUrl!),
+                    fit: BoxFit.cover,
+                    colorFilter: ColorFilter.mode(
+                      Colors.black.withOpacity(0.3),
+                      BlendMode.darken,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          // Fallback image
+          if (_currentImageUrl == null && _previousImageUrl == null)
+            Container(
+              decoration: const BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage('assets/images/landing_page.jpg'),
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+          // Content with animations
+          SafeArea(
+            child: Column(
               children: [
-                // Background Image Logic (Unchanged)
-                if (_previousImageUrl != null)
-                  Container(
-                    decoration: BoxDecoration(
-                      image: DecorationImage(
-                        image: NetworkImage(_previousImageUrl!),
-                        fit: BoxFit.cover,
-                        colorFilter: ColorFilter.mode(
-                          Colors.black.withOpacity(0.3),
-                          BlendMode.darken,
-                        ),
-                      ),
-                    ),
-                  ),
-
-                if (_currentImageUrl != null && _animation != null)
-                  FadeTransition(
-                    opacity: _animation!,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        image: DecorationImage(
-                          image: NetworkImage(_currentImageUrl!),
-                          fit: BoxFit.cover,
-                          colorFilter: ColorFilter.mode(
-                            Colors.black.withOpacity(0.3),
-                            BlendMode.darken,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-
-                if (_currentImageUrl == null && _previousImageUrl == null)
-                  Container(
-                    decoration: const BoxDecoration(
-                      image: DecorationImage(
-                        image: AssetImage('assets/images/landing_page.jpg'),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-
-                // Main Content
-                SafeArea(
+                Expanded(
                   child: Center(
-                    child: SingleChildScrollView(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          // Logo/Title Section
-                          AnimatedOpacity(
-                            duration: const Duration(milliseconds: 800),
-                            opacity: _isLoading ? 0.0 : 1.0,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  'Plan',
-                                  style: _responsiveTextStyle(context, baseSize: 48),
-                                  textAlign: TextAlign.center,
-                                ),
-                                Text(
-                                  'Your',
-                                  style: _responsiveTextStyle(context, baseSize: 48),
-                                  textAlign: TextAlign.center,
-                                ),
-                                Text(
-                                  'Food',
-                                  style: _responsiveTextStyle(context, baseSize: 48),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ],
-                            ),
-                          ),
+                    child: AnimatedOpacity(
+                      duration: const Duration(milliseconds: 800),
+                      opacity: _isLoading ? 0.0 : 1.0,
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          // Hitung ukuran font berdasarkan lebar layar
+                          double fontSize = constraints.maxWidth *
+                              0.1; // 10% dari lebar layar
 
-                          // Spacing
-                          SizedBox(height: constraints.maxHeight * 0.05),
+                          return Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Expanded(
+                                child: Center(
+                                  child: AnimatedOpacity(
+                                    duration: const Duration(milliseconds: 800),
+                                    opacity: _isLoading ? 0.0 : 1.0,
+                                    child: LayoutBuilder(
+                                      builder: (context, constraints) {
+                                        // Menghitung fontSize yang responsif berdasarkan lebar layar
+                                        double fontSize = constraints.maxWidth *
+                                            0.1; // Menggunakan persentase dari lebar layar
 
-                          // Buttons Section
-                          Padding(
-                            padding: EdgeInsets.symmetric(
-                                horizontal: isNarrowScreen
-                                    ? 16.0
-                                    : constraints.maxWidth * 0.2
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                AnimatedOpacity(
-                                  duration: const Duration(milliseconds: 800),
-                                  opacity: _isLoading ? 0.0 : 1.0,
-                                  child: ElevatedButton(
-                                    onPressed: () {
-                                      Navigator.push(
-                                        context,
-                                        SlideLeftRoute(page: const RegisterPage()),
-                                      );
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: const Color.fromARGB(255, 255, 106, 0),
-                                      foregroundColor: Colors.black,
-                                      padding: const EdgeInsets.symmetric(vertical: 16),
-                                      textStyle: TextStyle(
-                                        fontSize: 18 * (constraints.maxWidth / 375),
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    child: const Text('Register'),
-                                  ),
-                                ),
+                                        // Pastikan ukuran font tidak terlalu kecil atau besar
+                                        fontSize = fontSize.clamp(24.0,
+                                            48.0); // Minimal 24, maksimal 48
 
-                                const SizedBox(height: 20),
-
-                                AnimatedOpacity(
-                                  duration: const Duration(milliseconds: 800),
-                                  opacity: _isLoading ? 0.0 : 1.0,
-                                  child: ElevatedButton(
-                                    onPressed: () {
-                                      Navigator.push(
-                                        context,
-                                        SlideLeftRoute(page: const LoginPage()),
-                                      );
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: const Color.fromARGB(255, 42, 227, 206),
-                                      foregroundColor: Colors.black,
-                                      padding: const EdgeInsets.symmetric(vertical: 16),
-                                      textStyle: TextStyle(
-                                        fontSize: 18 * (constraints.maxWidth / 375),
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    child: const Text('Login'),
-                                  ),
-                                ),
-
-                                // Terms and Privacy Policy
-                                AnimatedOpacity(
-                                  duration: const Duration(milliseconds: 800),
-                                  opacity: _isLoading ? 0.0 : 1.0,
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(top: 20),
-                                    child: RichText(
-                                      textAlign: TextAlign.center,
-                                      text: TextSpan(
-                                        text: 'By using NutriGuide you agree to our ',
-                                        style: TextStyle(
-                                          fontSize: 14 * (constraints.maxWidth / 375),
-                                          fontWeight: FontWeight.w500,
-                                          color: Colors.white70,
-                                        ),
-                                        children: [
-                                          TextSpan(
-                                            text: 'Terms',
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              decoration: TextDecoration.underline,
-                                              color: Colors.white,
-                                              fontSize: 14 * (constraints.maxWidth / 375),
+                                        return Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.center,
+                                          children: [
+                                            // Teks "Plan"
+                                            Text(
+                                              'Plan',
+                                              style: TextStyle(
+                                                fontSize: fontSize,
+                                                fontWeight: FontWeight.bold,
+                                                fontFamily: 'Pacifico',
+                                                foreground: Paint()
+                                                  ..shader = LinearGradient(
+                                                    colors: [
+                                                      Color(
+                                                          0xFFFF6A00), // #ff6a00
+                                                      Color(
+                                                          0xFF00BFFF), // #00bfff
+                                                    ],
+                                                  ).createShader(
+                                                    Rect.fromLTWH(
+                                                      0.0,
+                                                      0.0,
+                                                      constraints.maxWidth,
+                                                      constraints.maxHeight,
+                                                    ),
+                                                  ),
+                                                shadows: [
+                                                  Shadow(
+                                                    offset: Offset(2, 2),
+                                                    blurRadius: 4,
+                                                    color: Colors.black
+                                                        .withOpacity(0.4),
+                                                  ),
+                                                ],
+                                              ),
+                                              textAlign: TextAlign.center,
                                             ),
-                                          ),
-                                          const TextSpan(text: ' and '),
-                                          TextSpan(
-                                            text: 'Privacy Policy',
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              decoration: TextDecoration.underline,
-                                              color: Colors.white,
-                                              fontSize: 14 * (constraints.maxWidth / 375),
+                                            SizedBox(
+                                                height: 10), // Spasi antar teks
+
+                                            // Teks "Your"
+                                            Text(
+                                              'Your',
+                                              style: TextStyle(
+                                                fontSize: fontSize,
+                                                fontWeight: FontWeight.bold,
+                                                fontFamily: 'Pacifico',
+                                                foreground: Paint()
+                                                  ..shader = LinearGradient(
+                                                    colors: [
+                                                      Color(
+                                                          0xFFFF6A00), // #ff6a00
+                                                      Color(
+                                                          0xFF00BFFF), // #00bfff
+                                                    ],
+                                                  ).createShader(
+                                                    Rect.fromLTWH(
+                                                      0.0,
+                                                      0.0,
+                                                      constraints.maxWidth,
+                                                      constraints.maxHeight,
+                                                    ),
+                                                  ),
+                                                shadows: [
+                                                  Shadow(
+                                                    offset: Offset(2, 2),
+                                                    blurRadius: 4,
+                                                    color: Colors.black
+                                                        .withOpacity(0.4),
+                                                  ),
+                                                ],
+                                              ),
+                                              textAlign: TextAlign.center,
                                             ),
-                                          ),
-                                        ],
-                                      ),
+                                            SizedBox(
+                                                height: 10), // Spasi antar teks
+
+                                            // Teks "Food"
+                                            Text(
+                                              'Food',
+                                              style: TextStyle(
+                                                fontSize: fontSize,
+                                                fontWeight: FontWeight.bold,
+                                                fontFamily: 'Pacifico',
+                                                foreground: Paint()
+                                                  ..shader = LinearGradient(
+                                                    colors: [
+                                                      Color(
+                                                          0xFFFF6A00), // #ff6a00
+                                                      Color(
+                                                          0xFF00BFFF), // #00bfff
+                                                    ],
+                                                  ).createShader(
+                                                    Rect.fromLTWH(
+                                                      0.0,
+                                                      0.0,
+                                                      constraints.maxWidth,
+                                                      constraints.maxHeight,
+                                                    ),
+                                                  ),
+                                                shadows: [
+                                                  Shadow(
+                                                    offset: Offset(2, 2),
+                                                    blurRadius: 4,
+                                                    color: Colors.black
+                                                        .withOpacity(0.4),
+                                                  ),
+                                                ],
+                                              ),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                          ],
+                                        );
+                                      },
                                     ),
                                   ),
                                 ),
-                              ],
-                            ),
-                          ),
-                        ],
+                              ),
+                            ],
+                          );
+                        },
                       ),
                     ),
                   ),
                 ),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      AnimatedOpacity(
+                        duration: const Duration(milliseconds: 800),
+                        opacity: _isLoading ? 0.0 : 1.0,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              SlideLeftRoute(page: const RegisterPage()),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color.fromARGB(255, 255, 106, 0),
+                            foregroundColor: Colors.black,
+                            padding: const EdgeInsets.symmetric(vertical: 11),
+                          ),
+                          child: const Text(
+                            'Register',
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      AnimatedOpacity(
+                        duration: const Duration(milliseconds: 800),
+                        opacity: _isLoading ? 0.0 : 1.0,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              SlideLeftRoute(page: const LoginPage()),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color.fromARGB(255, 42, 227, 206),
+                            foregroundColor: Colors.black,
+                            padding: const EdgeInsets.symmetric(vertical: 11),
+                          ),
+                          child: const Text(
+                            'Login',
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
+                      // Divider with OR text
+
+                      AnimatedOpacity(
+                        duration: const Duration(milliseconds: 800),
+                        opacity: _isLoading ? 0.0 : 1.0,
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 20, bottom: 10),
+                          child: RichText(
+                            textAlign: TextAlign.center,
+                            text: TextSpan(
+                              text: 'By using NutriGuide you agree to our ',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                foreground: Paint()
+                                  ..shader = LinearGradient(
+                                    colors: [
+                                      Color(0xFFFF6A00), // Warna oranye
+                                      Color(0xFF00BFFF), // Warna biru
+                                    ],
+                                  ).createShader(
+                                    const Rect.fromLTWH(0.0, 0.0, 200.0, 50.0),
+                                  ),
+                                shadows: [
+                                  Shadow(
+                                    offset: Offset(1, 1),
+                                    blurRadius: 3,
+                                    color: Colors.black.withOpacity(
+                                        0.5), // Shadow untuk menonjolkan teks
+                                  ),
+                                ],
+                              ),
+                              children: [
+                                TextSpan(
+                                  text: 'Terms',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    decoration: TextDecoration
+                                        .underline, // Garis bawah untuk memberi kesan link
+                                    color: Colors
+                                        .white, // Warna netral terang agar tetap terlihat
+                                  ),
+                                ),
+                                const TextSpan(
+                                  text: ' and ',
+                                ),
+                                TextSpan(
+                                  text: 'Privacy Policy',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    decoration: TextDecoration
+                                        .underline, // Garis bawah untuk memberi kesan link
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
-            );
-          },
-        ),
+            ),
+          ),
+        ],
       ),
     );
   }
