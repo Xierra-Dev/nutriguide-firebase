@@ -18,30 +18,30 @@ class SlideUpRoute extends PageRouteBuilder {
 
   SlideUpRoute({required this.page})
       : super(
-    pageBuilder: (
-        BuildContext context,
-        Animation<double> primaryAnimation,
-        Animation<double> secondaryAnimation,
-        ) =>
-    page,
-    transitionsBuilder: (
-        BuildContext context,
-        Animation<double> primaryAnimation,
-        Animation<double> secondaryAnimation,
-        Widget child,
-        ) {
-      return SlideTransition(
-        position: Tween<Offset>(
-          begin: const Offset(0.0, 1.0), // Start from bottom
-          end: Offset.zero, // End at the center
-        ).animate(CurvedAnimation(
-          parent: primaryAnimation,
-          curve: Curves.easeOutQuad,
-        )),
-        child: child,
-      );
-    },
-  );
+          pageBuilder: (
+            BuildContext context,
+            Animation<double> primaryAnimation,
+            Animation<double> secondaryAnimation,
+          ) =>
+              page,
+          transitionsBuilder: (
+            BuildContext context,
+            Animation<double> primaryAnimation,
+            Animation<double> secondaryAnimation,
+            Widget child,
+          ) {
+            return SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(0.0, 1.0), // Start from bottom
+                end: Offset.zero, // End at the center
+              ).animate(CurvedAnimation(
+                parent: primaryAnimation,
+                curve: Curves.easeOutQuad,
+              )),
+              child: child,
+            );
+          },
+        );
 }
 
 class _SearchPageState extends State<SearchPage> {
@@ -100,7 +100,8 @@ class _SearchPageState extends State<SearchPage> {
     }
   }
 
-  void _showMealSelectionDialog(BuildContext context, StateSetter setDialogState, Recipe recipe) {
+  void _showMealSelectionDialog(
+      BuildContext context, StateSetter setDialogState, Recipe recipe) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.grey[900],
@@ -113,18 +114,16 @@ class _SearchPageState extends State<SearchPage> {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter mealSetState) {
             return Padding(
-              padding: const EdgeInsets.symmetric(
-                  vertical: 40,
-                  horizontal: 20
-              ),
+              padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Select Meal Type',
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: MediaQuery.of(context).size.width *
+                          0.05, // Adjust font size relative to screen width
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
@@ -133,11 +132,21 @@ class _SearchPageState extends State<SearchPage> {
                   // Meal type selection
                   ListView(
                     shrinkWrap: true,
-                    children: ['Breakfast', 'Lunch', 'Dinner', 'Supper', 'Snacks'].map((String mealType) {
+                    children: [
+                      'Breakfast',
+                      'Lunch',
+                      'Dinner',
+                      'Supper',
+                      'Snacks'
+                    ].map((String mealType) {
                       return ListTile(
                         title: Text(
                           mealType,
-                          style: const TextStyle(color: Colors.white, fontSize: 16,),
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: MediaQuery.of(context).size.width *
+                                0.04, // Adjust font size relative to screen width
+                          ),
                         ),
                         onTap: () {
                           // Update the selected meal in the parent dialog
@@ -145,7 +154,8 @@ class _SearchPageState extends State<SearchPage> {
                             _selectedMeal = mealType;
                           });
                           // Close both dialogs
-                          Navigator.of(context).pop(); // Close meal selection dialog
+                          Navigator.of(context)
+                              .pop(); // Close meal selection dialog
                           Navigator.of(context).pop(); // Close parent dialog
 
                           // Reopen the parent dialog with selected meal
@@ -199,19 +209,17 @@ class _SearchPageState extends State<SearchPage> {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setDialogState) {
             return Padding(
-              padding: const EdgeInsets.symmetric(
-                  vertical: 20,
-                  horizontal: 20
-              ),
+              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Header dengan navigasi antar minggu
-                  const Text(
+                  Text(
                     'Choose Day',
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: MediaQuery.of(context).size.width *
+                          0.05, // Adjusting font size based on screen width
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
@@ -237,9 +245,10 @@ class _SearchPageState extends State<SearchPage> {
                       Text(
                         // Menampilkan rentang tanggal minggu
                         '${DateFormat('MMM dd').format(_selectedDate)} - '
-                            '${DateFormat('MMM dd').format(_selectedDate.add(const Duration(days: 6)))}',
-                        style: const TextStyle(
-                          fontSize: 16,
+                        '${DateFormat('MMM dd').format(_selectedDate.add(const Duration(days: 6)))}',
+                        style: TextStyle(
+                          fontSize: MediaQuery.of(context).size.width *
+                              0.04, // Adjusting font size based on screen width
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),
@@ -266,10 +275,12 @@ class _SearchPageState extends State<SearchPage> {
                       child: InkWell(
                         onTap: () {
                           // Open meal selection dialog
-                          _showMealSelectionDialog(context, setDialogState, recipe);
+                          _showMealSelectionDialog(
+                              context, setDialogState, recipe);
                         },
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
                           decoration: BoxDecoration(
                             color: Colors.grey[850],
                             borderRadius: BorderRadius.circular(8),
@@ -278,10 +289,13 @@ class _SearchPageState extends State<SearchPage> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                _selectedMeal.isEmpty ? 'Select Meal' : _selectedMeal,
-                                style: const TextStyle(
+                                _selectedMeal.isEmpty
+                                    ? 'Select Meal'
+                                    : _selectedMeal,
+                                style: TextStyle(
                                   color: Colors.white,
-                                  fontSize: 16,
+                                  fontSize: MediaQuery.of(context).size.width *
+                                      0.04, // Adjusting font size based on screen width
                                 ),
                               ),
                               const SizedBox(width: 8),
@@ -318,7 +332,7 @@ class _SearchPageState extends State<SearchPage> {
                           backgroundColor: Colors.grey[800],
                           labelStyle: TextStyle(
                             color:
-                            _daysSelected[i] ? Colors.white : Colors.grey,
+                                _daysSelected[i] ? Colors.white : Colors.grey,
                           ),
                         ),
                     ],
@@ -340,9 +354,12 @@ class _SearchPageState extends State<SearchPage> {
                       ElevatedButton(
                         // Inside dialog's ElevatedButton onPressed
                         onPressed: () {
-                          if (_selectedMeal.isEmpty || !_daysSelected.contains(true)) {
+                          if (_selectedMeal.isEmpty ||
+                              !_daysSelected.contains(true)) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Please select at least one day and a meal type!')),
+                              const SnackBar(
+                                  content: Text(
+                                      'Please select at least one day and a meal type!')),
                             );
                             return;
                           }
@@ -351,12 +368,15 @@ class _SearchPageState extends State<SearchPage> {
                         },
                         style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.deepOrange,
-                            foregroundColor: Colors.white
+                            foregroundColor: Colors.white),
+                        child: Text(
+                          'Done',
+                          style: TextStyle(
+                            fontSize: MediaQuery.of(context).size.width *
+                                0.04, // Adjust font size based on screen width
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                        child: const Text('Done', style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                        ) ,),
                       ),
                     ],
                   ),
@@ -373,7 +393,8 @@ class _SearchPageState extends State<SearchPage> {
   void _saveSelectedPlan(Recipe recipe) async {
     try {
       List<DateTime> selectedDates = [];
-      List<DateTime> successfullyPlannedDates = []; // Untuk menyimpan tanggal yang berhasil direncanakan
+      List<DateTime> successfullyPlannedDates =
+          []; // Untuk menyimpan tanggal yang berhasil direncanakan
 
       for (int i = 0; i < _daysSelected.length; i++) {
         if (_daysSelected[i]) {
@@ -409,7 +430,8 @@ class _SearchPageState extends State<SearchPage> {
           date,
         );
 
-        successfullyPlannedDates.add(date); // Tambahkan tanggal yang berhasil direncanakan
+        successfullyPlannedDates
+            .add(date); // Tambahkan tanggal yang berhasil direncanakan
       }
 
       if (mounted) {
@@ -421,7 +443,8 @@ class _SearchPageState extends State<SearchPage> {
                 children: [
                   Icon(Icons.add_task_rounded, color: Colors.white),
                   SizedBox(width: 8),
-                  Text('Recipe planned for ${successfullyPlannedDates.length} day(s)'),
+                  Text(
+                      'Recipe planned for ${successfullyPlannedDates.length} day(s)'),
                 ],
               ),
               backgroundColor: Colors.green,
@@ -435,7 +458,13 @@ class _SearchPageState extends State<SearchPage> {
                 children: [
                   Icon(Icons.info, color: Colors.white),
                   SizedBox(width: 8),
-                  Text('No new plans were added. All selected plans already exist.', style: TextStyle(fontSize: 13),),
+                  Text(
+                    'No new plans were added. All selected plans already exist.',
+                    style: TextStyle(
+                      fontSize: MediaQuery.of(context).size.width *
+                          0.03, // Adjust font size based on screen width
+                    ),
+                  )
                 ],
               ),
               backgroundColor: Colors.blue,
@@ -503,8 +532,7 @@ class _SearchPageState extends State<SearchPage> {
                       : Icons.delete_rounded,
                   color: savedStatus[recipe.id] == true
                       ? Colors.deepOrange
-                      : Colors.red
-              ),
+                      : Colors.red),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -657,6 +685,7 @@ class _SearchPageState extends State<SearchPage> {
       });
     }
   }
+
   void _openRecipeDetail(Recipe recipe) async {
     try {
       // Tambahkan ke recently viewed
@@ -704,19 +733,16 @@ class _SearchPageState extends State<SearchPage> {
         Padding(
           padding: const EdgeInsets.all(16.0),
           child: Text(
-            '', // Judul halaman (belum ada konten)
+            '',
             style: TextStyle(
               color: Colors.deepOrange,
-<<<<<<< HEAD
-              fontSize: MediaQuery.of(context).size.width * 0.06, // Responsif
-=======
-              fontSize: 24,
->>>>>>> parent of acaba58 (responsif search page)
+              fontSize: MediaQuery.of(context).size.width *
+                  0.06, // Adjust font size based on screen width
               fontWeight: FontWeight.bold,
             ),
           ),
         ),
-        // Hanya tampilkan pencarian utama saat tidak mencari
+        // Only show the main search bar when not searching
         if (!_isSearching)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -756,27 +782,21 @@ class _SearchPageState extends State<SearchPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-<<<<<<< HEAD
                   Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16.0, vertical: 8.0),
-=======
-                  const Padding(
                     padding:
                         EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
->>>>>>> parent of acaba58 (responsif search page)
-                    child: Text(
-                      'Popular Ingredients',
-                      style: TextStyle(
-                        color: Colors.white,
-<<<<<<< HEAD
-                        fontSize: MediaQuery.of(context).size.width *
-                            0.05, // Responsif
-=======
-                        fontSize: 20,
->>>>>>> parent of acaba58 (responsif search page)
-                        fontWeight: FontWeight.bold,
-                      ),
+                    child: Builder(
+                      builder: (BuildContext context) {
+                        return Text(
+                          'Popular Ingredients',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: MediaQuery.of(context).size.width *
+                                0.05, // Adjusting font size based on screen width
+                            fontWeight: FontWeight.bold,
+                          ),
+                        );
+                      },
                     ),
                   ),
                   SizedBox(
@@ -814,25 +834,15 @@ class _SearchPageState extends State<SearchPage> {
                               ),
                               alignment: Alignment.bottomCenter,
                               padding: const EdgeInsets.all(8),
-                              child: Text(
-                                ingredient['name']!.toUpperCase(),
-<<<<<<< HEAD
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize:
-                                      MediaQuery.of(context).size.width < 360
-                                          ? 12 // Ukuran untuk perangkat kecil
-                                          : MediaQuery.of(context).size.width *
-                                              0.035, // Responsif
-=======
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12,
->>>>>>> parent of acaba58 (responsif search page)
-                                ),
-                              ),
+                              child: Text(ingredient['name']!.toUpperCase(),
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: MediaQuery.of(context)
+                                            .size
+                                            .width *
+                                        0.04, // Menyesuaikan fontSize dengan lebar layar
+                                  )),
                             ),
                           ),
                         );
@@ -848,16 +858,12 @@ class _SearchPageState extends State<SearchPage> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'Recipes you may like',
                   style: TextStyle(
                     color: Colors.white,
-<<<<<<< HEAD
-                    fontSize:
-                        MediaQuery.of(context).size.width * 0.05, // Responsif
-=======
-                    fontSize: 20,
->>>>>>> parent of acaba58 (responsif search page)
+                    fontSize: MediaQuery.of(context).size.width *
+                        0.05, // Adjust font size based on screen width
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -869,14 +875,17 @@ class _SearchPageState extends State<SearchPage> {
                       _sortRecipes();
                     });
                   },
-                  offset: const Offset(0, 40), // Mengatur posisi popup di bawah icon
+                  offset: const Offset(
+                      0, 40), // Mengatur posisi popup di bawah icon
                   color: Colors.grey[850],
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15), // Menambahkan border radius
+                    borderRadius:
+                        BorderRadius.circular(15), // Menambahkan border radius
                   ),
-                  constraints: const BoxConstraints( // Mengatur ukuran minimum popup
+                  constraints: const BoxConstraints(
+                    // Mengatur ukuran minimum popup
                     minWidth: 180, // Lebar minimum
-                    maxWidth: 180, // Lebar maksimum
+                    maxWidth: 180, // Lebar maximum
                   ),
                   child: Row(
                     children: [
@@ -887,19 +896,16 @@ class _SearchPageState extends State<SearchPage> {
                       const Icon(Icons.arrow_drop_down, color: Colors.white),
                     ],
                   ),
-                  itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                  itemBuilder: (BuildContext context) =>
+                      <PopupMenuEntry<String>>[
                     const PopupMenuItem<String>(
                       value: 'Newest',
                       height: 50, // Menambah tinggi setiap item
                       child: Text(
                         'Newest',
-<<<<<<< HEAD
-                        style: TextStyle(color: Colors.white),
-=======
                         style: TextStyle(
-                            color: Colors.white,
+                          color: Colors.white,
                         ),
->>>>>>> parent of acaba58 (responsif search page)
                       ),
                     ),
                     const PopupMenuItem<String>(
@@ -942,8 +948,7 @@ class _SearchPageState extends State<SearchPage> {
       children: [
         // Move the back button and title row closer to the top
         Padding(
-          padding: const EdgeInsets.only(
-              left: 16.0, right: 16.0, bottom: 8.0),
+          padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 8.0),
           child: Row(
             children: [
               IconButton(
@@ -956,14 +961,15 @@ class _SearchPageState extends State<SearchPage> {
                 },
               ),
               const SizedBox(width: 5),
-              const Text(
+              Text(
                 'Search Results',
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 20,
+                  fontSize: MediaQuery.of(context).size.width *
+                      0.05, // Adjust font size based on screen width
                   fontWeight: FontWeight.bold,
                 ),
-              ),
+              )
             ],
           ),
         ),
@@ -1016,7 +1022,8 @@ class _SearchPageState extends State<SearchPage> {
                   'You might also like',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 20,
+                    fontSize: MediaQuery.of(context).size.width *
+                        0.05, // Adjust font size based on screen width
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -1109,9 +1116,10 @@ class _SearchPageState extends State<SearchPage> {
                         ),
                         child: Text(
                           recipe.area ?? 'International',
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: Colors.white,
-                            fontSize: 12,
+                            fontSize: MediaQuery.of(context).size.width *
+                                0.04, // Adjust font size based on screen width
                           ),
                         ),
                       ),
@@ -1151,8 +1159,8 @@ class _SearchPageState extends State<SearchPage> {
                               height: 60,
                               value: 'Save Recipe',
                               child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 10),
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 10),
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.start,
                                   children: [
@@ -1163,7 +1171,8 @@ class _SearchPageState extends State<SearchPage> {
                                       size: 22,
                                       color: savedStatus[recipe.id] == true
                                           ? Colors.deepOrange
-                                          : Colors.white, // Mengubah warna icon menjadi putih
+                                          : Colors
+                                              .white, // Mengubah warna icon menjadi putih
                                     ),
                                     const SizedBox(width: 10),
                                     Text(
@@ -1171,10 +1180,13 @@ class _SearchPageState extends State<SearchPage> {
                                           ? 'Saved'
                                           : 'Save Recipe',
                                       style: TextStyle(
-                                        fontSize: 16,
+                                        fontSize: MediaQuery.of(context)
+                                                .size
+                                                .width *
+                                            0.04, // Adjust font size based on screen width
                                         color: savedStatus[recipe.id] == true
                                             ? Colors.deepOrange
-                                            : Colors.white, // Mengubah warna text menjadi putih
+                                            : Colors.white,
                                         fontWeight: FontWeight.w500,
                                       ),
                                     ),
@@ -1186,22 +1198,26 @@ class _SearchPageState extends State<SearchPage> {
                               height: 60,
                               value: 'Plan Meal',
                               child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 10),
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 10),
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.start,
                                   children: [
                                     const Icon(
                                       Icons.calendar_today_rounded,
                                       size: 22,
-                                      color: Colors.white, // Mengubah warna icon menjadi putih
+                                      color: Colors
+                                          .white, // Mengubah warna icon menjadi putih
                                     ),
                                     const SizedBox(width: 10),
-                                    const Text(
+                                    Text(
                                       'Plan Meal',
                                       style: TextStyle(
-                                        fontSize: 16,
-                                        color: Colors.white, // Mengubah warna text menjadi putih
+                                        fontSize: MediaQuery.of(context)
+                                                .size
+                                                .width *
+                                            0.04, // Adjust font size based on screen width
+                                        color: Colors.white,
                                         fontWeight: FontWeight.w500,
                                       ),
                                     ),
@@ -1220,14 +1236,16 @@ class _SearchPageState extends State<SearchPage> {
                       // Recipe Title
                       Text(
                         recipe.title,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
-                          fontSize: 16,
+                          fontSize: MediaQuery.of(context).size.width *
+                              0.05, // Adjust font size based on screen width
                           fontWeight: FontWeight.bold,
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
+
                       const SizedBox(height: 8),
                       // Preparation Time and Health Score
                       Row(
@@ -1243,9 +1261,10 @@ class _SearchPageState extends State<SearchPage> {
                               const SizedBox(width: 4),
                               Text(
                                 '${recipe.preparationTime} min',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: Colors.white,
-                                  fontSize: 11,
+                                  fontSize: MediaQuery.of(context).size.width *
+                                      0.04, // Adjust font size based on screen width
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -1268,7 +1287,8 @@ class _SearchPageState extends State<SearchPage> {
                                 style: TextStyle(
                                   color:
                                       _getHealthScoreColor(recipe.healthScore),
-                                  fontSize: 11,
+                                  fontSize: MediaQuery.of(context).size.width *
+                                      0.04, // Adjust font size based on screen width
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
