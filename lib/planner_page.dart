@@ -4,7 +4,6 @@ import 'models/planned_recipe.dart';
 import 'models/recipe.dart';
 import 'services/firestore_service.dart';
 import 'recipe_detail_page.dart';
-import 'widgets/nutrition_warning_dialog.dart';
 
 class PlannerPage extends StatefulWidget {
   const PlannerPage({super.key});
@@ -58,7 +57,6 @@ class _PlannerPageState extends State<PlannerPage> {
   void initState() {
     super.initState();
     _loadPlannedMeals().then((_) => _loadMadeStatus());
-    _firestoreService.debugNutritionData();
   }
 
   @override
@@ -135,44 +133,7 @@ class _PlannerPageState extends State<PlannerPage> {
       final bool currentStatus = madeStatus[mealKey] ?? false;
       print('Current made status: $currentStatus');
 
-      // Hanya lakukan pengecekan nutrisi jika akan menandai sebagai made
       if (!currentStatus) {
-        print('Checking nutrition warnings...'); 
-    
-        final nutritionWarnings = await _firestoreService.checkNutritionWarnings(plannedMeal.recipe);
-        print('Nutrition warnings: $nutritionWarnings'); 
-        
-        // Ubah kondisi pengecekan
-        bool shouldWarn = nutritionWarnings.entries.any((entry) {
-          final percentage = entry.value;
-          print('Checking ${entry.key}: $percentage%'); // Debug print
-          return percentage >= 80; // Warn if any nutrient is at 80% or more
-        });
-        
-        print('Should warn: $shouldWarn'); 
-        
-        if (shouldWarn && mounted) {
-          print('Showing warning dialog...'); 
-          final shouldProceed = await showDialog<bool>(
-            context: context,
-            barrierDismissible: false,
-            builder: (context) => NutritionWarningDialog(
-              nutritionPercentages: nutritionWarnings,
-              onProceed: () {
-                print('User clicked proceed');
-                // Hapus Navigator.of(context).pop(true) dari sini
-              },
-            ),
-          );
-
-          print('Dialog result: $shouldProceed');
-
-          if (shouldProceed != true) {
-            print('User cancelled or dismissed dialog');
-            return;
-          }
-        }
-
         print('Adding recipe to made recipes...');
         // Add to made recipes
         await _firestoreService.madeRecipe(
@@ -190,13 +151,13 @@ class _PlannerPageState extends State<PlannerPage> {
       }
 
       // Update local state
-      if (mounted) {
-        setState(() {
-          madeStatus[mealKey] = !currentStatus;
-          print('Updated local made status to: ${madeStatus[mealKey]}');
-        });
+      setState(() {
+        madeStatus[mealKey] = !currentStatus;
+        print('Updated local made status to: ${madeStatus[mealKey]}');
+      });
 
-        // Show feedback
+      // Show feedback
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(
@@ -218,20 +179,7 @@ class _PlannerPageState extends State<PlannerPage> {
     } catch (e) {
       print('Error in _toggleMade: $e');
       print('Stack trace: ${StackTrace.current}');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                Icon(Icons.error, color: Colors.white),
-                const SizedBox(width: 8),
-                Text('Error updating recipe status'),
-              ],
-            ),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      // Show error message
     }
   }
 

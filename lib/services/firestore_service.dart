@@ -294,34 +294,48 @@ class FirestoreService {
     }
   }
 
-  Future<void> addPlannedRecipe(Recipe recipe, String mealType, DateTime date) async {
+  Future<void> addPlannedRecipe(Recipe recipe, String mealType, DateTime selectedDate) async {
     try {
       String? userId = _auth.currentUser?.uid;
-      if (userId == null) throw Exception('No authenticated user found');
+      if (userId != null) {
+        // Normalisasi tanggal ke midnight untuk konsistensi
+        final normalizedDate = DateTime(
+          selectedDate.year,
+          selectedDate.month,
+          selectedDate.day,
+        );
 
-      final normalizedDate = DateTime(date.year, date.month, date.day);
+        // Periksa apakah rencana sudah ada
+        bool exists = await checkIfPlanExists(recipe.id, mealType, normalizedDate);
+        if (exists) {
+          print('Duplicate plan detected for recipe: ${recipe.title} on $normalizedDate');
+          throw Exception('Duplicate plan detected'); // Lempar error untuk penanganan lebih lanjut
+        }
 
-      await _firestore
-          .collection('users')
-          .doc(userId)
-          .collection('planned_recipes')
-          .add({
-        'id': recipe.id,
-        'title': recipe.title,
-        'image': recipe.image,
-        'preparationTime': recipe.preparationTime,
-        'healthScore': recipe.healthScore,
-        'plannedAt': FieldValue.serverTimestamp(),
-        'plannedDate': Timestamp.fromDate(normalizedDate),
-        'mealType': mealType,
-        'nutritionInfo': {
-          'calories': recipe.nutritionInfo.calories,
-          'carbs': recipe.nutritionInfo.carbs,
-          'fiber': recipe.nutritionInfo.fiber,
-          'protein': recipe.nutritionInfo.protein,
-          'fat': recipe.nutritionInfo.fat,
-        },
-      });
+        String plannedId = '${recipe.id}_${normalizedDate.millisecondsSinceEpoch}';
+
+        await _firestore
+            .collection('users')
+            .doc(userId)
+            .collection('planned_recipes')
+            .doc(plannedId)
+            .set({
+          'id': recipe.id,
+          'title': recipe.title,
+          'image': recipe.image,
+          'category': recipe.category,
+          'area': recipe.area,
+          'instructions': recipe.instructions,
+          'ingredients': recipe.ingredients,
+          'measurements': recipe.measurements,
+          'preparationTime': recipe.preparationTime,
+          'healthScore': recipe.healthScore,
+          'plannedAt': FieldValue.serverTimestamp(),
+          'plannedDate': Timestamp.fromDate(normalizedDate), // Gunakan tanggal yang dinormalisasi
+          'mealType': mealType,
+        });
+        print('Planned recipe added: ${recipe.title} for date: $normalizedDate, type: $mealType'); // Debug print
+      }
     } catch (e) {
       print('Error adding planned recipe: $e');
       rethrow;
@@ -642,6 +656,42 @@ class FirestoreService {
     }
   }
 
+    Future<void> saveUserCreatedRecipe(Recipe recipe) async {
+    try {
+      String? userId = _auth.currentUser?.uid;
+      if (userId == null) throw Exception('User not authenticated');
+
+      print('Saving recipe for user: $userId'); // Debug print
+
+      final recipeData = {
+        'title': recipe.title,
+        'image': recipe.image,
+        'category': recipe.category,
+        'area': recipe.area,
+        'instructions': recipe.instructions,
+        'ingredients': recipe.ingredients,
+        'measurements': recipe.measurements,
+        'preparationTime': recipe.preparationTime,
+        'healthScore': recipe.healthScore,
+        'createdAt': FieldValue.serverTimestamp(),
+        'popularity': 0,
+      };
+
+      print('Recipe data to save: $recipeData'); // Debug print
+
+      await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('created_recipes')
+          .add(recipeData);
+      
+      print('Recipe saved to Firestore'); // Debug print
+    } catch (e) {
+      print('Error in saveUserCreatedRecipe: $e'); // Debug print
+      rethrow;
+    }
+  }
+
   Future<void> updateUserRecipe(Recipe recipe) async {
     try {
       String? userId = _auth.currentUser?.uid;
@@ -710,25 +760,41 @@ class FirestoreService {
     try {
       String? userId = _auth.currentUser?.uid;
       print('Making recipe: ${recipe.title}');
+      print('Additional key: $additionalKey');
+      print('Meal type: $mealType');
+      print('Planned date: $plannedDate');
       
       if (userId != null) {
         final String madeId = additionalKey ?? recipe.id;
+        print('Using made ID: $madeId');
         
         final data = {
           'id': recipe.id,
           'title': recipe.title,
+          'image': recipe.image,
+          'category': recipe.category,
+          'area': recipe.area,
+          'ingredients': recipe.ingredients,
+          'measurements': recipe.measurements,
+          'instructions': recipe.instructions,
+          'preparationTime': recipe.preparationTime,
+          'healthScore': recipe.healthScore,
           'madeAt': FieldValue.serverTimestamp(),
           'mealType': mealType,
           'plannedDate': plannedDate != null ? Timestamp.fromDate(plannedDate) : null,
           'nutrition': {
             'calories': recipe.nutritionInfo.calories,
-            'carbs': recipe.nutritionInfo.carbs,
-            'fiber': recipe.nutritionInfo.fiber,
             'protein': recipe.nutritionInfo.protein,
+            'carbs': recipe.nutritionInfo.carbs,
             'fat': recipe.nutritionInfo.fat,
+            'saturatedFat': recipe.nutritionInfo.saturatedFat,
+            'sugars': recipe.nutritionInfo.sugars,
+            'sodium': recipe.nutritionInfo.sodium,
+            'fiber': recipe.nutritionInfo.fiber,
+            'totalFat': recipe.nutritionInfo.totalFat,
           }
         };
-        print('Saving made recipe data: $data');
+        print('Saving data to Firestore: $data');
 
         await _firestore
             .collection('users')
@@ -737,10 +803,14 @@ class FirestoreService {
             .doc(madeId)
             .set(data);
         
-        print('Successfully saved made recipe');
+        print('Successfully saved made recipe to Firestore');
+      } else {
+        print('Error: No authenticated user found');
+        throw Exception('No authenticated user found');
       }
     } catch (e) {
       print('Error in madeRecipe: $e');
+      print('Stack trace: ${StackTrace.current}');
       rethrow;
     }
   }
@@ -974,224 +1044,21 @@ class FirestoreService {
     }
   }
 
-  // Di FirestoreService
   Future<NutritionGoals> getNutritionGoals() async {
-    try {
-      String? userId = _auth.currentUser?.uid;
-      if (userId == null) throw Exception('No authenticated user found');
-
+    final userId = _auth.currentUser?.uid;
+    if (userId != null) {
       final doc = await _firestore
           .collection('users')
           .doc(userId)
-          .get();
-
-      if (!doc.exists || !doc.data()!.containsKey('nutritionGoals')) {
-        // Set default goals if not exists
-        final defaultGoals = NutritionGoals(
-          calories: 1766,
-          carbs: 274,
-          fiber: 30,
-          protein: 79,
-          fat: 39,
-        );
-
-        await _firestore
-            .collection('users')
-            .doc(userId)
-            .set({
-              'nutritionGoals': {
-                'calories': defaultGoals.calories,
-                'carbs': defaultGoals.carbs,
-                'fiber': defaultGoals.fiber,
-                'protein': defaultGoals.protein,
-                'fat': defaultGoals.fat,
-              }
-            }, SetOptions(merge: true));
-
-        return defaultGoals;
-      }
-
-      final goals = doc.data()!['nutritionGoals'] as Map<String, dynamic>;
-      print('Retrieved nutrition goals from Firebase: $goals'); // Debug print
-
-      return NutritionGoals(
-        calories: (goals['calories'] ?? 1766).toDouble(),
-        carbs: (goals['carbs'] ?? 274).toDouble(),
-        fiber: (goals['fiber'] ?? 30).toDouble(),
-        protein: (goals['protein'] ?? 79).toDouble(),
-        fat: (goals['fat'] ?? 39).toDouble(),
-      );
-    } catch (e) {
-      print('Error getting nutrition goals: $e');
-      // Return default goals if error
-      return NutritionGoals(
-        calories: 1766,
-        carbs: 274,
-        fiber: 30,
-        protein: 79,
-        fat: 39,
-      );
-    }
-  }
-
-  Future<Map<String, double>> getTodayNutrition() async {
-    try {
-      String? userId = _auth.currentUser?.uid;
-      if (userId == null) throw Exception('No authenticated user found');
-
-      // Get today's date at midnight for consistent querying
-      final today = DateTime(
-        DateTime.now().year,
-        DateTime.now().month,
-        DateTime.now().day,
-      );
-      final tomorrow = today.add(const Duration(days: 1));
-
-      print('Fetching nutrition for date range:');
-      print('Start: $today');
-      print('End: $tomorrow');
-
-      // Query made recipes for today
-      final madeRecipesSnapshot = await _firestore
-          .collection('users')
-          .doc(userId)
-          .collection('made_recipes')
-          .where('madeAt', isGreaterThanOrEqualTo: Timestamp.fromDate(today))
-          .where('madeAt', isLessThan: Timestamp.fromDate(tomorrow))
-          .get();
-
-      print('Found ${madeRecipesSnapshot.docs.length} made recipes for today');
-
-      // Initialize nutrition totals
-      Map<String, double> totals = {
-        'calories': 0,
-        'carbs': 0,
-        'fiber': 0,
-        'protein': 0,
-        'fat': 0,
-      };
-
-      // Sum up nutrition from all made recipes
-      for (var doc in madeRecipesSnapshot.docs) {
-        final data = doc.data();
-        print('Processing recipe data: $data'); // Debug print
-
-        // Safely access nutrition data
-        if (data['nutrition'] != null) {
-          final nutrition = data['nutrition'] as Map<String, dynamic>;
-          print('Found nutrition data: $nutrition'); // Debug print
-
-          // Safely add values with null checks and type conversion
-          totals['calories'] = (totals['calories'] ?? 0) + 
-              (nutrition['calories']?.toDouble() ?? 0);
-          totals['carbs'] = (totals['carbs'] ?? 0) + 
-              (nutrition['carbs']?.toDouble() ?? 0);
-          totals['fiber'] = (totals['fiber'] ?? 0) + 
-              (nutrition['fiber']?.toDouble() ?? 0);
-          totals['protein'] = (totals['protein'] ?? 0) + 
-              (nutrition['protein']?.toDouble() ?? 0);
-          totals['fat'] = (totals['fat'] ?? 0) + 
-              (nutrition['fat']?.toDouble() ?? 0);
-        }
-      }
-
-      print('Final nutrition totals: $totals'); // Debug print
-      return totals;
-    } catch (e) {
-      print('Error getting today nutrition: $e');
-      print('Stack trace: ${StackTrace.current}');
-      return {
-        'calories': 0,
-        'carbs': 0,
-        'fiber': 0,
-        'protein': 0,
-        'fat': 0,
-      };
-    }
-  }
-
-  Future<Map<String, double>> checkNutritionWarnings(Recipe recipe) async {
-    try {
-      print('Starting nutrition warning check...'); 
-      
-      // Get current nutrition totals
-      final currentTotals = await getTodayNutrition();
-      print('Current totals: $currentTotals'); 
-      
-      // Get user's nutrition goals
-      final goals = await getNutritionGoals();
-      print('User goals: ${goals.toMap()}'); 
-
-      // Calculate current percentages
-      final currentPercentages = {
-        'calories': ((currentTotals['calories'] ?? 0) / goals.calories) * 100,
-        'carbs': ((currentTotals['carbs'] ?? 0) / goals.carbs) * 100,
-        'fiber': ((currentTotals['fiber'] ?? 0) / goals.fiber) * 100,
-        'protein': ((currentTotals['protein'] ?? 0) / goals.protein) * 100,
-        'fat': ((currentTotals['fat'] ?? 0) / goals.fat) * 100,
-      };
-      print('Current percentages: $currentPercentages');
-
-      // Calculate additional percentages from the recipe
-      final recipePercentages = {
-        'calories': (recipe.nutritionInfo.calories / goals.calories) * 100,
-        'carbs': (recipe.nutritionInfo.carbs / goals.carbs) * 100,
-        'fiber': (recipe.nutritionInfo.fiber / goals.fiber) * 100,
-        'protein': (recipe.nutritionInfo.protein / goals.protein) * 100,
-        'fat': (recipe.nutritionInfo.fat / goals.fat) * 100,
-      };
-      print('Recipe percentages: $recipePercentages');
-
-      // Calculate total percentages after adding the recipe
-      final totalPercentages = {
-        'calories': currentPercentages['calories']! + recipePercentages['calories']!,
-        'carbs': currentPercentages['carbs']! + recipePercentages['carbs']!,
-        'fiber': currentPercentages['fiber']! + recipePercentages['fiber']!,
-        'protein': currentPercentages['protein']! + recipePercentages['protein']!,
-        'fat': currentPercentages['fat']! + recipePercentages['fat']!,
-      };
-      print('Total percentages after adding recipe: $totalPercentages');
-
-      return totalPercentages;
-    } catch (e) {
-      print('Error checking nutrition warnings: $e');
-      print('Stack trace: ${StackTrace.current}');
-      return {};
-    }
-  }
-
-  // Add this method to FirestoreService
-  Future<void> debugNutritionData() async {
-    try {
-      String? userId = _auth.currentUser?.uid;
-      if (userId == null) throw Exception('No authenticated user found');
-
-      // Check nutrition goals
-      final userDoc = await _firestore
-          .collection('users')
-          .doc(userId)
+          .collection('nutrition')
+          .doc('goals')
           .get();
       
-      print('User document exists: ${userDoc.exists}');
-      if (userDoc.exists) {
-        print('User data: ${userDoc.data()}');
+      if (doc.exists) {
+        return NutritionGoals.fromMap(doc.data()!);
       }
-
-      // Check made recipes
-      final madeRecipes = await _firestore
-          .collection('users')
-          .doc(userId)
-          .collection('made_recipes')
-          .get();
-
-      print('Made recipes count: ${madeRecipes.docs.length}');
-      for (var doc in madeRecipes.docs) {
-        print('Made recipe data: ${doc.data()}');
-      }
-
-    } catch (e) {
-      print('Error in debugNutritionData: $e');
     }
+    return NutritionGoals.recommended();
   }
 
 }
