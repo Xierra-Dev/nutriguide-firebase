@@ -11,33 +11,29 @@ class SlideRightRoute extends PageRouteBuilder {
 
   SlideRightRoute({required this.page})
       : super(
-          pageBuilder: (
-            BuildContext context,
-            Animation<double> primaryAnimation,
-            Animation<double> secondaryAnimation,
-          ) =>
-              page,
-          transitionsBuilder: (
-            BuildContext context,
-            Animation<double> primaryAnimation,
-            Animation<double> secondaryAnimation,
-            Widget child,
-          ) {
-            return SlideTransition(
-              position: Tween<Offset>(
-                begin: const Offset(-1.0, 0.0),
-                end: Offset.zero,
-              ).animate(
-                CurvedAnimation(
-                  parent: primaryAnimation,
-                  curve: Curves
-                      .easeOutQuad, // You can change the curve for different animation feels
-                ),
-              ),
-              child: child,
-            );
-          },
-        );
+    pageBuilder: (
+        BuildContext context,
+        Animation<double> primaryAnimation,
+        Animation<double> secondaryAnimation,
+        ) => page,
+    transitionsBuilder: (
+        BuildContext context,
+        Animation<double> primaryAnimation,
+        Animation<double> secondaryAnimation,
+        Widget child,
+        ) {
+      return SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(-1.0, 0.0),
+          end: Offset.zero,
+        ).animate(CurvedAnimation(
+          parent: primaryAnimation,
+          curve: Curves.easeOutQuad, // You can change the curve for different animation feels
+        ),),
+        child: child,
+      );
+    },
+  );
 }
 
 class RegisterPage extends StatefulWidget {
@@ -81,15 +77,17 @@ class _RegisterPageState extends State<RegisterPage> {
         _isLoading = true;
       });
       try {
-        UserCredential credential =
-            await _authService.registerWithEmailAndPassword(
+        UserCredential credential = await _authService.registerWithEmailAndPassword(
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
           displayName: _nameController.text.trim(),
         );
 
         // Show success dialog
-        _showRegistrationDialog(isSuccess: true, credential: credential);
+        _showRegistrationDialog(
+            isSuccess: true,
+            credential: credential
+        );
       } catch (e) {
         // Check for specific error scenarios
         String? errorMessage;
@@ -98,14 +96,12 @@ class _RegisterPageState extends State<RegisterPage> {
 
         // Common Firebase Auth errors
         if (e.toString().contains('The email address is already in use')) {
-          errorMessage =
-              'This email is already registered. Please use a different email or log in.';
+          errorMessage = 'This email is already registered. Please use a different email or log in.';
           errorTitle = 'ACCOUNT ALREADY REGISTERED';
           specificImage = 'assets/images/account-already-registered.png';
         } else if (e.toString().contains('network-request-failed')) {
           errorTitle = 'No Internet Connection';
-          errorMessage =
-              'Network error. Please check your internet connection.';
+          errorMessage = 'Network error. Please check your internet connection.';
           specificImage = 'assets/images/no-internet.png';
         }
 
@@ -158,8 +154,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(50),
                 ),
-                insetPadding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 40),
+                insetPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 40),
                 contentPadding: EdgeInsets.only(
                   left: 20,
                   right: 20,
@@ -184,10 +179,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         ),
                         SizedBox(height: isSuccess ? 32 : 15),
                         Text(
-                          title ??
-                              (isSuccess
-                                  ? 'ACCOUNT SUCCESSFULLY REGISTERED'
-                                  : 'AN ERROR OCCURRED WHEN REGISTERING YOUR ACCOUNT'),
+                          title ?? (isSuccess ? 'ACCOUNT SUCCESSFULLY REGISTERED' : 'AN ERROR OCCURRED WHEN REGISTERING YOUR ACCOUNT'),
                           style: TextStyle(
                             color: isSuccess ? Colors.green : Colors.red,
                             fontWeight: FontWeight.bold,
@@ -198,8 +190,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         SizedBox(height: isSuccess ? 8 : 25),
                         if (!isSuccess)
                           Text(
-                            message ??
-                                'An error occurred during registration. Please try again.',
+                            message ?? 'An error occurred during registration. Please try again.',
                             textAlign: TextAlign.center,
                             style: const TextStyle(
                               fontSize: 18,
@@ -208,7 +199,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         const SizedBox(height: 20),
                       ],
                     ),
-                    if (!isSuccess)
+                    if(!isSuccess)
                       Positioned(
                         top: -2,
                         right: 7,
@@ -236,39 +227,36 @@ class _RegisterPageState extends State<RegisterPage> {
                       ),
                   ],
                 ),
-                actions: isSuccess
-                    ? <Widget>[
-                        Center(
-                          child: TextButton(
-                            style: TextButton.styleFrom(
-                              backgroundColor: Colors.green,
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 30, vertical: 12),
-                            ),
-                            child: const Text(
-                              'Continue',
-                              style: TextStyle(
-                                fontSize: 18,
-                                color: Colors.white,
-                              ),
-                            ),
-                            onPressed: () {
-                              setState(() {
-                                _isDialogShowing = false;
-                              });
-                              Navigator.of(context).pushReplacement(
-                                MaterialPageRoute(
-                                  builder: (context) => EmailVerificationPage(
-                                    email: _emailController.text.trim(),
-                                    user: credential?.user,
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
+                actions: isSuccess ? <Widget>[
+                  Center(
+                    child: TextButton(
+                      style: TextButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
+                      ),
+                      child: const Text(
+                        'Continue',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Colors.white,
                         ),
-                      ]
-                    : null,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _isDialogShowing = false;
+                        });
+                        Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(
+                            builder: (context) => EmailVerificationPage(
+                              email: _emailController.text.trim(),
+                              user: credential?.user,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ] : null,
               ),
             ),
           ],
@@ -375,8 +363,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       onTap: () {
                         Navigator.of(context).pop(
                           SlideRightRoute(
-                            page:
-                                const LandingPage(), // Replace with the page you want to go back to
+                            page: const LandingPage(), // Replace with the page you want to go back to
                           ),
                         );
                       },
@@ -410,7 +397,7 @@ class _RegisterPageState extends State<RegisterPage> {
               width: double.infinity,
               height: 300,
               decoration: BoxDecoration(
-                color: Color(0xFFFEF3E2),
+                color: Colors.amber,
                 borderRadius: BorderRadius.circular(25),
               ),
               padding: const EdgeInsets.symmetric(vertical: 16),
@@ -437,8 +424,9 @@ class _RegisterPageState extends State<RegisterPage> {
                   topLeft: Radius.circular(25),
                   topRight: Radius.circular(25),
                 ),
-                color: Color(0xFFFAB12F),
+                color: Color.fromRGBO(128, 123, 67, 1),
               ),
+
               child: SingleChildScrollView(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(25, 45, 25, 0),
@@ -455,11 +443,8 @@ class _RegisterPageState extends State<RegisterPage> {
                                 controller: _nameController,
                                 focusNode: _nameFocusNode,
                                 decoration: InputDecoration(
-                                  labelText: (_isNameEmpty && !_isNameFocused)
-                                      ? 'Enter Your Name'
-                                      : 'Name',
-                                  floatingLabelBehavior:
-                                      FloatingLabelBehavior.auto,
+                                  labelText: (_isNameEmpty && !_isNameFocused) ? 'Enter Your Name' : 'Name',
+                                  floatingLabelBehavior: FloatingLabelBehavior.auto,
                                   filled: true,
                                   fillColor: Colors.white,
                                   border: OutlineInputBorder(
@@ -468,10 +453,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                   ),
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(25.0),
-                                    borderSide: const BorderSide(
-                                      color: Colors.deepOrange,
-                                      width: 1.75,
-                                    ),
+                                    borderSide: const BorderSide(color: Colors.deepOrange, width: 1.75,),
                                   ),
                                   contentPadding: const EdgeInsets.symmetric(
                                     horizontal: 25,
@@ -493,9 +475,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           controller: _emailController,
                           focusNode: _emailFocusNode,
                           decoration: InputDecoration(
-                            labelText: (_isEmailEmpty && !_isEmailFocused)
-                                ? 'Enter Your Email'
-                                : 'Email',
+                            labelText: (_isEmailEmpty && !_isEmailFocused) ? 'Enter Your Email' : 'Email',
                             floatingLabelBehavior: FloatingLabelBehavior.auto,
                             filled: true,
                             fillColor: Colors.white,
@@ -505,10 +485,7 @@ class _RegisterPageState extends State<RegisterPage> {
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(25.0),
-                              borderSide: const BorderSide(
-                                color: Colors.deepOrange,
-                                width: 1.75,
-                              ),
+                              borderSide: const BorderSide(color: Colors.deepOrange, width: 1.75,),
                             ),
                             contentPadding: const EdgeInsets.symmetric(
                               horizontal: 25,
@@ -520,8 +497,7 @@ class _RegisterPageState extends State<RegisterPage> {
                               return 'Please enter your email';
                             }
                             // Existing email validation
-                            final emailRegex =
-                                RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                            final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
                             if (!emailRegex.hasMatch(value)) {
                               return 'Please enter a valid email address';
                             }
@@ -534,9 +510,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           focusNode: _passwordFocusNode,
                           //obscureText: true,
                           decoration: InputDecoration(
-                            labelText: (_isPasswordEmpty && !_isPasswordFocused)
-                                ? 'Enter Your Password'
-                                : 'Password',
+                            labelText: (_isPasswordEmpty && !_isPasswordFocused) ? 'Enter Your Password' : 'Password',
                             floatingLabelBehavior: FloatingLabelBehavior.auto,
                             filled: true,
                             fillColor: Colors.white,
@@ -547,9 +521,7 @@ class _RegisterPageState extends State<RegisterPage> {
                             suffixIcon: IconButton(
                               padding: const EdgeInsets.only(right: 12.5),
                               icon: Icon(
-                                _isPasswordVisible
-                                    ? MdiIcons.eyeOff
-                                    : MdiIcons.eye,
+                                _isPasswordVisible ? MdiIcons.eyeOff : MdiIcons.eye,
                                 color: Colors.grey,
                               ),
                               onPressed: () {
@@ -560,10 +532,7 @@ class _RegisterPageState extends State<RegisterPage> {
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(25.0),
-                              borderSide: const BorderSide(
-                                color: Colors.deepOrange,
-                                width: 1.75,
-                              ),
+                              borderSide: const BorderSide(color: Colors.deepOrange, width: 1.75,),
                             ),
                             contentPadding: const EdgeInsets.symmetric(
                               horizontal: 25,
@@ -588,10 +557,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           focusNode: _confirmPasswordFocusNode,
                           //obscureText: true,
                           decoration: InputDecoration(
-                            labelText: (_isConfirmPasswordEmpty &&
-                                    !_isConfirmPasswordFocused)
-                                ? 'Confirm Your Password'
-                                : 'Password',
+                            labelText: (_isConfirmPasswordEmpty && !_isConfirmPasswordFocused) ? 'Confirm Your Password' : 'Password',
                             floatingLabelBehavior: FloatingLabelBehavior.auto,
                             filled: true,
                             fillColor: Colors.white,
@@ -602,24 +568,18 @@ class _RegisterPageState extends State<RegisterPage> {
                             suffixIcon: IconButton(
                               padding: const EdgeInsets.only(right: 12.5),
                               icon: Icon(
-                                _isConfirmPasswordVisible
-                                    ? MdiIcons.eyeOff
-                                    : MdiIcons.eye,
+                                _isConfirmPasswordVisible ? MdiIcons.eyeOff : MdiIcons.eye,
                                 color: Colors.grey,
                               ),
                               onPressed: () {
                                 setState(() {
-                                  _isConfirmPasswordVisible =
-                                      !_isConfirmPasswordVisible;
+                                  _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
                                 });
                               },
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(25.0),
-                              borderSide: const BorderSide(
-                                color: Colors.deepOrange,
-                                width: 1.75,
-                              ),
+                              borderSide: const BorderSide(color: Colors.deepOrange, width: 1.75,),
                             ),
                             contentPadding: const EdgeInsets.symmetric(
                               horizontal: 25,
@@ -639,7 +599,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         ),
                         const SizedBox(height: 78),
                         ElevatedButton(
-                          onPressed: _isLoading ? null : _register,
+                          onPressed:  _isLoading ? null : _register,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFFFF6B00),
                             padding: const EdgeInsets.symmetric(vertical: 12),
@@ -648,16 +608,15 @@ class _RegisterPageState extends State<RegisterPage> {
                             ),
                           ),
                           child: _isLoading
-                              ? const CircularProgressIndicator(
-                                  color: Colors.deepOrange)
+                              ? const CircularProgressIndicator(color: Colors.deepOrange)
                               : const Text(
-                                  'Register',
-                                  style: TextStyle(
-                                    fontSize: 18.5,
-                                    color: Colors.black,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
+                            'Register',
+                            style: TextStyle(
+                              fontSize: 18.5,
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
 
                         Align(
@@ -671,9 +630,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                   color: Colors.white,
                                 ),
                               ),
-                              const SizedBox(
-                                  width:
-                                      0), // Added spacing between text and TextButton
+                              const SizedBox(width: 0), // Added spacing between text and TextButton
                               TextButton(
                                 onPressed: () {
                                   // Navigate to Personalization Page
@@ -695,7 +652,7 @@ class _RegisterPageState extends State<RegisterPage> {
                             ],
                           ),
                         ),
-                      ], //children
+                      ],//children
                     ),
                   ),
                 ),
@@ -703,10 +660,7 @@ class _RegisterPageState extends State<RegisterPage> {
             ),
           ),
           if (_isDialogShowing)
-            Positioned.fill(
-                child: Container(
-              color: Colors.black.withOpacity(0.4),
-            ))
+            Positioned.fill(child: Container(color: Colors.black.withOpacity(0.4),))
         ],
       ),
     );

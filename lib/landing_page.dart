@@ -20,34 +20,33 @@ class SlideLeftRoute extends PageRouteBuilder {
 
   SlideLeftRoute({required this.page})
       : super(
-          pageBuilder: (
-            BuildContext context,
-            Animation<double> primaryAnimation,
-            Animation<double> secondaryAnimation,
-          ) =>
-              page,
-          transitionsBuilder: (
-            BuildContext context,
-            Animation<double> primaryAnimation,
-            Animation<double> secondaryAnimation,
-            Widget child,
-          ) {
-            return SlideTransition(
-              position: Tween<Offset>(
-                begin: const Offset(1.0, 0.0),
-                end: Offset.zero,
-              ).animate(CurvedAnimation(
-                parent: primaryAnimation,
-                curve: Curves.easeOutQuad,
-              )),
-              child: child,
-            );
-          },
-        );
+    pageBuilder: (
+        BuildContext context,
+        Animation<double> primaryAnimation,
+        Animation<double> secondaryAnimation,
+        ) =>
+    page,
+    transitionsBuilder: (
+        BuildContext context,
+        Animation<double> primaryAnimation,
+        Animation<double> secondaryAnimation,
+        Widget child,
+        ) {
+      return SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(1.0, 0.0),
+          end: Offset.zero,
+        ).animate(CurvedAnimation(
+          parent: primaryAnimation,
+          curve: Curves.easeOutQuad,
+        )),
+        child: child,
+      );
+    },
+  );
 }
 
-class _LandingPageState extends State<LandingPage>
-    with SingleTickerProviderStateMixin {
+class _LandingPageState extends State<LandingPage> with SingleTickerProviderStateMixin {
   String? _currentImageUrl;
   String? _previousImageUrl;
   bool _isLoading = true;
@@ -333,15 +332,13 @@ class _LandingPageState extends State<LandingPage>
                             );
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                const Color.fromARGB(255, 255, 106, 0),
+                            backgroundColor: const Color.fromARGB(255, 255, 106, 0),
                             foregroundColor: Colors.black,
                             padding: const EdgeInsets.symmetric(vertical: 11),
                           ),
                           child: const Text(
                             'Register',
-                            style: TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.bold),
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                           ),
                         ),
                       ),
@@ -357,14 +354,13 @@ class _LandingPageState extends State<LandingPage>
                             );
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Color(0xFF00BFFF),
+                            backgroundColor: const Color.fromARGB(255, 42, 227, 206),
                             foregroundColor: Colors.black,
                             padding: const EdgeInsets.symmetric(vertical: 11),
                           ),
                           child: const Text(
                             'Login',
-                            style: TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.bold),
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                           ),
                         ),
                       ),
