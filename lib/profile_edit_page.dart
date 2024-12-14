@@ -192,88 +192,91 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
         barrierLabel: "Dismiss",
         pageBuilder: (BuildContext context, Animation<double> animation,
             Animation<double> secondaryAnimation) {
-          return Center(
-            child: Material(
-              color: Colors.transparent,
-              child: Container(
-                width: MediaQuery.of(context).size.width * 0.9, // Lebar 90% dari layar
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1E1E1E), // Warna latar belakang gelap
-                  borderRadius: BorderRadius.circular(28), // Sudut yang lebih bulat
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  mainAxisSize: MainAxisSize.min ,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: Center(
-                        child: const Text(
-                          'Leave This Page',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
+          return MediaQuery.withClampedTextScaling(
+            minScaleFactor: 1.0,
+            maxScaleFactor: 1.0,
+            child: Center(
+              child: Material(
+                color: Colors.transparent,
+                child: Container(
+                  width: MediaQuery.of(context).size.width * 0.9, // Lebar 90% dari layar
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1E1E1E), // Warna latar belakang gelap
+                    borderRadius: BorderRadius.circular(28), // Sudut yang lebih bulat
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Center(
+                          child: Text(
+                            'Leave This Page',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 21.5),
-                    const Text(
-                      'Your Profile Changes won\'t be saved',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 16,
-                      ),
-                    ),
-                    const SizedBox(height: 37),
-                    // Tombol disusun secara vertikal
-                    ElevatedButton(
-                      onPressed: () => Navigator.of(context).pop(true),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 12,
-
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(25),
-                        ),
-                      ),
-                      child: const Text(
-                        'Leave Page',
+                      const SizedBox(height: 21.5),
+                      Text(
+                        'Your Profile Changes won\'t be saved',
+                        textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
+                          color: Colors.white70,
+                          fontSize: 16,
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    ElevatedButton(
-                      onPressed: () => Navigator.of(context).pop(false),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.transparent,
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(25),
-                          side: BorderSide(color: Colors.white.withOpacity(0.2)),
+                      const SizedBox(height: 37),
+                      // Tombol disusun secara vertikal
+                      ElevatedButton(
+                        onPressed: () => Navigator.of(context).pop(true),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(25),
+                          ),
+                        ),
+                        child: Text(
+                          'Leave Page',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
-                      child: const Text(
-                        'Cancel',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
+                      const SizedBox(height: 12),
+                      ElevatedButton(
+                        onPressed: () => Navigator.of(context).pop(false),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(25),
+                            side: BorderSide(color: Colors.white.withOpacity(0.2)),
+                          ),
+                        ),
+                        child: Text(
+                          'Cancel',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -288,129 +291,130 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
     }
   }
 
-
-
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: _onWillPop,
-       // Tambahkan logika untuk intercept back navigation
-      child: Scaffold(
-        backgroundColor: Colors.black,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () async {
-              // Tambahkan logika konfirmasi sebelum keluar
-              if (await _onWillPop() ?? false) {
-                Navigator.pop(context);
-              }
-            },
+    return MediaQuery.withClampedTextScaling(
+      minScaleFactor: 1.0,
+      maxScaleFactor: 1.0,
+      child: WillPopScope(
+        onWillPop: _onWillPop,
+        // Tambahkan logika untuk intercept back navigation
+        child: Scaffold(
+          backgroundColor: Colors.black,
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
+              onPressed: () async {
+                // Tambahkan logika konfirmasi sebelum keluar
+                if (await _onWillPop() ?? false) {
+                  Navigator.pop(context);
+                }
+              },
+            ),
+            title: const Text(
+              'Edit Profile',
+              style: TextStyle(color: Colors.white),
+            ),
           ),
-          title: const Text(
-            'Edit Profile',
-            style: TextStyle(color: Colors.white),
-          ),
-        ),
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              children: [
-                Stack(
-                  alignment: Alignment.bottomRight,
-                  children: [
-                    CircleAvatar(
-                      radius: 50,
-                      backgroundColor: Colors.grey[800],
-                      backgroundImage: _imageFile != null
-                          ? FileImage(_imageFile!)
-                          : _currentProfilePictureUrl != null
-                          ? NetworkImage(_currentProfilePictureUrl!)
-                          : null,
-                      child: (_imageFile == null && _currentProfilePictureUrl == null)
-                          ? const Icon(Icons.person, size: 50, color: Colors.white)
-                          : null,
-                    ),
-                    GestureDetector(
-                      onTap: _pickImage,
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.grey[900],
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.camera_alt,
-                          color: Colors.white,
-                          size: 20,
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                children: [
+                  Stack(
+                    alignment: Alignment.bottomRight,
+                    children: [
+                      CircleAvatar(
+                        radius: 50,
+                        backgroundColor: Colors.grey[800],
+                        backgroundImage: _imageFile != null
+                            ? FileImage(_imageFile!)
+                            : _currentProfilePictureUrl != null
+                            ? NetworkImage(_currentProfilePictureUrl!)
+                            : null,
+                        child: (_imageFile == null && _currentProfilePictureUrl == null)
+                            ? const Icon(Icons.person, size: 50, color: Colors.white)
+                            : null,
+                      ),
+                      GestureDetector(
+                        onTap: _pickImage,
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[900],
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.camera_alt,
+                            color: Colors.white,
+                            size: 20,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 32),
-                _buildTextField(
-                  controller: _firstNameController,
-                  label: 'First Name',
-                  maxLength: 10,
-                ),
-                const SizedBox(height: 16),
-                _buildTextField(
-                  controller: _lastNameController,
-                  label: 'Last Name',
-                  maxLength: 10,
-                ),
-                const SizedBox(height: 16),
-                _buildTextField(
-                  controller: _usernameController,
-                  label: 'Username',
-                  maxLength: 15,
-                ),
-                const SizedBox(height: 16),
-                _buildTextField(
-                  controller: _bioController,
-                  label: 'Bio',
-                  maxLines: 3,
-                  maxLength: 200,
-                ),
-                const SizedBox(height: 32),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _saveProfile,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: _hasChanges
-                          ? Colors.deepOrange
-                          : Colors.grey[900],
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(50),
+                    ],
+                  ),
+                  const SizedBox(height: 32),
+                  _buildTextField(
+                    controller: _firstNameController,
+                    label: 'First Name',
+                    maxLength: 10,
+                  ),
+                  const SizedBox(height: 16),
+                  _buildTextField(
+                    controller: _lastNameController,
+                    label: 'Last Name',
+                    maxLength: 10,
+                  ),
+                  const SizedBox(height: 16),
+                  _buildTextField(
+                    controller: _usernameController,
+                    label: 'Username',
+                    maxLength: 15,
+                  ),
+                  const SizedBox(height: 16),
+                  _buildTextField(
+                    controller: _bioController,
+                    label: 'Bio',
+                    maxLines: 3,
+                    maxLength: 200,
+                  ),
+                  const SizedBox(height: 32),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _isLoading ? null : _saveProfile,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _hasChanges
+                            ? Colors.deepOrange
+                            : Colors.grey[900],
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(50),
+                        ),
                       ),
-                    ),
-                    child: _isLoading
-                        ? const CircularProgressIndicator()
-                        : Text(
-                      'SAVE',
-                      style: TextStyle(
-                        color: _hasChanges ? Colors.black : Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                      child: _isLoading
+                          ? const CircularProgressIndicator()
+                          : Text(
+                        'SAVE',
+                        style: TextStyle(
+                          color: _hasChanges ? Colors.black : Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
       ),
     );
   }
-
 
   Widget _buildTextField({
     required TextEditingController controller,

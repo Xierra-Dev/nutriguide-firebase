@@ -103,16 +103,16 @@ class _AccountPageState extends State<AccountPage> {
     } catch (e) {
       print('Error fetching user data: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load user data: $e',
-            textScaleFactor: 1.0,
-             ),
-            backgroundColor: Colors.red,
-          ),
+        SnackBar(content: Text('Failed to load user data: $e',
+          textScaleFactor: 1.0,
+        ),
+          backgroundColor: Colors.red,
+        ),
       );
-          setState(() {
+      setState(() {
         _isLoading = false;
       });
-  }
+    }
   }
 
   @override
@@ -174,19 +174,19 @@ class _AccountPageState extends State<AccountPage> {
                     onTap: () {},
                   ),
                   _buildDivider(screenHeight),
-                    _buildSettingsListTile(
-                      context: context,
-                      leadingText: 'Password',
-                      trailingText: displayPassword,
-                      onTap: _showChangePasswordDialog,
-                    ),
+                  _buildSettingsListTile(
+                    context: context,
+                    leadingText: 'Password',
+                    trailingText: displayPassword,
+                    onTap: _showChangePasswordDialog,
+                  ),
                   _buildDivider(screenHeight),
-                    _buildSettingsListTile(
-                      context: context,
-                      leadingText: 'Logout',
-                      trailingText: '',
-                      onTap: () => confirmLogout(context),
-                    ),
+                  _buildSettingsListTile(
+                    context: context,
+                    leadingText: 'Logout',
+                    trailingText: '',
+                    onTap: () => confirmLogout(context),
+                  ),
                   _buildDivider(screenHeight),
                   _buildSettingsListTile(
                     context: context,
@@ -348,12 +348,13 @@ class _AccountPageState extends State<AccountPage> {
       context: context,
       barrierDismissible: false,
       barrierColor: Colors.black.withOpacity(0.5),
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24.0),
-        ),
-        backgroundColor: const Color(0xFF2C2C2C),
-        child: SingleChildScrollView(
+      builder: (context) => MediaQuery(
+        data: mediaQuery.copyWith(textScaleFactor: textScaleFactor),
+        child: Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24.0),
+          ),
+          backgroundColor: const Color(0xFF2C2C2C),
           child: IntrinsicWidth(
             child: Container(
               width: screenWidth * 0.925,
@@ -384,7 +385,7 @@ class _AccountPageState extends State<AccountPage> {
                     'Change Password',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 24 * textScaleFactor,
+                      fontSize: 24,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                       letterSpacing: 0.5,
@@ -396,7 +397,7 @@ class _AccountPageState extends State<AccountPage> {
                     'Please enter your current password and new password.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 15 * textScaleFactor,
+                      fontSize: 15,
                       color: Colors.grey,
                       height: 1.5,
                     ),
@@ -430,7 +431,7 @@ class _AccountPageState extends State<AccountPage> {
                           child: Text(
                             'Change Password',
                             style: TextStyle(
-                              fontSize: 16 * textScaleFactor,
+                              fontSize: 14,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -452,7 +453,7 @@ class _AccountPageState extends State<AccountPage> {
                           child: Text(
                             'Cancel',
                             style: TextStyle(
-                              fontSize: 16 * textScaleFactor,
+                              fontSize: 14,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -522,8 +523,6 @@ class _AccountPageState extends State<AccountPage> {
       },
     );
   }
-
-
 
   Future<void> confirmLogout(BuildContext context) async {
     final mediaQuery = MediaQuery.of(context);
