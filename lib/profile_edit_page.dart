@@ -108,7 +108,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
     // Additional specific validations
     if (_usernameController.text.length < 3) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('Username must be at least 3 characters long'),
           backgroundColor: Colors.red,
         ),
@@ -121,22 +121,24 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
     });
 
     try {
-      // Check username uniqueness before saving
-      bool isUsernameTaken = !(await _authService.checkUsernameUniqueness(
-          _usernameController.text
-      ));
-
-      if (isUsernameTaken) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Username is already taken. Please choose another.'),
-            backgroundColor: Colors.red,
-          ),
+      // Check username uniqueness only if username is changed
+      if (_usernameController.text != _currentUserData?['username']) {
+        bool isUsernameAvailable = await _authService.checkUsernameUniqueness(
+            _usernameController.text
         );
-        setState(() {
-          _isLoading = false;
-        });
-        return;
+
+        if (!isUsernameAvailable) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Username is already taken. Please choose another.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          setState(() {
+            _isLoading = false;
+          });
+          return;
+        }
       }
 
       // Sanitize and format names

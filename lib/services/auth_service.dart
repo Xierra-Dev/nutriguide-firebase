@@ -207,14 +207,14 @@ class AuthService {
 
   Future<bool> checkUsernameUniqueness(String username) async {
     try {
-      // Query Firestore to check if username exists
-      var querySnapshot = await FirebaseFirestore.instance
+      // Query Firestore untuk mencari dokumen dengan username yang sama
+      final QuerySnapshot result = await FirebaseFirestore.instance
           .collection('users')
-          .where('username', isEqualTo: username)
-          .limit(1)
+          .where('username', isEqualTo: username.toLowerCase())
           .get();
 
-      return querySnapshot.docs.isNotEmpty;
+      // Jika tidak ada dokumen yang ditemukan, username tersedia
+      return result.docs.isEmpty;
     } catch (e) {
       print('Error checking username uniqueness: $e');
       return false;
