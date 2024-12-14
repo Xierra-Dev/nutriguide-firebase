@@ -525,7 +525,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
     );
   }
 
-    Widget _buildActivityTab() {
+  Widget _buildActivityTab() {
     if (isLoadingActivity) {
       return const Center(child: CircularProgressIndicator(color: Colors.deepOrange));
     }
@@ -662,6 +662,14 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                                 color: Colors.white,
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              recipe.area ?? 'Recipe',
+                              style: TextStyle(
+                                color: Colors.grey[400],
+                                fontSize: 14,
                               ),
                             ),
                             const SizedBox(height: 4),
