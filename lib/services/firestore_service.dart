@@ -585,15 +585,28 @@ class FirestoreService {
   }
 
   Future<void> deletePlannedMeal(PlannedMeal meal) async {
-    String? userId = _auth.currentUser?.uid;
-    if (userId != null) {
-      String plannedId = '${meal.recipe.id}_${meal.date.millisecondsSinceEpoch}';  // Use meal.date instead of meal.dateKey
-      await _firestore
-          .collection('users')
-          .doc(userId)
-          .collection('planned_recipes')
-          .doc(plannedId)
-          .delete();
+    try {
+      String? userId = _auth.currentUser?.uid;
+      if (userId != null) {
+        // Query untuk mencari dokumen yang akan dihapus
+        final querySnapshot = await _firestore
+            .collection('users')
+            .doc(userId)
+            .collection('planned_recipes')
+            .where('id', isEqualTo: meal.recipe.id)
+            .where('mealType', isEqualTo: meal.mealType)
+            .where('plannedDate', isEqualTo: Timestamp.fromDate(meal.date))
+            .get();
+
+        // Hapus semua dokumen yang cocok
+        for (var doc in querySnapshot.docs) {
+          await doc.reference.delete();
+          print('Deleted planned meal document: ${doc.id}');
+        }
+      }
+    } catch (e) {
+      print('Error in deletePlannedMeal: $e');
+      rethrow;
     }
   }
 
