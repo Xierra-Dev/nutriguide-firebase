@@ -175,7 +175,7 @@ class _PlannerPageState extends State<PlannerPage> {
         // Add to made recipes
         await _firestoreService.madeRecipe(
           plannedMeal.recipe,
-          additionalKey: mealKey,
+          mealKey: mealKey,
           mealType: plannedMeal.mealType,
           plannedDate: plannedMeal.date,
         );

@@ -709,42 +709,41 @@ class FirestoreService {
     }
   }
 
-  Future<void> madeRecipe(Recipe recipe, {
-    String? additionalKey,
-    String? mealType,
-    DateTime? plannedDate,
-  }) async {
+  Future<void> madeRecipe(Recipe recipe, {required String mealKey, String? mealType, DateTime? plannedDate}) async {
     try {
       String? userId = _auth.currentUser?.uid;
-      print('Making recipe: ${recipe.title}');
-      
       if (userId != null) {
-        final String madeId = additionalKey ?? recipe.id;
-        
-        final data = {
-          'id': recipe.id,
-          'title': recipe.title,
-          'madeAt': FieldValue.serverTimestamp(),
-          'mealType': mealType,
-          'plannedDate': plannedDate != null ? Timestamp.fromDate(plannedDate) : null,
-          'nutrition': {
-            'calories': recipe.nutritionInfo.calories,
-            'carbs': recipe.nutritionInfo.carbs,
-            'fiber': recipe.nutritionInfo.fiber,
-            'protein': recipe.nutritionInfo.protein,
-            'fat': recipe.nutritionInfo.fat,
-          }
-        };
-        print('Saving made recipe data: $data');
-
         await _firestore
             .collection('users')
             .doc(userId)
             .collection('made_recipes')
-            .doc(madeId)
-            .set(data);
-        
-        print('Successfully saved made recipe');
+            .doc(mealKey)  // Gunakan mealKey sebagai document ID
+            .set({
+          'id': recipe.id,
+          'title': recipe.title,
+          'image': recipe.image,
+          'category': recipe.category,
+          'area': recipe.area,
+          'ingredients': recipe.ingredients,
+          'measurements': recipe.measurements,
+          'instructions': recipe.instructions,
+          'preparationTime': recipe.preparationTime,
+          'healthScore': recipe.healthScore,
+          'mealType': mealType,
+          'plannedDate': plannedDate,
+          'madeAt': FieldValue.serverTimestamp(),
+          'nutrition': {
+            'calories': recipe.nutritionInfo.calories,
+            'protein': recipe.nutritionInfo.protein,
+            'carbs': recipe.nutritionInfo.carbs,
+            'fat': recipe.nutritionInfo.fat,
+            'fiber': recipe.nutritionInfo.fiber,
+            'saturatedFat': recipe.nutritionInfo.saturatedFat,
+            'sugars': recipe.nutritionInfo.sugars,
+            'sodium': recipe.nutritionInfo.sodium,
+            'totalFat': recipe.nutritionInfo.totalFat,
+          },
+        });
       }
     } catch (e) {
       print('Error in madeRecipe: $e');
@@ -765,9 +764,8 @@ class FirestoreService {
 
         return snapshot.docs.map((doc) {
           final data = doc.data();
-          print('Recipe data from Firestore: $data');
+          print('Recipe data from Firestore: $data'); // Debug print
           
-          final nutritionData = data['nutrition'] as Map<String, dynamic>;
           return Recipe(
             id: data['id'],
             title: data['title'],
@@ -778,24 +776,23 @@ class FirestoreService {
             measurements: List<String>.from(data['measurements'] ?? []),
             instructions: data['instructions'] ?? '',
             instructionSteps: (data['instructions'] ?? '').split('\n'),
-            preparationTime: (data['preparationTime'] ?? 0).toInt(),
+            preparationTime: data['preparationTime'] ?? 0,
             healthScore: (data['healthScore'] ?? 0).toDouble(),
             nutritionInfo: NutritionInfo(
-              calories: (nutritionData['calories'] ?? 0).toInt(),
-              protein: (nutritionData['protein'] ?? 0).toDouble(),
-              carbs: (nutritionData['carbs'] ?? 0).toDouble(),
-              fat: (nutritionData['fat'] ?? 0).toDouble(),
-              fiber: (nutritionData['fiber'] ?? 0).toDouble(), 
-              saturatedFat: (nutritionData['saturatedFat'] ?? 0).toDouble(),
-              sugars: (nutritionData['sugars'] ?? 0).toDouble(),
-              sodium: (nutritionData['sodium'] ?? 0).toInt(),
-              totalFat: (nutritionData['totalFat'] ?? 0).toDouble(),
+              calories: data['nutrition']?['calories'] ?? 0,
+              protein: data['nutrition']?['protein']?.toDouble() ?? 0,
+              carbs: data['nutrition']?['carbs']?.toDouble() ?? 0,
+              fat: data['nutrition']?['fat']?.toDouble() ?? 0,
+              fiber: data['nutrition']?['fiber']?.toDouble() ?? 0,
+              saturatedFat: data['nutrition']?['saturatedFat']?.toDouble() ?? 0,
+              sugars: data['nutrition']?['sugars']?.toDouble() ?? 0,
+              sodium: data['nutrition']?['sodium'] ?? 0,
+              totalFat: data['nutrition']?['totalFat']?.toDouble() ?? 0,
             ),
           );
         }).toList();
-      } else {
-        throw Exception('No authenticated user found');
       }
+      return [];
     } catch (e) {
       print('Error getting made recipes: $e');
       print('Stack trace: ${StackTrace.current}');
@@ -803,7 +800,7 @@ class FirestoreService {
     }
   }
 
-  Future<void> removeMadeRecipe(String recipeId) async {
+  Future<void> removeMadeRecipe(String mealKey) async {
     try {
       String? userId = _auth.currentUser?.uid;
       if (userId != null) {
@@ -811,7 +808,7 @@ class FirestoreService {
             .collection('users')
             .doc(userId)
             .collection('made_recipes')
-            .doc(recipeId)
+            .doc(mealKey)  // Gunakan mealKey sebagai document ID
             .delete();
       }
     } catch (e) {
@@ -823,18 +820,18 @@ class FirestoreService {
   Future<bool> isRecipeMade(String mealKey) async {
     try {
       String? userId = _auth.currentUser?.uid;
-      if (userId != null) {
-        final doc = await _firestore
-            .collection('users')
-            .doc(userId)
-            .collection('made_recipes')
-            .doc(mealKey)
-            .get();
-        return doc.exists;
-      }
-      return false;
+      if (userId == null) return false;
+
+      final doc = await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('made_recipes')
+          .doc(mealKey)  // Gunakan mealKey sebagai document ID
+          .get();
+
+      return doc.exists;
     } catch (e) {
-      print('Error checking if recipe is made: $e');
+      print('Error checking made status: $e');
       return false;
     }
   }
