@@ -243,37 +243,108 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                     shape: BoxShape.circle,
                     color: Colors.grey[800],
                   ),
-                  child: ClipOval(
-                    child: userData != null && 
+                  child: GestureDetector( // Tambahkan GestureDetector
+                    onTap: () {
+                      if (userData != null && 
                           userData!['profilePictureUrl'] != null && 
-                          userData!['profilePictureUrl'].toString().isNotEmpty
-                        ? Image.network(
-                            userData!['profilePictureUrl'],
-                            fit: BoxFit.cover,
-                            loadingBuilder: (context, child, loadingProgress) {
-                              if (loadingProgress == null) {
-                                print('Image loaded successfully');
-                                return child;
-                              }
-                              print('Loading image...');
-                              return Center(
-                                child: CircularProgressIndicator(
-                                  value: loadingProgress.expectedTotalBytes != null
-                                      ? loadingProgress.cumulativeBytesLoaded /
-                                          loadingProgress.expectedTotalBytes!
-                                      : null,
-                                  color: Colors.deepOrange,
-                                ),
-                              );
-                            },
-                            errorBuilder: (context, error, stackTrace) {
-                              print('Error loading image: $error');
-                              print('Stack trace: $stackTrace');
-                              return const Icon(Icons.person,
-                                  size: 50, color: Colors.white);
-                            },
-                          )
-                        : const Icon(Icons.person, size: 50, color: Colors.white),
+                          userData!['profilePictureUrl'].toString().isNotEmpty) {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return Dialog(
+                              backgroundColor: Colors.transparent,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Stack(
+                                    alignment: Alignment.topRight,
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(12),
+                                        child: Image.network(
+                                          userData!['profilePictureUrl'],
+                                          fit: BoxFit.cover,
+                                          loadingBuilder: (context, child, loadingProgress) {
+                                            if (loadingProgress == null) return child;
+                                            return Container(
+                                              width: MediaQuery.of(context).size.width * 0.8,
+                                              height: MediaQuery.of(context).size.width * 0.8,
+                                              color: Colors.black,
+                                              child: const Center(
+                                                child: CircularProgressIndicator(
+                                                  color: Colors.deepOrange,
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                          errorBuilder: (context, error, stackTrace) {
+                                            return Container(
+                                              width: MediaQuery.of(context).size.width * 0.8,
+                                              height: MediaQuery.of(context).size.width * 0.8,
+                                              color: Colors.black,
+                                              child: const Center(
+                                                child: Icon(
+                                                  Icons.error_outline,
+                                                  color: Colors.white,
+                                                  size: 50,
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: GestureDetector(
+                                          onTap: () => Navigator.pop(context),
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                              color: Colors.black.withOpacity(0.5),
+                                              shape: BoxShape.circle,
+                                            ),
+                                            padding: const EdgeInsets.all(8),
+                                            child: const Icon(
+                                              Icons.close,
+                                              color: Colors.white,
+                                              size: 24,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        );
+                      }
+                    },
+                    child: ClipOval(
+                      child: userData != null && 
+                            userData!['profilePictureUrl'] != null && 
+                            userData!['profilePictureUrl'].toString().isNotEmpty
+                          ? Image.network(
+                              userData!['profilePictureUrl'],
+                              fit: BoxFit.cover,
+                              loadingBuilder: (context, child, loadingProgress) {
+                                if (loadingProgress == null) return child;
+                                return Center(
+                                  child: CircularProgressIndicator(
+                                    color: Colors.deepOrange,
+                                    value: loadingProgress.expectedTotalBytes != null
+                                        ? loadingProgress.cumulativeBytesLoaded /
+                                            loadingProgress.expectedTotalBytes!
+                                        : null,
+                                  ),
+                                );
+                              },
+                              errorBuilder: (context, error, stackTrace) {
+                                return const Icon(Icons.person, size: 50, color: Colors.white);
+                              },
+                            )
+                          : const Icon(Icons.person, size: 50, color: Colors.white),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 18),
