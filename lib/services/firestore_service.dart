@@ -532,30 +532,28 @@ class FirestoreService {
         print('Raw data from Firestore: $data'); // Debug print
         
         final recipe = Recipe(
-          id: data['id'],
-          title: data['title'],
-          image: data['image'],
-          category: data['category'],
-          area: data['area'],
-          instructions: data['instructions'],
-          ingredients: List<String>.from(data['ingredients']),
-          measurements: List<String>.from(data['measurements']),
-          preparationTime: data['preparationTime'],
-          healthScore: data['healthScore'].toDouble(),
-          instructionSteps: data['instructions'].split('\n'),
+          id: data['id'] ?? '',
+          title: data['title'] ?? '',
+          image: data['image'] ?? '',
+          category: data['category'] ?? '',
+          area: data['area'] ?? '',
+          instructions: data['instructions'] ?? '',
+          ingredients: List<String>.from(data['ingredients'] ?? []),
+          measurements: List<String>.from(data['measurements'] ?? []),
+          preparationTime: data['preparationTime'] ?? 0,
+          healthScore: (data['healthScore'] ?? 0).toDouble(),
+          instructionSteps: (data['instructions'] ?? '').split('\n'),
           nutritionInfo: NutritionInfo.generateRandom(),
         );
 
         final date = (data['plannedDate'] as Timestamp).toDate();
-        // Normalisasi tanggal untuk key
         final dateKey = DateFormat('yyyy-MM-dd').format(date);
-        print('Date from Firestore: $date, DateKey: $dateKey'); // Debug print
         
         final plannedMeal = PlannedMeal(
           recipe: recipe,
-          mealType: data['mealType'],
-          dateKey: DateFormat('yyyy-MM-dd').format((data['plannedDate'] as Timestamp).toDate()),  // Convert DateTime to String
-          date: (data['plannedDate'] as Timestamp).toDate(),
+          mealType: data['mealType'] ?? '',
+          dateKey: dateKey,
+          date: date,
         );
         
         if (!meals.containsKey(dateKey)) {
@@ -564,7 +562,6 @@ class FirestoreService {
         meals[dateKey]!.add(plannedMeal);
       }
       
-      print('Final meals map: $meals'); // Debug print
       return meals;
     } catch (e) {
       print('Error in getPlannedMeals: $e');
