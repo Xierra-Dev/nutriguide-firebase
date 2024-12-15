@@ -66,10 +66,21 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _isEmailFocused = false;
   bool _isPasswordFocused = false;
   bool _isConfirmPasswordFocused = false;
+  bool _hasMinLength = false;
+  bool _hasNumber = false;
+  bool _hasSymbol = false;
 
   final AuthService _authService = AuthService();
 
   bool _isDialogShowing = false;
+
+  void _checkPasswordRequirements(String value) {
+    setState(() {
+      _hasMinLength = value.length >= 8;
+      _hasNumber = RegExp(r'[0-9]').hasMatch(value);
+      _hasSymbol = RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(value);
+    });
+  }
 
   Future<void> _register() async {
     if (_formKey.currentState!.validate()) {
@@ -299,6 +310,10 @@ class _RegisterPageState extends State<RegisterPage> {
       });
     });
 
+    _passwordController.addListener(() {
+      _checkPasswordRequirements(_passwordController.text);
+    });
+
     _confirmPasswordFocusNode.addListener(() {
       setState(() {
         _isConfirmPasswordFocused = _confirmPasswordFocusNode.hasFocus;
@@ -329,6 +344,30 @@ class _RegisterPageState extends State<RegisterPage> {
     setState(() {
       _isConfirmPasswordEmpty = _confirmPasswordController.text.isEmpty;
     });
+  }
+
+  // Helper widget untuk requirement item
+  Widget _buildRequirementItem(bool isMet, String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        children: [
+          Icon(
+            isMet ? Icons.check_circle : Icons.cancel,
+            size: 16,
+            color: isMet ? Colors.green : Colors.red,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            text,
+            style: TextStyle(
+              color: const Color.fromARGB(255, 255, 255, 255),
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -508,12 +547,16 @@ class _RegisterPageState extends State<RegisterPage> {
                         TextFormField(
                           controller: _passwordController,
                           focusNode: _passwordFocusNode,
-                          //obscureText: true,
                           decoration: InputDecoration(
-                            labelText: (_isPasswordEmpty && !_isPasswordFocused) ? 'Enter Your Password' : 'Password',
+                            labelText: (_isPasswordEmpty && !_isPasswordFocused) 
+                                ? 'Enter Your Password' 
+                                : 'Password',
                             floatingLabelBehavior: FloatingLabelBehavior.auto,
                             filled: true,
                             fillColor: Colors.white,
+                            helperText: '', // Kosongkan helper text default
+                            helperStyle: TextStyle(color: Colors.grey[700]),
+                            helperMaxLines: 4,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(25.0),
                               borderSide: BorderSide.none,
@@ -544,8 +587,14 @@ class _RegisterPageState extends State<RegisterPage> {
                             if (value == null || value.isEmpty) {
                               return 'Please enter a password';
                             }
-                            if (value.length < 8) {
+                            if (!_hasMinLength) {
                               return 'Password must be at least 8 characters long';
+                            }
+                            if (!_hasNumber) {
+                              return 'Password must contain at least one number';
+                            }
+                            if (!_hasSymbol) {
+                              return 'Password must contain at least one symbol';
                             }
                             return null;
                           },
@@ -596,6 +645,36 @@ class _RegisterPageState extends State<RegisterPage> {
                             }
                             return null;
                           },
+                        ),
+
+                        Padding(
+                          padding: const EdgeInsets.only(left: 32, top: 8),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Password Requirements:',
+                                style: TextStyle(
+                                  color: const Color.fromARGB(255, 255, 255, 255),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              _buildRequirementItem(
+                                _hasMinLength,
+                                'At least 8 characters long',
+                              ),
+                              _buildRequirementItem(
+                                _hasNumber,
+                                'Contains at least one number',
+                              ),
+                              _buildRequirementItem(
+                                _hasSymbol,
+                                'Contains at least one symbol',
+                              ),
+                            ],
+                          ),
                         ),
                         const SizedBox(height: 78),
                         ElevatedButton(
@@ -672,6 +751,9 @@ class _RegisterPageState extends State<RegisterPage> {
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose(); // Dispose the new controller
+    _passwordController.removeListener(() {
+      _checkPasswordRequirements(_passwordController.text);
+    });
     super.dispose();
   }
 }
