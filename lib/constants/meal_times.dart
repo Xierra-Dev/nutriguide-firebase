@@ -18,7 +18,7 @@ class MealTimes {
       end: TimeOfDay(hour: 14, minute: 0),
     ),
     'Dinner': MealTime(
-      start: TimeOfDay(hour: 16, minute: 23),
+      start: TimeOfDay(hour: 18, minute: 0),
       end: TimeOfDay(hour: 20, minute: 0),
     ),
     'Supper': MealTime(
