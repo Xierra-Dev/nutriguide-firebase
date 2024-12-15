@@ -7,6 +7,8 @@ import 'profile_edit_page.dart';
 import 'models/recipe.dart';
 import 'models/nutrition_goals.dart';
 import 'recipe_detail_page.dart';
+import 'edit_recipe_page.dart';
+import 'package:timeago/timeago.dart' as timeago;
 import 'widgets/nutrition_tracker.dart';
 
 
@@ -85,8 +87,8 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
   final FirestoreService _firestoreService = FirestoreService();
   Map<String, dynamic>? userData;
   bool isLoading = true;
-  bool isLoadingActivity = true; 
-  List<Recipe> activityRecipes = []; 
+  bool isLoadingActivity = true;
+  List<Recipe> activityRecipes = [];
   bool isLoadingCreated = true;
 
   final Color selectedColor = const Color.fromARGB(255, 240, 182, 75);
@@ -190,375 +192,413 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
   Widget build(BuildContext context) {
     // Add debug print
     print('Building profile page with userData: $userData');
-    return MediaQuery(
-      data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
-      child: Scaffold(
-        backgroundColor: Colors.black,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          leading: Padding(
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: Padding(
+          padding: const EdgeInsets.only(
+            left: 12,
+          ),
+          child: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white, size: 27,),
+            onPressed: () {
+              Navigator.of(context).pushReplacement(
+                SlideRightRoute(page: const HomePage()),
+              );
+            },
+          ),
+        ),
+        actions: [
+          Padding(
             padding: const EdgeInsets.only(
-              left: 12,
+              top: 2,
+              right: 10,
             ),
             child: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.white, size: 27,),
+              icon: const Icon(Icons.settings, color: Colors.white),
               onPressed: () {
                 Navigator.of(context).pushReplacement(
-                  SlideRightRoute(page: const HomePage()),
+                  SlideLeftRoute(page: const SettingsPage()),
                 );
               },
             ),
           ),
-          actions: [
-            Padding(
-              padding: const EdgeInsets.only(
-                top: 2,
-                right: 10,
-              ),
-              child: IconButton(
-                icon: const Icon(Icons.settings, color: Colors.white),
-                onPressed: () {
-                  Navigator.of(context).pushReplacement(
-                    SlideLeftRoute(page: const SettingsPage()),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-        body: isLoading
-            ? const Center(
-            child: CircularProgressIndicator(color: Colors.deepOrange))
-            : Column(
-          children: [
-            const SizedBox(height: 15),
-            Center(
-              child: Column(
-                children: [
-                  Container(
-                    width: 100,
-                    height: 100,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.grey[800],
-                    ),
-                    child: GestureDetector( // Tambahkan GestureDetector
-                      onTap: () {
-                        if (userData != null && 
-                            userData!['profilePictureUrl'] != null && 
-                            userData!['profilePictureUrl'].toString().isNotEmpty) {
-                          showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return MediaQuery(
-                                data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
-                                child: Dialog(
-                                  backgroundColor: Colors.transparent,
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
+        ],
+      ),
+      body: isLoading
+          ? const Center(
+          child: CircularProgressIndicator(color: Colors.deepOrange))
+          : Column(
+        children: [
+          const SizedBox(height: 15),
+          Center(
+            child: Column(
+              children: [
+                Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.grey[800],
+                  ),
+                  child: GestureDetector( // Tambahkan GestureDetector
+                    onTap: () {
+                      if (userData != null &&
+                          userData!['profilePictureUrl'] != null &&
+                          userData!['profilePictureUrl'].toString().isNotEmpty) {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return Dialog(
+                              backgroundColor: Colors.transparent,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Stack(
+                                    alignment: Alignment.topRight,
                                     children: [
-                                      Stack(
-                                        alignment: Alignment.topRight,
-                                        children: [
-                                          ClipRRect(
-                                            borderRadius: BorderRadius.circular(12),
-                                            child: Image.network(
-                                              userData!['profilePictureUrl'],
-                                              fit: BoxFit.cover,
-                                              loadingBuilder: (context, child, loadingProgress) {
-                                                if (loadingProgress == null) return child;
-                                                return Container(
-                                                  width: MediaQuery.of(context).size.width * 0.8,
-                                                  height: MediaQuery.of(context).size.width * 0.8,
-                                                  color: Colors.black,
-                                                  child: const Center(
-                                                    child: CircularProgressIndicator(
-                                                      color: Colors.deepOrange,
-                                                    ),
-                                                  ),
-                                                );
-                                              },
-                                              errorBuilder: (context, error, stackTrace) {
-                                                return Container(
-                                                  width: MediaQuery.of(context).size.width * 0.8,
-                                                  height: MediaQuery.of(context).size.width * 0.8,
-                                                  color: Colors.black,
-                                                  child: const Center(
-                                                    child: Icon(
-                                                      Icons.error_outline,
-                                                      color: Colors.white,
-                                                      size: 50,
-                                                    ),
-                                                  ),
-                                                );
-                                              },
-                                            ),
-                                          ),
-                                          Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: GestureDetector(
-                                              onTap: () => Navigator.pop(context),
-                                              child: Container(
-                                                decoration: BoxDecoration(
-                                                  color: Colors.black.withOpacity(0.5),
-                                                  shape: BoxShape.circle,
-                                                ),
-                                                padding: const EdgeInsets.all(8),
-                                                child: const Icon(
-                                                  Icons.close,
-                                                  color: Colors.white,
-                                                  size: 24,
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(12),
+                                        child: Image.network(
+                                          userData!['profilePictureUrl'],
+                                          fit: BoxFit.cover,
+                                          loadingBuilder: (context, child, loadingProgress) {
+                                            if (loadingProgress == null) return child;
+                                            return Container(
+                                              width: MediaQuery.of(context).size.width * 0.8,
+                                              height: MediaQuery.of(context).size.width * 0.8,
+                                              color: Colors.black,
+                                              child: const Center(
+                                                child: CircularProgressIndicator(
+                                                  color: Colors.deepOrange,
                                                 ),
                                               ),
+                                            );
+                                          },
+                                          errorBuilder: (context, error, stackTrace) {
+                                            return Container(
+                                              width: MediaQuery.of(context).size.width * 0.8,
+                                              height: MediaQuery.of(context).size.width * 0.8,
+                                              color: Colors.black,
+                                              child: const Center(
+                                                child: Icon(
+                                                  Icons.error_outline,
+                                                  color: Colors.white,
+                                                  size: 50,
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: GestureDetector(
+                                          onTap: () => Navigator.pop(context),
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                              color: Colors.black.withOpacity(0.5),
+                                              shape: BoxShape.circle,
+                                            ),
+                                            padding: const EdgeInsets.all(8),
+                                            child: const Icon(
+                                              Icons.close,
+                                              color: Colors.white,
+                                              size: 24,
                                             ),
                                           ),
-                                        ],
+                                        ),
                                       ),
                                     ],
                                   ),
-                                ),
-                              );
-                            },
-                          );
-                        }
-                      },
-                      child: ClipOval(
-                        child: userData != null && 
-                              userData!['profilePictureUrl'] != null && 
-                              userData!['profilePictureUrl'].toString().isNotEmpty
-                            ? Image.network(
-                                userData!['profilePictureUrl'],
-                                fit: BoxFit.cover,
-                                loadingBuilder: (context, child, loadingProgress) {
-                                  if (loadingProgress == null) return child;
-                                  return Center(
-                                    child: CircularProgressIndicator(
-                                      color: Colors.deepOrange,
-                                      value: loadingProgress.expectedTotalBytes != null
-                                          ? loadingProgress.cumulativeBytesLoaded /
-                                              loadingProgress.expectedTotalBytes!
-                                          : null,
-                                    ),
-                                  );
-                                },
-                                errorBuilder: (context, error, stackTrace) {
-                                  return const Icon(Icons.person, size: 50, color: Colors.white);
-                                },
-                              )
-                            : const Icon(Icons.person, size: 50, color: Colors.white),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 18),
-                  const SizedBox(height: 18),
-                  Text(
-                    _authService.currentUser?.displayName ?? 'User',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  if (userData != null && userData!['username'] != null && userData!['username'].toString().isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 7, bottom: 8),
-                      child: Text(
-                        userData!['username'],
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Colors.grey[400],
-                          fontSize: 16,
-                          fontStyle: FontStyle.italic,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  if (userData != null && userData!['bio'] != null && userData!['bio'].toString().isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 6, bottom: 10),
-                      child: Text(
-                        userData!['bio'],
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Colors.grey[400],
-                          fontSize: 16,
-                        ),
-                      ),
-                    ),
-                  const SizedBox(height: 12),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const ProfileEditPage()),
-                      );
+                                ],
+                              ),
+                            );
+                          },
+                        );
+                      }
                     },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey[900],
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 12),
+                    child: ClipOval(
+                      child: userData != null &&
+                            userData!['profilePictureUrl'] != null &&
+                            userData!['profilePictureUrl'].toString().isNotEmpty
+                          ? Image.network(
+                              userData!['profilePictureUrl'],
+                              fit: BoxFit.cover,
+                              loadingBuilder: (context, child, loadingProgress) {
+                                if (loadingProgress == null) return child;
+                                return Center(
+                                  child: CircularProgressIndicator(
+                                    color: Colors.deepOrange,
+                                    value: loadingProgress.expectedTotalBytes != null
+                                        ? loadingProgress.cumulativeBytesLoaded /
+                                            loadingProgress.expectedTotalBytes!
+                                        : null,
+                                  ),
+                                );
+                              },
+                              errorBuilder: (context, error, stackTrace) {
+                                return const Icon(Icons.person, size: 50, color: Colors.white);
+                              },
+                            )
+                          : const Icon(Icons.person, size: 50, color: Colors.white),
                     ),
-                    child: const Text('Edit Profile'),
                   ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 32),
-            TabBar(
-              controller: _tabController,
-              indicatorColor: selectedColor,
-              labelColor: selectedColor,
-              unselectedLabelColor: Colors.white,
-              indicatorSize: TabBarIndicatorSize.label,
-              indicator: UnderlineTabIndicator(
-                borderSide: BorderSide(
-                  width: 2.5,
-                  color: selectedColor,
                 ),
-                insets: const EdgeInsets.symmetric(horizontal: 100.0),
-              ),
-              labelStyle: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
-              unselectedLabelStyle: const TextStyle(
-                fontWeight: FontWeight.normal,
-                fontSize: 16,
-              ),
-              tabs: const [
-                Tab(text: 'Insights'),
-                Tab(text: 'Activity'),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  _buildInsightsTab(),
-                  _buildActivityTab(),
-                ],
-              ),
-            ),
-          ],
-        ),
-        ),
-      );
-  }
-
-  Widget _buildInsightsTab() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(
-              vertical: 25,
-              horizontal: 17.5,
-            ),
-            decoration: BoxDecoration(
-              color: Colors.grey[900],
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Your daily nutrition goals',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: MediaQuery.of(context).size.width * 0.045, // Responsive font size
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 7.5),
+                const SizedBox(height: 18),
                 Text(
-                  'Balanced macros',
-                  style: TextStyle(
-                    color: Colors.grey,
-                    fontSize: MediaQuery.of(context).size.width * 0.035, // Responsive font size
+                  _authService.currentUser?.displayName ?? 'User',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-                SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _buildNutritionItem('Cal', '${nutritionGoals.calories.toStringAsFixed(0)}', Colors.blue),
-                    _buildNutritionItem('Carbs', '${nutritionGoals.carbs.toStringAsFixed(0)}g', Colors.orange),
-                    _buildNutritionItem('Fiber', '${nutritionGoals.fiber.toStringAsFixed(0)}g', Colors.green),
-                    _buildNutritionItem('Protein', '${nutritionGoals.protein.toStringAsFixed(0)}g', Colors.pink),
-                    _buildNutritionItem('Fat', '${nutritionGoals.fat.toStringAsFixed(0)}g', Colors.purple),
-                  ],
+                if (userData != null && userData!['username'] != null && userData!['username'].toString().isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      top: 7,
+                      bottom: 8,
+                    ),
+                    child: Text(
+                      userData!['username'],
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.grey[400],
+                        fontSize: 16,
+                        fontStyle: FontStyle.italic,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                if (userData != null && userData!['bio'] != null && userData!['bio'].toString().isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      top: 6,
+                      bottom: 10,
+                    ),
+                    child: Text(
+                      userData!['bio'],
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.grey[400],
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                const SizedBox(height: 12),
+                ElevatedButton(
+                  onPressed: () {
+                    // TODO: Navigate to edit profile
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const ProfileEditPage()),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.grey[900],
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 12),
+                  ),
+                  child: const Text('Edit Profile'),
                 ),
               ],
             ),
           ),
-          SizedBox(height: 24),
-          NutritionTracker(nutritionGoals: nutritionGoals),
+          const SizedBox(height: 32),
+          TabBar(
+            controller: _tabController,
+            indicatorColor: selectedColor,
+            labelColor: selectedColor,
+            unselectedLabelColor: Colors.white,
+            indicatorSize: TabBarIndicatorSize.label, // Add this line
+            indicator: UnderlineTabIndicator( // Add this decoration
+              borderSide: BorderSide(
+                width: 2.5,
+                color: selectedColor,
+              ),
+              insets: EdgeInsets.symmetric(horizontal: 100.0), // Adjust this value to control the length
+            ),
+            labelStyle: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+            unselectedLabelStyle: const TextStyle(
+              fontWeight: FontWeight.normal,
+              fontSize: 16,
+            ),
+            tabs: const [
+              Tab(text: 'Insights'),
+              Tab(text: 'Activity'),
+            ],
+          ),
+          const SizedBox(height: 10,),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildInsightsTab(),
+                _buildActivityTab(),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildNutritionItem(String label, String value, Color color) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        // Calculate sizes based on available width
-        final dotSize = constraints.maxWidth * 0.1; // 10% of container width
-        final labelFontSize = constraints.maxWidth * 0.1; // 10% of container width
-        final valueFontSize = constraints.maxWidth * 0.12; // Slightly larger than label
+  Widget _buildInsightsTab() {
+    return SingleChildScrollView(
+    padding: const EdgeInsets.all(16),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(
+            vertical: 25,
+            horizontal: 17.5,
+          ),
+          decoration: BoxDecoration(
+            color: Colors.grey[900],
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Your daily nutrition goals',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 7.5),
+              const Text(
+                'Balanced macros',
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _buildNutritionItem('Cal', '${nutritionGoals.calories.toStringAsFixed(0)}', Colors.blue),
+                  _buildNutritionItem('Carbs', '${nutritionGoals.carbs.toStringAsFixed(0)}g', Colors.orange),
+                  _buildNutritionItem('Fiber', '${nutritionGoals.fiber.toStringAsFixed(0)}g', Colors.green),
+                  _buildNutritionItem('Protein', '${nutritionGoals.protein.toStringAsFixed(0)}g', Colors.pink),
+                  _buildNutritionItem('Fat', '${nutritionGoals.fat.toStringAsFixed(0)}g', Colors.purple),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 24),
+        NutritionTracker(nutritionGoals: nutritionGoals),
+      ],
+    ),
+  );
+}
 
-        return Column(
-          children: [
-            Container(
-              width: dotSize,
-              height: dotSize,
-              decoration: BoxDecoration(
-                color: color,
-                shape: BoxShape.circle,
-              ),
+
+  Widget _buildNutritionItem(String label, String value, Color color) {
+    return Column(
+      children: [
+        Container(
+          width: 12,
+          height: 12,
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: const TextStyle(
+            color: Colors.grey,
+            fontSize: 12,
+          ),
+        ),
+        Text(
+          value,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildNutrientIndicator(String label, Color color) {
+    return Row(
+      children: [
+        Container(
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+          ),
+        ),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: const TextStyle(
+            color: Colors.grey,
+            fontSize: 12,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDayColumn(String day, bool isSelected, double height) {
+    return Column(
+      children: [
+        Container(
+          width: 30,
+          height: 120,
+          alignment: Alignment.bottomCenter,
+          child: Container(
+            width: 30,
+            height: height,
+            decoration: BoxDecoration(
+              color: isSelected ? Colors.orange : Colors.grey[800],
+              borderRadius: BorderRadius.circular(15),
             ),
-            SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                color: Colors.grey,
-                fontSize: labelFontSize,
-              ),
-            ),
-            Text(
-              value,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: valueFontSize,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        );
-      },
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          day,
+          style: TextStyle(
+            color: isSelected ? Colors.orange : Colors.grey,
+            fontSize: 12,
+          ),
+        ),
+      ],
     );
   }
 
   Widget _buildActivityTab() {
     if (isLoadingActivity) {
-      return Center(
-        child: CircularProgressIndicator(
-          color: Colors.deepOrange,
-          strokeWidth: 3.0, // Consistent stroke width
-        ),
-      );
+      return const Center(child: CircularProgressIndicator(color: Colors.deepOrange));
     }
 
     return RefreshIndicator(
@@ -566,215 +606,196 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
       color: Colors.deepOrange,
       child: activityRecipes.isEmpty
           ? ListView(
-        children: [
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final screenHeight = MediaQuery.of(context).size.height;
-              final imageSize = screenHeight * 0.15; // Responsive image size
-
-              return SizedBox(
-                height: screenHeight * 0.465,
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Image.asset(
-                        'assets/images/no-activity.png',
-                        width: imageSize,
-                        height: imageSize,
-                        fit: BoxFit.contain,
-                      ),
-                      SizedBox(height: 16),
-                      Text(
-                        'No activity yet',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: MediaQuery.of(context).size.width * 0.045,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
-        ],
-      )
-          : ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: activityRecipes.length,
-        itemBuilder: (context, index) {
-          final recipe = activityRecipes[index];
-
-          return Container(
-            margin: const EdgeInsets.only(bottom: 16),
-            decoration: BoxDecoration(
-              color: Colors.grey[900],
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // User Info Row
-                Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 20,
-                        backgroundImage: NetworkImage(userData?['profilePictureUrl'] ?? 'default_avatar_url'),
-                      ),
-                      SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            _authService.currentUser?.displayName ?? 'User',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: MediaQuery.of(context).size.width * 0.04,
-                            ),
-                          ),
-                          Text(
-                            'a moment ago',
-                            style: TextStyle(
-                              color: Colors.grey[400],
-                              fontSize: MediaQuery.of(context).size.width * 0.03,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                // Recipe Image
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => RecipeDetailPage(recipe: recipe),
-                      ),
-                    );
-                  },
-                  child: Stack(
-                    children: [
-                      Image.network(
-                        recipe.image,
-                        width: double.infinity,
-                        height: MediaQuery.of(context).size.height * 0.25,
-                        fit: BoxFit.cover,
-                      ),
-                      Positioned(
-                        top: 12,
-                        right: 12,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.7),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            'Made it ✨',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: MediaQuery.of(context).size.width * 0.03,
-                              fontWeight: FontWeight.bold,
-                            ),
+                SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.465,
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.asset(
+                          'assets/images/no-activity.png',
+                          width: 125,
+                          height: 125,
+                          fit: BoxFit.contain,
+                        ),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'No activity yet',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 17,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-                // Recipe Info
-                Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        recipe.title.toUpperCase(),
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: MediaQuery.of(context).size.width * 0.04,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        recipe.area ?? 'Recipe',
-                        style: TextStyle(
-                          color: Colors.grey[400],
-                          fontSize: MediaQuery.of(context).size.width * 0.035,
-                        ),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        recipe.category ?? 'Recipe',
-                        style: TextStyle(
-                          color: Colors.grey[400],
-                          fontSize: MediaQuery.of(context).size.width * 0.035,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                // Action Button
-                Padding(
-                  padding: const EdgeInsets.only(right: 12, bottom: 12),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      IconButton(
-                        icon: Icon(
-                          Icons.bookmark_border,
-                          color: Colors.white,
-                          size: MediaQuery.of(context).size.width * 0.06,
-                        ),
-                        onPressed: () async {
-                          try {
-                            await _firestoreService.saveRecipe(recipe);
-                            if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    'Recipe saved to bookmarks',
-                                    style: TextStyle(
-                                      fontSize: MediaQuery.of(context).size.width * 0.035,
-                                    ),
-                                  ),
-                                  backgroundColor: Colors.green,
-                                ),
-                              );
-                            }
-                          } catch (e) {
-                            if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    'Failed to save recipe',
-                                    style: TextStyle(
-                                      fontSize: MediaQuery.of(context).size.width * 0.035,
-                                    ),
-                                  ),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
-                            }
-                          }
-                        },
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ],
+            )
+          : ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: activityRecipes.length,
+              itemBuilder: (context, index) {
+                final recipe = activityRecipes[index];
+
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[900],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // User Info Row
+                      Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Row(
+                          children: [
+                            CircleAvatar(
+                              radius: 20,
+                              backgroundImage: NetworkImage(userData?['profilePictureUrl'] ?? 'default_avatar_url'),
+                            ),
+                            const SizedBox(width: 12),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  _authService.currentUser?.displayName ?? 'User',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                Text(
+                                  'a moment ago',
+                                  style: TextStyle(
+                                    color: Colors.grey[400],
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Recipe Image
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => RecipeDetailPage(recipe: recipe),
+                            ),
+                          );
+                        },
+                        child: Stack(
+                          children: [
+                            Image.network(
+                              recipe.image,
+                              width: double.infinity,
+                              height: 200,
+                              fit: BoxFit.cover,
+                            ),
+                            Positioned(
+                              top: 12,
+                              right: 12,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withOpacity(0.7),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: const Text(
+                                  'Made it ✨',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Recipe Info
+                      Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              recipe.title.toUpperCase(),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              recipe.area ?? 'Recipe',
+                              style: TextStyle(
+                                color: Colors.grey[400],
+                                fontSize: 14,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              recipe.category ?? 'Recipe',
+                              style: TextStyle(
+                                color: Colors.grey[400],
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Action Button
+                      Padding(
+                        padding: const EdgeInsets.only(right: 12, bottom: 12),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            IconButton(
+                              icon: const Icon(
+                                Icons.bookmark_border,
+                                color: Colors.white,
+                              ),
+                              onPressed: () async {
+                                try {
+                                  await _firestoreService.saveRecipe(recipe);
+                                  if (mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('Recipe saved to bookmarks'),
+                                        backgroundColor: Colors.green,
+                                      ),
+                                    );
+                                  }
+                                } catch (e) {
+                                  if (mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('Failed to save recipe'),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
+                                  }
+                                }
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
-          );
-        },
-      ),
     );
   }
 }
