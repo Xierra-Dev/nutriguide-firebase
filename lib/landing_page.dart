@@ -148,201 +148,192 @@ class _LandingPageState extends State<LandingPage> with SingleTickerProviderStat
   Widget build(BuildContext context) {
     return MediaQuery.withClampedTextScaling(
       child: Scaffold(
-        body: LayoutBuilder(
-          builder: (context, constraints) {
-            // Determine if it's a narrow or wide screen
-            final isNarrowScreen = constraints.maxWidth < 600;
-
-            return Stack(
-              fit: StackFit.expand,
-              children: [
-                // Background Image Logic (Unchanged)
-                if (_previousImageUrl != null)
-                  Container(
-                    decoration: BoxDecoration(
-                      image: DecorationImage(
-                        image: NetworkImage(_previousImageUrl!),
-                        fit: BoxFit.cover,
-                        colorFilter: ColorFilter.mode(
-                          Colors.black.withOpacity(0.3),
-                          BlendMode.darken,
-                        ),
-                      ),
+        body: Stack(
+          fit: StackFit.expand,
+          children: [
+            // Background Image Logic (Unchanged)
+            if (_previousImageUrl != null)
+              Container(
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: NetworkImage(_previousImageUrl!),
+                    fit: BoxFit.cover,
+                    colorFilter: ColorFilter.mode(
+                      Colors.black.withOpacity(0.3),
+                      BlendMode.darken,
                     ),
                   ),
+                ),
+              ),
 
-                if (_currentImageUrl != null && _animation != null)
-                  FadeTransition(
-                    opacity: _animation!,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        image: DecorationImage(
-                          image: NetworkImage(_currentImageUrl!),
-                          fit: BoxFit.cover,
-                          colorFilter: ColorFilter.mode(
-                            Colors.black.withOpacity(0.3),
-                            BlendMode.darken,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-
-                if (_currentImageUrl == null && _previousImageUrl == null)
-                  Container(
-                    decoration: const BoxDecoration(
-                      image: DecorationImage(
-                        image: AssetImage('assets/images/landing_page.jpg'),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-
-                // Main Content
-                SafeArea(
-                  child: Center(
-                    child: SingleChildScrollView(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          // Logo/Title Section
-                          AnimatedOpacity(
-                            duration: const Duration(milliseconds: 800),
-                            opacity: _isLoading ? 0.0 : 1.0,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  'Plan',
-                                  style: _responsiveTextStyle(context, baseSize: 48),
-                                  textAlign: TextAlign.center,
-                                ),
-                                Text(
-                                  'Your',
-                                  style: _responsiveTextStyle(context, baseSize: 48),
-                                  textAlign: TextAlign.center,
-                                ),
-                                Text(
-                                  'Food',
-                                  style: _responsiveTextStyle(context, baseSize: 48),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          // Spacing
-                          SizedBox(height: constraints.maxHeight * 0.05),
-
-                          // Buttons Section
-                          Padding(
-                            padding: EdgeInsets.symmetric(
-                                horizontal: isNarrowScreen
-                                    ? 16.0
-                                    : constraints.maxWidth * 0.2
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                AnimatedOpacity(
-                                  duration: const Duration(milliseconds: 800),
-                                  opacity: _isLoading ? 0.0 : 1.0,
-                                  child: ElevatedButton(
-                                    onPressed: () {
-                                      Navigator.push(
-                                        context,
-                                        SlideLeftRoute(page: const RegisterPage()),
-                                      );
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: const Color.fromARGB(255, 255, 106, 0),
-                                      foregroundColor: Colors.black,
-                                      padding: const EdgeInsets.symmetric(vertical: 16),
-                                      textStyle: TextStyle(
-                                        fontSize: 18 * (constraints.maxWidth / 375),
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    child: const Text('Register'),
-                                  ),
-                                ),
-
-                                const SizedBox(height: 20),
-
-                                AnimatedOpacity(
-                                  duration: const Duration(milliseconds: 800),
-                                  opacity: _isLoading ? 0.0 : 1.0,
-                                  child: ElevatedButton(
-                                    onPressed: () {
-                                      Navigator.push(
-                                        context,
-                                        SlideLeftRoute(page: const LoginPage()),
-                                      );
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: const Color.fromARGB(255, 42, 227, 206),
-                                      foregroundColor: Colors.black,
-                                      padding: const EdgeInsets.symmetric(vertical: 16),
-                                      textStyle: TextStyle(
-                                        fontSize: 18 * (constraints.maxWidth / 375),
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    child: const Text('Login'),
-                                  ),
-                                ),
-
-                                // Terms and Privacy Policy
-                                AnimatedOpacity(
-                                  duration: const Duration(milliseconds: 800),
-                                  opacity: _isLoading ? 0.0 : 1.0,
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(top: 20),
-                                    child: RichText(
-                                      textAlign: TextAlign.center,
-                                      text: TextSpan(
-                                        text: 'By using NutriGuide you agree to our ',
-                                        style: TextStyle(
-                                          fontSize: 14 * (constraints.maxWidth / 375),
-                                          fontWeight: FontWeight.w500,
-                                          color: Colors.white70,
-                                        ),
-                                        children: [
-                                          TextSpan(
-                                            text: 'Terms',
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              decoration: TextDecoration.underline,
-                                              color: Colors.white,
-                                              fontSize: 14 * (constraints.maxWidth / 375),
-                                            ),
-                                          ),
-                                          const TextSpan(text: ' and '),
-                                          TextSpan(
-                                            text: 'Privacy Policy',
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              decoration: TextDecoration.underline,
-                                              color: Colors.white,
-                                              fontSize: 14 * (constraints.maxWidth / 375),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
+            if (_currentImageUrl != null && _animation != null)
+              FadeTransition(
+                opacity: _animation!,
+                child: Container(
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                      image: NetworkImage(_currentImageUrl!),
+                      fit: BoxFit.cover,
+                      colorFilter: ColorFilter.mode(
+                        Colors.black.withOpacity(0.3),
+                        BlendMode.darken,
                       ),
                     ),
                   ),
                 ),
-              ],
-            );
-          },
+              ),
+
+            if (_currentImageUrl == null && _previousImageUrl == null)
+              Container(
+                decoration: const BoxDecoration(
+                  image: DecorationImage(
+                    image: AssetImage('assets/images/landing_page.jpg'),
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+
+            // Main Content
+            SafeArea(
+              child: Column(
+                children: [
+                  // Logo/Title Section - Centered at Top
+                  Expanded(
+                    child: Center(
+                      child: AnimatedOpacity(
+                        duration: const Duration(milliseconds: 800),
+                        opacity: _isLoading ? 0.0 : 1.0,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Plan',
+                              style: _responsiveTextStyle(context, baseSize: 48),
+                              textAlign: TextAlign.center,
+                            ),
+                            Text(
+                              'Your',
+                              style: _responsiveTextStyle(context, baseSize: 48),
+                              textAlign: TextAlign.center,
+                            ),
+                            Text(
+                              'Food',
+                              style: _responsiveTextStyle(context, baseSize: 48),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // Buttons and Terms - Fixed at Bottom
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      return Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: constraints.maxWidth < 600
+                              ? 16.0
+                              : constraints.maxWidth * 0.2,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            AnimatedOpacity(
+                              duration: const Duration(milliseconds: 800),
+                              opacity: _isLoading ? 0.0 : 1.0,
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    SlideLeftRoute(page: const RegisterPage()),
+                                  );
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color.fromARGB(255, 255, 106, 0),
+                                  foregroundColor: Colors.black,
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  textStyle: TextStyle(
+                                    fontSize: 18 * (constraints.maxWidth / 375),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                child: const Text('Register'),
+                              ),
+                            ),
+
+                            const SizedBox(height: 20),
+
+                            AnimatedOpacity(
+                              duration: const Duration(milliseconds: 800),
+                              opacity: _isLoading ? 0.0 : 1.0,
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    SlideLeftRoute(page: const LoginPage()),
+                                  );
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color.fromARGB(255, 42, 227, 206),
+                                  foregroundColor: Colors.black,
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  textStyle: TextStyle(
+                                    fontSize: 18 * (constraints.maxWidth / 375),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                child: const Text('Login'),
+                              ),
+                            ),
+
+                            // Terms and Privacy Policy
+                            AnimatedOpacity(
+                              duration: const Duration(milliseconds: 800),
+                              opacity: _isLoading ? 0.0 : 1.0,
+                              child: Padding(
+                                padding: const EdgeInsets.only(top: 20, bottom: 20),
+                                child: RichText(
+                                  textAlign: TextAlign.center,
+                                  text: TextSpan(
+                                    text: 'By using NutriGuide you agree to our\n ',
+                                    style: TextStyle(
+                                      fontSize: 14 * (constraints.maxWidth / 375),
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.red,
+                                    ),
+                                    children: [
+                                      TextSpan(
+                                        text: 'Terms',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.red,
+                                          fontSize: 14 * (constraints.maxWidth / 375),
+                                        ),
+                                      ),
+                                      const TextSpan(text: ' and '),
+                                      TextSpan(
+                                        text: 'Privacy Policy',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.red,
+                                          fontSize: 14 * (constraints.maxWidth / 375),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
