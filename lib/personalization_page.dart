@@ -85,7 +85,7 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
       context: context,
       builder: (BuildContext context) {
         return MediaQuery(
-          data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
+          data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
           child: Dialog(
             insetPadding: EdgeInsets.symmetric(horizontal: 10.0),
             backgroundColor: Color.fromARGB(255, 91, 91, 91),
@@ -208,7 +208,7 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
   Widget build(BuildContext context) {
     // Disable system text scaling
     return MediaQuery(
-      data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
+      data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
       child: Scaffold(
         body: AnimatedContainer(
           duration: const Duration(milliseconds: 100),
@@ -256,7 +256,7 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
 
   Widget _buildMainContent(Size size, bool isSmallScreen) {
     return MediaQuery(
-      data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
+      data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
       child: Padding(
         padding: EdgeInsets.only(
           top: size.height * 0.15,
@@ -414,7 +414,6 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
       ),
     );
   }
-
 
   Widget _buildProgressBar(Size size, bool isSmallScreen) {
     return MediaQuery(

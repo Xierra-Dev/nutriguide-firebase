@@ -163,101 +163,108 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
   }
 
   @override
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
+    return MediaQuery(
+      data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0), // Lock text scale factor
+      child: Scaffold(
         backgroundColor: Colors.black,
-        title: const Text('Email Verification', style: TextStyle(color: Colors.white),),
-        iconTheme: const IconThemeData(color: Colors.white),
-      ),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(
-                Icons.mark_email_unread_outlined,
-                size: 100,
-                color: Colors.deepOrange,
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                'Verify your email address',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+        appBar: AppBar(
+          backgroundColor: Colors.black,
+          title: const Text(
+            'Email Verification',
+            style: TextStyle(color: Colors.white),
+          ),
+          iconTheme: const IconThemeData(color: Colors.white),
+        ),
+        body: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.mark_email_unread_outlined,
+                  size: 100,
+                  color: Colors.deepOrange,
                 ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'We\'ve sent a verification email to:\n${widget.email}',
-                style: const TextStyle(
-                  fontSize: 16,
-                  color: Colors.white70,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 20),
-              Text(
-                'Time remaining: ${_remainingSeconds ~/ 60}:${(_remainingSeconds % 60).toString().padLeft(2, '0')}',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.deepOrange,
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
+                const SizedBox(height: 20),
+                const Text(
+                  'Verify your email address',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
+                  textAlign: TextAlign.center,
                 ),
-                onPressed: canResendEmail ? resendVerificationEmail : (){},
-                child: Text(
-                  canResendEmail
-                      ? 'Resend Email'
-                      : 'Resend in ${resendTimeout}s',
+                const SizedBox(height: 16),
+                Text(
+                  'We\'ve sent a verification email to:\n${widget.email}',
                   style: const TextStyle(
-                    fontSize: 16.5,
-                    color: Colors.black,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
+                    color: Colors.white70,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'Time remaining: ${_remainingSeconds ~/ 60}:${(_remainingSeconds % 60).toString().padLeft(2, '0')}',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
                 ),
-              ),
-              const SizedBox(height: 8),
-              TextButton(
-                onPressed: () {
-                  // Sign out if the user chooses to cancel
-                  FirebaseAuth.instance.signOut();
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const LandingPage()),
-                  );
-                },
-                child: const Text(
-                  'Cancel',
-                  style: TextStyle(color: Colors.white70),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.deepOrange,
+                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                  onPressed: canResendEmail ? resendVerificationEmail : () {},
+                  child: Text(
+                    canResendEmail
+                        ? 'Resend Email'
+                        : 'Resend in ${resendTimeout}s',
+                    style: const TextStyle(
+                      fontSize: 16.5,
+                      color: Colors.black,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 20),
-              isEmailVerified
-                  ? const Text(
-                'Email Verified!',
-                style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
-              )
-                  : const Text(
-                'Waiting for verification...',
-                style: TextStyle(color: Colors.orange),
-              ),
-            ],
+                const SizedBox(height: 8),
+                TextButton(
+                  onPressed: () {
+                    // Sign out if the user chooses to cancel
+                    FirebaseAuth.instance.signOut();
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => const LandingPage()),
+                    );
+                  },
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(color: Colors.white70),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                isEmailVerified
+                    ? const Text(
+                  'Email Verified!',
+                  style: TextStyle(
+                      color: Colors.green, fontWeight: FontWeight.bold),
+                )
+                    : const Text(
+                  'Waiting for verification...',
+                  style: TextStyle(color: Colors.orange),
+                ),
+              ],
+            ),
           ),
         ),
       ),

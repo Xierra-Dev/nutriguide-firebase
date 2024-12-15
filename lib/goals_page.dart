@@ -123,111 +123,119 @@ class _GoalsPageState extends State<GoalsPage> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return Dialog(
-          insetPadding: EdgeInsets.symmetric(horizontal: 10.0),
-          backgroundColor: Color.fromARGB(255, 91, 91, 91),
-          child: SizedBox(
-            width: double.infinity,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center, // Center content vertically
-              children: [
-                Padding(
-                  padding: EdgeInsets.all(24.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center, // Center text horizontally
-                    children: [
-                      Text(
-                        "Don't Want Our Health\nFeatures?",
-                        textAlign: TextAlign.center, // Ensure text is centered
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 22.5,
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
+          child: Dialog(
+            insetPadding: EdgeInsets.symmetric(horizontal: 10.0),
+            backgroundColor: Color.fromARGB(255, 91, 91, 91),
+            child: SizedBox(
+              width: double.infinity,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Padding(
+                    padding: EdgeInsets.all(24.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(
+                          "Don't Want Our Health\nFeatures?",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 22.5,
+                            height: 1.0,
+                          ),
                         ),
-                      ),
-                      SizedBox(height: 16.0),
-                      Text(
-                        "To receive personalized meal and recipe recommendations, you need to complete the questionnaire to use Health Features.",
-                        textAlign: TextAlign.center, // Ensure text is centered
-                        style: TextStyle(
+                        SizedBox(height: 16.0),
+                        Text(
+                          "To receive personalized meal and recipe recommendations, you need to complete the questionnaire to use Health Features.",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
                             fontSize: 16.0,
-                            color: Colors.white
-                        ),
-                      ),
-                      SizedBox(height: 16.0),
-                      Text(
-                        "You can set up later in Settings > Preferences.",
-                        textAlign: TextAlign.center, // Ensure text is centered
-                        style: TextStyle(
-                          fontSize: 16.0,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.only(
-                    bottom: 30,
-                    left: 30,
-                    right: 30,
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,// Center buttons horizontally
-                    children: [
-                      ElevatedButton(
-                        onPressed: () {
-                          // Navigate to HomePage
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(builder: (context) => const HomePage()),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 16,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(50.0),
+                            color: Colors.white,
+                            height: 1.0,
                           ),
                         ),
-                        child: Text("Skip Questionnaire",
+                        SizedBox(height: 16.0),
+                        Text(
+                          "You can set up later in Settings > Preferences.",
+                          textAlign: TextAlign.center,
                           style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
+                            fontSize: 16.0,
+                            color: Colors.white,
+                            height: 1.0,
                           ),
                         ),
-                      ),
-                      SizedBox(height: 17.5,),
-                      OutlinedButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 16,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(50.0),
-                          ),
-                        ),
-                        child: Text(
-                          "Return to Questionnaire",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                  Container(
+                    padding: const EdgeInsets.only(
+                      bottom: 30,
+                      left: 30,
+                      right: 30,
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(builder: (context) => const HomePage()),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 16,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(50.0),
+                            ),
+                          ),
+                          child: Text(
+                            "Skip Questionnaire",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                              height: 1.0,
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 17.5),
+                        OutlinedButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 16,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(50.0),
+                            ),
+                          ),
+                          child: Text(
+                            "Return to Questionnaire",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                              height: 1.0,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         );
@@ -269,47 +277,51 @@ class _GoalsPageState extends State<GoalsPage> {
   ];
 
   @override
+  @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final isSmallScreen = size.width < 360;
 
-    return Scaffold(
-      body: AnimatedContainer(
-        duration: const Duration(milliseconds: 100),
-        decoration: BoxDecoration(
-          image: _backgroundImageUrl != null
-              ? DecorationImage(
-            image: NetworkImage(_backgroundImageUrl!),
-            fit: BoxFit.cover,
-            colorFilter: ColorFilter.mode(
-              Colors.black.withOpacity(0.3),
-              BlendMode.darken,
+    return MediaQuery(
+      data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
+      child: Scaffold(
+        body: AnimatedContainer(
+          duration: const Duration(milliseconds: 100),
+          decoration: BoxDecoration(
+            image: _backgroundImageUrl != null
+                ? DecorationImage(
+              image: NetworkImage(_backgroundImageUrl!),
+              fit: BoxFit.cover,
+              colorFilter: ColorFilter.mode(
+                Colors.black.withOpacity(0.3),
+                BlendMode.darken,
+              ),
+            )
+                : const DecorationImage(
+              image: AssetImage('assets/images/landing_page.jpg'),
+              fit: BoxFit.cover,
             ),
-          )
-              : const DecorationImage(
-            image: AssetImage('assets/images/landing_page.jpg'),
-            fit: BoxFit.cover,
           ),
-        ),
-        child: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              return SingleChildScrollView(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minHeight: constraints.maxHeight,
+          child: SafeArea(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
+                    ),
+                    child: Stack(
+                      children: [
+                        _buildBackButton(size),
+                        _buildMainContent(size, isSmallScreen),
+                        _buildProgressBar(size, isSmallScreen),
+                        _buildBottomButtons(size, isSmallScreen),
+                      ],
+                    ),
                   ),
-                  child: Stack(
-                    children: [
-                      _buildBackButton(size),
-                      _buildMainContent(size, isSmallScreen),
-                      _buildProgressBar(size, isSmallScreen),
-                      _buildBottomButtons(size, isSmallScreen),
-                    ],
-                  ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
         ),
       ),
@@ -367,22 +379,25 @@ class _GoalsPageState extends State<GoalsPage> {
           ),
           borderRadius: BorderRadius.circular(50),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'What are your current goals?',
-              style: TextStyle(
-                color: Colors.black,
-                fontSize: isSmallScreen ? 20 : 23.5,
-                fontWeight: FontWeight.w800,
+        child: MediaQuery(
+          data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'What are your current goals?',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: isSmallScreen ? 20 : 23.5,
+                  fontWeight: FontWeight.w800,
+                ),
+                textAlign: TextAlign.center,
               ),
-              textAlign: TextAlign.center,
-            ),
-            SizedBox(height: size.height * 0.02),
-            ...goals.map((goal) => _buildGoalOption(goal, isSmallScreen ? 18 : 20.0)).toList(),
-          ],
+              SizedBox(height: size.height * 0.02),
+              ...goals.map((goal) => _buildGoalOption(goal, isSmallScreen ? 18 : 20.0)).toList(),
+            ],
+          ),
         ),
       ),
     );
@@ -412,15 +427,19 @@ class _GoalsPageState extends State<GoalsPage> {
               size: iconSize,
             ),
             const SizedBox(width: 20),
-            Text(
-              goal['title'] as String,
-              style: TextStyle(
-                color: Colors.black,
-                fontSize: titleSize,
-                fontWeight: FontWeight.w500,
+            Expanded(
+              child: MediaQuery(
+                data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
+                child: Text(
+                  goal['title'] as String,
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: titleSize,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
               ),
             ),
-            const Spacer(),
             Icon(
               isSelected ? Icons.check_circle : Icons.circle,
               color: isSelected ? Colors.green : const Color.fromARGB(255, 124, 93, 93),
@@ -476,7 +495,7 @@ class _GoalsPageState extends State<GoalsPage> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if(selectedGoals.isNotEmpty)
+            if (selectedGoals.isNotEmpty)
               ElevatedButton(
                 onPressed: _saveGoals,
                 style: ElevatedButton.styleFrom(
@@ -491,12 +510,15 @@ class _GoalsPageState extends State<GoalsPage> {
                 ),
                 child: _isLoading
                     ? const CircularProgressIndicator(color: Colors.amber)
-                    : Text(
-                  'SAVE',
-                  style: TextStyle(
-                    fontSize: isSmallScreen ? 18 : 20,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.black,
+                    : MediaQuery(
+                  data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
+                  child: Text(
+                    'SAVE',
+                    style: TextStyle(
+                      fontSize: isSmallScreen ? 18 : 20,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.black,
+                    ),
                   ),
                 ),
               ),
@@ -513,11 +535,14 @@ class _GoalsPageState extends State<GoalsPage> {
                   side: const BorderSide(color: Colors.white),
                 ),
               ),
-              child: Text(
-                'SET UP LATER',
-                style: TextStyle(
-                  fontSize: isSmallScreen ? 14 : 16,
-                  fontWeight: FontWeight.w800,
+              child: MediaQuery(
+                data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
+                child: Text(
+                  'SET UP LATER',
+                  style: TextStyle(
+                    fontSize: isSmallScreen ? 14 : 16,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ),
             ),
@@ -548,5 +573,6 @@ class _GoalsPageState extends State<GoalsPage> {
       });
     }
   }
+
 }const kPrimaryColor = Colors.red;
 const kColorsGrey400 = Colors.orangeAccent;
