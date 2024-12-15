@@ -13,6 +13,8 @@ import 'services/assistant_services.dart';
 import 'services/notification_service.dart';
 import 'services/firestore_service.dart';
 import 'services/timezone_service.dart';
+import 'core/widgets/responsive_text_wrapper.dart';
+import 'core/constants/colors.dart';
 
 // Handle background messages
 @pragma('vm:entry-point')
@@ -126,6 +128,15 @@ class MealPlannerApp extends StatelessWidget {
       splitScreenMode: true,
       builder: (context, child) {
         return MaterialApp(
+          builder: (context, child) {
+            // Ini akan memaksa aplikasi menggunakan skala teks yang kita tentukan
+            return MediaQuery(
+              data: MediaQuery.of(context).copyWith(
+                textScaleFactor: 1.0, // Force text scale factor to 1.0
+              ),
+              child: child!,
+            );
+          },
           title: 'NutriGuide',
           theme: ThemeData(
             visualDensity: VisualDensity.adaptivePlatformDensity,

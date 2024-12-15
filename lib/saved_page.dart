@@ -2,6 +2,12 @@ import 'package:flutter/material.dart';
 import 'models/recipe.dart';
 import 'services/firestore_service.dart';
 import 'recipe_detail_page.dart';
+import 'core/constants/colors.dart';
+import 'core/constants/dimensions.dart';
+import 'core/constants/font_sizes.dart';
+import 'core/helpers/responsive_helper.dart';
+import 'core/widgets/app_text.dart';
+import 'package:intl/intl.dart';
 
 class SavedPage extends StatefulWidget {
   const SavedPage({super.key});
@@ -45,6 +51,8 @@ class _SavedPageState extends State<SavedPage> {
   final FirestoreService _firestoreService = FirestoreService();
   List<Recipe> savedRecipes = [];
   bool isLoading = true;
+  String? errorMessage;
+  String sortBy = 'Date Added';
 
   @override
   void initState() {
@@ -52,41 +60,297 @@ class _SavedPageState extends State<SavedPage> {
     _loadSavedRecipes();
   }
 
-  Color _getHealthScoreColor(double healthScore) {
-    if (healthScore < 6) {
-      return Colors.red;
-    } else if (healthScore <= 7.5) {
-      return Colors.yellow;
+  Color _getHealthScoreColor(double score) {
+    if (score < 6) {
+      return AppColors.error;
+    } else if (score <= 7.5) {
+      return AppColors.accent;
     } else {
-      return Colors.green;
+      return AppColors.success;
     }
   }
 
-  void _viewRecipe(Recipe recipe) async {
+  Future<void> _viewRecipe(Recipe recipe) async {
     await _firestoreService.addToRecentlyViewed(recipe);
     if (mounted) {
       await Navigator.push(
         context,
-        SlideUpRoute(page: RecipeDetailPage(recipe: recipe)),
+        MaterialPageRoute(builder: (context) => RecipeDetailPage(recipe: recipe)),
       );
+      _loadSavedRecipes(); // Reload in case of changes
     }
   }
 
   Future<void> _loadSavedRecipes() async {
     setState(() {
       isLoading = true;
+      errorMessage = null;
     });
+
     try {
       final recipes = await _firestoreService.getSavedRecipes();
-      setState(() {
-        savedRecipes = recipes;
-        isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          savedRecipes = recipes;
+          isLoading = false;
+        });
+        _sortRecipes();
+      }
     } catch (e) {
-      print('Error loading saved recipes: $e');
-      setState(() {
-        isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          errorMessage = 'Failed to load saved recipes';
+          isLoading = false;
+        });
+        _showErrorSnackBar('Error loading saved recipes');
+      }
+    }
+  }
+
+  void _sortRecipes() {
+    setState(() {
+      switch (sortBy) {
+        case 'Name':
+          savedRecipes.sort((a, b) => a.title.compareTo(b.title));
+          break;
+        case 'Rating':
+          savedRecipes.sort((a, b) => b.healthScore.compareTo(a.healthScore));
+          break;
+        case 'Time':
+          savedRecipes.sort((a, b) => a.preparationTime.compareTo(b.preparationTime));
+          break;
+        case 'Date Added':
+        default:
+          // Already sorted by date from Firestore
+          break;
+      }
+    });
+  }
+
+  Future<void> _removeSavedRecipe(Recipe recipe) async {
+    try {
+      await _firestoreService.removeFromSavedRecipes(recipe);
+      
+      if (mounted) {
+        setState(() {
+          savedRecipes.removeWhere((r) => r.id == recipe.id);
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.check_circle, color: AppColors.text, size: Dimensions.iconM),
+                SizedBox(width: Dimensions.paddingS),
+                AppText(
+                  'Recipe removed from saved',
+                  fontSize: FontSizes.body,
+                  color: AppColors.text,
+                ),
+              ],
+            ),
+            backgroundColor: AppColors.success,
+            action: SnackBarAction(
+              label: 'Undo',
+              textColor: AppColors.text,
+              onPressed: () => _undoRemove(recipe),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      _showErrorSnackBar('Failed to remove recipe');
+    }
+  }
+
+  Future<void> _undoRemove(Recipe recipe) async {
+    try {
+      await _firestoreService.saveRecipe(recipe);
+      _loadSavedRecipes();
+    } catch (e) {
+      _showErrorSnackBar('Failed to restore recipe');
+    }
+  }
+
+  Future<void> _showPlanMealDialog(Recipe recipe) async {
+    final DateTime now = DateTime.now();
+    DateTime selectedDate = now;
+    String selectedMealType = 'Lunch';
+
+    final result = await showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (BuildContext context) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            dialogBackgroundColor: AppColors.surface,
+          ),
+          child: AlertDialog(
+            title: AppText(
+              'Plan Meal',
+              fontSize: FontSizes.heading3,
+              color: AppColors.text,
+              fontWeight: FontWeight.bold,
+            ),
+            content: StatefulBuilder(
+              builder: (BuildContext context, StateSetter setState) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ListTile(
+                      title: AppText(
+                        'Date',
+                        fontSize: FontSizes.body,
+                        color: AppColors.text,
+                      ),
+                      subtitle: AppText(
+                        DateFormat('MMM d, y').format(selectedDate),
+                        fontSize: FontSizes.caption,
+                        color: AppColors.primary,
+                      ),
+                      trailing: Icon(
+                        Icons.calendar_today,
+                        color: AppColors.primary,
+                        size: Dimensions.iconM,
+                      ),
+                      onTap: () async {
+                        final DateTime? picked = await showDatePicker(
+                          context: context,
+                          initialDate: selectedDate,
+                          firstDate: now,
+                          lastDate: now.add(const Duration(days: 365)),
+                          builder: (context, child) {
+                            return Theme(
+                              data: Theme.of(context).copyWith(
+                                colorScheme: ColorScheme.dark(
+                                  primary: AppColors.primary,
+                                  surface: AppColors.surface,
+                                ),
+                              ),
+                              child: child!,
+                            );
+                          },
+                        );
+                        if (picked != null) {
+                          setState(() => selectedDate = picked);
+                        }
+                      },
+                    ),
+                    ListTile(
+                      title: AppText(
+                        'Meal Type',
+                        fontSize: FontSizes.body,
+                        color: AppColors.text,
+                      ),
+                      subtitle: DropdownButton<String>(
+                        value: selectedMealType,
+                        dropdownColor: AppColors.surface,
+                        underline: Container(
+                          height: 1,
+                          color: AppColors.primary,
+                        ),
+                        onChanged: (String? newValue) {
+                          if (newValue != null) {
+                            setState(() => selectedMealType = newValue);
+                          }
+                        },
+                        items: ['Breakfast', 'Lunch', 'Dinner']
+                            .map<DropdownMenuItem<String>>((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: AppText(
+                              value,
+                              fontSize: FontSizes.body,
+                              color: AppColors.text,
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: AppText(
+                  'Cancel',
+                  fontSize: FontSizes.body,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, {
+                  'date': selectedDate,
+                  'mealType': selectedMealType,
+                }),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(Dimensions.radiusM),
+                  ),
+                ),
+                child: AppText(
+                  'Plan',
+                  fontSize: FontSizes.body,
+                  color: AppColors.text,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (result != null) {
+      try {
+        await _firestoreService.planMeal(
+          recipe,
+          result['date'] as DateTime,
+          result['mealType'] as String,
+        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.check_circle, color: AppColors.text, size: Dimensions.iconM),
+                  SizedBox(width: Dimensions.paddingS),
+                  AppText(
+                    'Meal planned successfully',
+                    fontSize: FontSizes.body,
+                    color: AppColors.text,
+                  ),
+                ],
+              ),
+              backgroundColor: AppColors.success,
+            ),
+          );
+        }
+      } catch (e) {
+        _showErrorSnackBar('Failed to plan meal');
+      }
+    }
+  }
+
+  void _showErrorSnackBar(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              Icon(Icons.error, color: AppColors.text, size: Dimensions.iconM),
+              SizedBox(width: Dimensions.paddingS),
+              AppText(
+                message,
+                fontSize: FontSizes.body,
+                color: AppColors.text,
+              ),
+            ],
+          ),
+          backgroundColor: AppColors.error,
+        ),
+      );
     }
   }
 
@@ -141,47 +405,95 @@ class _SavedPageState extends State<SavedPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Padding(
-              padding: EdgeInsets.fromLTRB(0, 8.5, 0, 12.5),
-              child: Text(
-                'Saved Recipes',
-                style: TextStyle(
-                  color: Colors.deepOrange,
-                  fontSize: 25,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
+            _buildHeader(),
             Expanded(
               child: isLoading
-                  ? const Center(child: CircularProgressIndicator(color: Colors.deepOrange))
+                  ? Center(child: CircularProgressIndicator(color: AppColors.primary))
                   : savedRecipes.isEmpty
-                  ? _buildEmptyState()
-                  : RefreshIndicator(
-                onRefresh: _loadSavedRecipes,
-                color: Colors.deepOrange,
-                child: GridView.builder(
-                  padding: const EdgeInsets.all(16),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    childAspectRatio: 0.75,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
-                  ),
-                  itemCount: savedRecipes.length,
-                  itemBuilder: (context, index) {
-                    final recipe = savedRecipes[index];
-                    return _buildRecipeCard(recipe);
-                  },
-                ),
-              ),
+                      ? _buildEmptyState()
+                      : _buildRecipeGrid(),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Padding(
+      padding: EdgeInsets.all(Dimensions.paddingM),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          AppText(
+            'Saved Recipes',
+            fontSize: FontSizes.heading2,
+            color: AppColors.primary,
+            fontWeight: FontWeight.bold,
+          ),
+          _buildSortButton(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSortButton() {
+    return PopupMenuButton<String>(
+      initialValue: sortBy,
+      onSelected: (String value) {
+        setState(() {
+          sortBy = value;
+          _sortRecipes();
+        });
+      },
+      color: AppColors.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(Dimensions.radiusM),
+      ),
+      offset: const Offset(0, 40),
+      child: Container(
+        padding: EdgeInsets.all(Dimensions.paddingS),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(Dimensions.radiusM),
+        ),
+        child: Row(
+          children: [
+            AppText(
+              sortBy,
+              fontSize: FontSizes.body,
+              color: AppColors.text,
+            ),
+            Icon(
+              Icons.arrow_drop_down,
+              color: AppColors.text,
+              size: Dimensions.iconM,
+            ),
+          ],
+        ),
+      ),
+      itemBuilder: (BuildContext context) => [
+        _buildSortMenuItem('Date Added'),
+        _buildSortMenuItem('Name'),
+        _buildSortMenuItem('Rating'),
+        _buildSortMenuItem('Time'),
+      ],
+    );
+  }
+
+  PopupMenuItem<String> _buildSortMenuItem(String value) {
+    return PopupMenuItem<String>(
+      value: value,
+      height: 50,
+      child: AppText(
+        value,
+        fontSize: FontSizes.body,
+        color: AppColors.text,
       ),
     );
   }
@@ -192,131 +504,166 @@ class _SavedPageState extends State<SavedPage> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            Icons.bookmark_border,
-            size: 64,
-            color: Colors.white.withOpacity(0.5),
+            Icons.bookmark_border_rounded,
+            size: Dimensions.iconXXL,
+            color: AppColors.textSecondary,
           ),
-          const SizedBox(height: 16),
-          Text(
+          SizedBox(height: Dimensions.paddingM),
+          AppText(
             'No saved recipes yet',
-            style: TextStyle(
-              color: Colors.white.withOpacity(0.5),
-              fontSize: 18,
-            ),
+            fontSize: FontSizes.body,
+            color: AppColors.textSecondary,
           ),
-          const SizedBox(height: 24),
-          ElevatedButton(
-            onPressed: _loadSavedRecipes,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.deepOrange,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: const Text('Refresh', style: TextStyle(fontSize: 16)),
+          SizedBox(height: Dimensions.paddingS),
+          AppText(
+            'Your saved recipes will appear here',
+            fontSize: FontSizes.caption,
+            color: AppColors.textSecondary,
           ),
         ],
       ),
     );
   }
 
+  Widget _buildRecipeGrid() {
+    return GridView.builder(
+      padding: EdgeInsets.all(Dimensions.paddingM),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 0.75,
+        crossAxisSpacing: Dimensions.paddingM,
+        mainAxisSpacing: Dimensions.paddingM,
+      ),
+      itemCount: savedRecipes.length,
+      itemBuilder: (context, index) {
+        final recipe = savedRecipes[index];
+        return GestureDetector(
+          onTap: () => _viewRecipe(recipe),
+          child: _buildRecipeCard(recipe),
+        );
+      },
+    );
+  }
+
   Widget _buildRecipeCard(Recipe recipe) {
-    return GestureDetector(
-      onTap: () => _viewRecipe(recipe),
-      child: Stack(
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              image: DecorationImage(
-                image: NetworkImage(recipe.image),
-                fit: BoxFit.cover,
-              ),
-            ),
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.transparent,
-                    Colors.black.withOpacity(0.7),
-                  ],
-                ),
-              ),
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.5),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      recipe.area ?? 'International',
-                      style: const TextStyle(color: Colors.white, fontSize: 12),
-                    ),
-                  ),
-                  const Spacer(),
-                  Text(
-                    recipe.title,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      const Icon(Icons.timer, color: Colors.white, size: 16),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${recipe.preparationTime} min',
-                        style: const TextStyle(color: Colors.white, fontSize: 12),
-                      ),
-                      const Spacer(),
-                      Icon(Icons.favorite, color: _getHealthScoreColor(recipe.healthScore), size: 16),
-                      const SizedBox(width: 4),
-                      Text(
-                        recipe.healthScore.toStringAsFixed(1),
-                        style: TextStyle(color: _getHealthScoreColor(recipe.healthScore), fontSize: 12),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(Dimensions.radiusM),
+        image: DecorationImage(
+          image: NetworkImage(recipe.image),
+          fit: BoxFit.cover,
+        ),
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(Dimensions.radiusM),
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Colors.transparent,
+              Colors.black.withOpacity(0.7),
+            ],
           ),
-          Positioned(
-            top: 8.75,
-            right: 10,
-            child: Container(
-              width: 32.5,
-              height: 32.5,
-              decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.5),
-                shape: BoxShape.circle,
-              ),
-              child: IconButton(
-                icon: const Icon(
-                  Icons.bookmark,
-                  color: Colors.deepOrange,
-                  size: 17.5,
-                ),
-                onPressed: () => _removeSaveRecipe(recipe),
-              ),
-            ),
-          ),
-        ],
+        ),
+        padding: EdgeInsets.all(Dimensions.paddingM),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            _buildRecipeActions(recipe),
+            _buildRecipeInfo(recipe),
+          ],
+        ),
       ),
     );
   }
+
+  Widget _buildRecipeActions(Recipe recipe) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        // Area info
+        Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: Dimensions.paddingS,
+            vertical: Dimensions.paddingXS,
+          ),
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.5),
+            borderRadius: BorderRadius.circular(Dimensions.radiusS),
+          ),
+          child: AppText(
+            recipe.area ?? 'Unknown',
+            fontSize: FontSizes.caption,
+            color: AppColors.textSecondary,
+          ),
+        ),
+        // Delete button
+        Container(
+          width: Dimensions.iconXL,
+          height: Dimensions.iconXL,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.black.withOpacity(0.5),
+          ),
+          child: IconButton(
+            padding: EdgeInsets.zero,
+            iconSize: Dimensions.iconM,
+            icon: Icon(Icons.delete_outline, color: AppColors.text),
+            onPressed: () => _removeSavedRecipe(recipe),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMenuItem(IconData icon, String text, Color color) {
+    return Row(
+      children: [
+        Icon(icon, size: Dimensions.iconM, color: color),
+        SizedBox(width: Dimensions.paddingS),
+        AppText(
+          text,
+          fontSize: FontSizes.body,
+          color: color,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRecipeInfo(Recipe recipe) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AppText(
+          recipe.title,
+          fontSize: FontSizes.body,
+          color: AppColors.text,
+          fontWeight: FontWeight.bold,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+        SizedBox(height: Dimensions.paddingXS),
+        Row(
+          children: [
+            Icon(
+              Icons.timer,
+              color: AppColors.primary,
+              size: Dimensions.iconS,
+            ),
+            SizedBox(width: Dimensions.paddingXS),
+            AppText(
+              '${recipe.preparationTime} min',
+              fontSize: FontSizes.caption,
+              color: AppColors.textSecondary,
+            ),
+            SizedBox(width: Dimensions.paddingM),
+          ],
+        ),
+      ],
+    );
+  }
+
+  
 }

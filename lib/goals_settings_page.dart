@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'services/firestore_service.dart';
 import 'preference_page.dart';
+import 'core/constants/colors.dart';
+import 'core/constants/dimensions.dart';
+import 'core/constants/font_sizes.dart';
+import 'core/widgets/app_text.dart';
 
 class GoalsSettingsPage extends StatefulWidget {
   const GoalsSettingsPage({super.key});
@@ -197,147 +201,245 @@ class _GoalsSettingsPageState extends State<GoalsSettingsPage> {
   }
 
   @override
-  @override
   Widget build(BuildContext context) {
     return MediaQuery(
-      data: MediaQuery.of(context).copyWith(
-        textScaleFactor: 1.0, // Mencegah perubahan skala teks
-      ),
+      data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
       child: WillPopScope(
         onWillPop: _onWillPop,
         child: Scaffold(
-          backgroundColor: Colors.black,
+          backgroundColor: AppColors.background,
           appBar: AppBar(
-            backgroundColor: Colors.black,
-            title: const Text(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            title: AppText(
               'Personalized Goals',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+              fontSize: FontSizes.heading3,
+              color: AppColors.text,
+              fontWeight: FontWeight.bold,
             ),
             leading: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.white),
+              icon: Icon(Icons.arrow_back, color: AppColors.text),
               onPressed: () => _onBackPressed(context),
             ),
           ),
           body: isLoading
-              ? const Center(
-            child: CircularProgressIndicator(
-              color: Colors.deepOrange,
-            ),
-          )
+              ? Center(child: CircularProgressIndicator(color: AppColors.primary))
               : Column(
-            children: [
-              Expanded(
-                child: ListView.builder(
-                  itemCount: goals.length,
-                  itemBuilder: (context, index) {
-                    final goal = goals[index];
-                    final isSelected = selectedGoals.contains(goal);
-                    return Column(
-                      children: [
-                        ListTile(
-                          title: Text(
-                            goal,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(Dimensions.paddingL),
+                      margin: EdgeInsets.all(Dimensions.paddingM),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(Dimensions.radiusL),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: EdgeInsets.all(Dimensions.paddingM),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(Dimensions.radiusM),
+                            ),
+                            child: Icon(
+                              Icons.flag_outlined,
+                              color: AppColors.primary,
+                              size: Dimensions.iconL,
                             ),
                           ),
-                          trailing: Icon(
-                            isSelected
-                                ? Icons.check_circle
-                                : Icons.circle_outlined,
-                            color: isSelected ? Colors.green : Colors.grey,
-                            size: 24,
+                          SizedBox(width: Dimensions.paddingM),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                AppText(
+                                  'Set Your Goals',
+                                  fontSize: FontSizes.heading3,
+                                  color: AppColors.text,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                SizedBox(height: Dimensions.paddingXS),
+                                AppText(
+                                  'Choose what you want to achieve',
+                                  fontSize: FontSizes.caption,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ],
+                            ),
                           ),
-                          onTap: isEditing
-                              ? () {
-                            setState(() {
-                              if (isSelected) {
-                                selectedGoals.remove(goal);
-                              } else {
-                                selectedGoals.add(goal);
-                              }
-                              _hasChanges = true; // Set to true when user changes goal selection
-                            });
-                          }
-                              : null,
-                        ),
-                        const Divider(
-                          color: Colors.grey,
-                          height: 1,
-                        ),
-                      ],
-                    );
-                  },
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    ElevatedButton(
-                      style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.resolveWith<Color>((states) {
-                          if (states.contains(MaterialState.disabled)) {
-                            return Colors.grey.shade800;
-                          }
-                          return Colors.deepOrange;
-                        }),
-                        shape: MaterialStateProperty.all(
-                          RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(50),
-                          ),
-                        ),
+                        ],
                       ),
-                      onPressed: _hasChanges ? _saveGoals : null,
-                      child: Text(
-                        'SAVE',
-                        style: TextStyle(
-                          color: _hasChanges ? Colors.black : Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                    ),
+                    Expanded(
+                      child: Container(
+                        margin: EdgeInsets.symmetric(horizontal: Dimensions.paddingM),
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(Dimensions.radiusL),
+                        ),
+                        child: ListView.builder(
+                          itemCount: goals.length,
+                          itemBuilder: (context, index) {
+                            final goal = goals[index];
+                            final isSelected = selectedGoals.contains(goal);
+                            return Column(
+                              children: [
+                                _buildGoalItem(
+                                  goal: goal,
+                                  isSelected: isSelected,
+                                  onTap: isEditing
+                                      ? () {
+                                          setState(() {
+                                            if (isSelected) {
+                                              selectedGoals.remove(goal);
+                                            } else {
+                                              selectedGoals.add(goal);
+                                            }
+                                            _hasChanges = true;
+                                          });
+                                        }
+                                      : null,
+                                ),
+                                if (index < goals.length - 1)
+                                  Divider(
+                                    color: AppColors.border,
+                                    height: 1,
+                                    indent: Dimensions.paddingL,
+                                    endIndent: Dimensions.paddingL,
+                                  ),
+                              ],
+                            );
+                          },
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: isEditing ? Colors.grey[900] : Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(25),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          isEditing = !isEditing;
-                          if (!isEditing) {
-                            _hasChanges = false; // Reset changes if editing is canceled
-                          }
-                        });
-                      },
-                      child: Text(
-                        isEditing ? 'CANCEL' : 'EDIT',
-                        style: TextStyle(
-                          color: isEditing ? Colors.red : Colors.black,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
+                    Padding(
+                      padding: EdgeInsets.all(Dimensions.paddingM),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          ElevatedButton(
+                            style: ButtonStyle(
+                              backgroundColor: MaterialStateProperty.resolveWith<Color>((states) {
+                                if (states.contains(MaterialState.disabled)) {
+                                  return AppColors.surface;
+                                }
+                                return AppColors.primary;
+                              }),
+                              shape: MaterialStateProperty.all(
+                                RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(Dimensions.radiusL),
+                                ),
+                              ),
+                              padding: MaterialStateProperty.all(
+                                EdgeInsets.symmetric(vertical: Dimensions.paddingM),
+                              ),
+                            ),
+                            onPressed: _hasChanges ? _saveGoals : null,
+                            child: AppText(
+                              'Save Changes',
+                              fontSize: FontSizes.body,
+                              color: _hasChanges ? AppColors.text : AppColors.textSecondary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(height: Dimensions.paddingM),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: isEditing ? AppColors.surface : AppColors.background,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(Dimensions.radiusL),
+                                side: BorderSide(
+                                  color: isEditing ? AppColors.error : AppColors.border,
+                                ),
+                              ),
+                              padding: EdgeInsets.symmetric(vertical: Dimensions.paddingM),
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                isEditing = !isEditing;
+                                if (!isEditing) {
+                                  _hasChanges = false;
+                                }
+                              });
+                            },
+                            child: AppText(
+                              isEditing ? 'Cancel' : 'Edit Goals',
+                              fontSize: FontSizes.body,
+                              color: isEditing ? AppColors.error : AppColors.text,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGoalItem({
+    required String goal,
+    required bool isSelected,
+    required VoidCallback? onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: EdgeInsets.all(Dimensions.paddingM),
+          child: Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(Dimensions.paddingS),
+                decoration: BoxDecoration(
+                  color: isSelected ? AppColors.success.withOpacity(0.1) : AppColors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(Dimensions.radiusM),
+                ),
+                child: Icon(
+                  _getGoalIcon(goal),
+                  color: isSelected ? AppColors.success : AppColors.primary,
+                  size: Dimensions.iconM,
+                ),
+              ),
+              SizedBox(width: Dimensions.paddingM),
+              Expanded(
+                child: AppText(
+                  goal,
+                  fontSize: FontSizes.body,
+                  color: AppColors.text,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              Icon(
+                isSelected ? Icons.check_circle : Icons.circle_outlined,
+                color: isSelected ? AppColors.success : AppColors.textSecondary,
+                size: Dimensions.iconM,
               ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  IconData _getGoalIcon(String goal) {
+    switch (goal) {
+      case 'Weight Less':
+        return Icons.monitor_weight_outlined;
+      case 'Get Healthier':
+        return Icons.favorite_outline;
+      case 'Look Better':
+        return Icons.face_outlined;
+      case 'Reduce Stress':
+        return Icons.spa_outlined;
+      case 'Sleep Better':
+        return Icons.bedtime_outlined;
+      default:
+        return Icons.flag_outlined;
+    }
   }
 }

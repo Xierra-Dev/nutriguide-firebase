@@ -3,6 +3,10 @@ import 'package:nutriguide/settings_page.dart';
 import 'health_data_page.dart';
 import 'goals_settings_page.dart';
 import 'allergies_settings_page.dart';
+import 'core/constants/colors.dart';
+import 'core/constants/dimensions.dart';
+import 'core/constants/font_sizes.dart';
+import 'core/widgets/app_text.dart';
 
 class PreferencePage extends StatefulWidget {
   const PreferencePage({super.key});
@@ -14,91 +18,80 @@ class PreferencePage extends StatefulWidget {
 class _PreferencePageState extends State<PreferencePage> {
   @override
   Widget build(BuildContext context) {
-    final screenHeight = MediaQuery.of(context).size.height;
-    final screenWidth = MediaQuery.of(context).size.width;
-
-    return MediaQuery(
-      data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
-      child: Scaffold(
-        backgroundColor: Colors.black,
-        body: SafeArea(
-          child: Column(
-            children: [
-              Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: screenWidth * 0.04,
-                  vertical: screenHeight * 0.01,
-                ),
-                child: Row(
-                  children: [
-                    IconButton(
-                      icon: Icon(
-                        Icons.arrow_back,
-                        color: Colors.white,
-                        size: screenHeight * 0.03,
-                      ),
-                      onPressed: () {
-                        Navigator.of(context).pushReplacement(
-                          SlideRightRoute(page: const SettingsPage()),
-                        );
-                      },
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: EdgeInsets.all(Dimensions.paddingM),
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: Icon(
+                      Icons.arrow_back,
+                      color: AppColors.text,
+                      size: Dimensions.iconL,
                     ),
-                    SizedBox(width: screenWidth * 0.02),
-                    Container(
-                      constraints: BoxConstraints(
-                        maxWidth: screenWidth * 0.375,
-                      ),
-                      child: Text(
-                        'Preferences',
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: screenHeight * 0.03,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                    onPressed: () {
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(builder: (context) => const SettingsPage()),
+                      );
+                    },
+                  ),
+                  SizedBox(width: Dimensions.paddingS),
+                  AppText(
+                    'Preferences',
+                    fontSize: FontSizes.heading3,
+                    color: AppColors.text,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ],
               ),
-              Expanded(
-                child: ListView(
-                  padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04),
-                  children: [
-                    _buildPreferenceListTile(
-                      context: context,
-                      leadingText: 'Health Data',
-                      onTap: () {
-                        Navigator.of(context).push(
-                          SlideLeftRoute(page: const HealthDataPage()),
-                        );
-                      },
-                    ),
-                    _buildDivider(screenHeight),
-                    _buildPreferenceListTile(
-                      context: context,
-                      leadingText: 'Personalized Goals',
-                      onTap: () {
-                        Navigator.of(context).push(
-                          SlideLeftRoute(page: const GoalsSettingsPage()),
-                        );
-                      },
-                    ),
-                    _buildDivider(screenHeight),
-                    _buildPreferenceListTile(
-                      context: context,
-                      leadingText: 'Allergies',
-                      onTap: () {
-                        Navigator.of(context).push(
-                          SlideLeftRoute(page: const AllergiesSettingsPage()),
-                        );
-                      },
-                    ),
-                  ],
-                ),
+            ),
+            Expanded(
+              child: ListView(
+                padding: EdgeInsets.all(Dimensions.paddingM),
+                children: [
+                  _buildPreferenceCard(
+                    title: 'Health Data',
+                    description: 'Manage your personal health information',
+                    icon: Icons.favorite,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const HealthDataPage()),
+                      );
+                    },
+                  ),
+                  SizedBox(height: Dimensions.paddingM),
+                  _buildPreferenceCard(
+                    title: 'Personalized Goals',
+                    description: 'Set and track your nutrition goals',
+                    icon: Icons.track_changes,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const GoalsSettingsPage()),
+                      );
+                    },
+                  ),
+                  SizedBox(height: Dimensions.paddingM),
+                  _buildPreferenceCard(
+                    title: 'Allergies',
+                    description: 'Manage your food allergies and restrictions',
+                    icon: Icons.warning_amber,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const AllergiesSettingsPage()),
+                      );
+                    },
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -109,42 +102,94 @@ class _PreferencePageState extends State<PreferencePage> {
     required String leadingText,
     required VoidCallback onTap,
   }) {
-    final screenHeight = MediaQuery.of(context).size.height;
-    final screenWidth = MediaQuery.of(context).size.width;
-
     return ListTile(
-      contentPadding: EdgeInsets.symmetric(vertical: screenHeight * 0.01),
-      title: Container(
-        constraints: BoxConstraints(
-          maxWidth: screenWidth * 0.375,
-        ),
-        child: Text(
-          leadingText,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: screenHeight * 0.02,
-          ),
-        ),
+      contentPadding: EdgeInsets.symmetric(
+        vertical: Dimensions.paddingS,
+        horizontal: Dimensions.paddingM,
       ),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.arrow_forward_ios,
-            color: Colors.white,
-            size: screenHeight * 0.02,
-          ),
-        ],
+      title: AppText(
+        leadingText,
+        fontSize: FontSizes.body,
+        color: AppColors.text,
+      ),
+      trailing: Icon(
+        Icons.arrow_forward_ios,
+        color: AppColors.text,
+        size: Dimensions.iconS,
       ),
       onTap: onTap,
     );
   }
 
-  Widget _buildDivider(double screenHeight) {
+  Widget _buildDivider() {
     return Divider(
-      color: Colors.white24,
-      height: screenHeight * 0.001,
+      color: AppColors.border,
+      thickness: 0.5,
+    );
+  }
+
+  Widget _buildPreferenceCard({
+    required String title,
+    required String description,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(Dimensions.radiusL),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(Dimensions.radiusL),
+          child: Padding(
+            padding: EdgeInsets.all(Dimensions.paddingL),
+            child: Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(Dimensions.paddingM),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(Dimensions.radiusM),
+                  ),
+                  child: Icon(
+                    icon,
+                    color: AppColors.primary,
+                    size: Dimensions.iconL,
+                  ),
+                ),
+                SizedBox(width: Dimensions.paddingM),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      AppText(
+                        title,
+                        fontSize: FontSizes.body,
+                        color: AppColors.text,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      SizedBox(height: Dimensions.paddingXS),
+                      AppText(
+                        description,
+                        fontSize: FontSizes.caption,
+                        color: AppColors.textSecondary,
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.arrow_forward_ios,
+                  color: AppColors.text,
+                  size: Dimensions.iconS,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

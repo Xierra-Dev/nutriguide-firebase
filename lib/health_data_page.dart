@@ -4,6 +4,10 @@ import 'widgets/custom_number_picker.dart';
 import 'widgets/custom_gender_picker.dart';
 import 'widgets/custom_activitiyLevel_picker.dart';
 import 'preference_page.dart';
+import 'core/constants/colors.dart';
+import 'core/constants/dimensions.dart';
+import 'core/constants/font_sizes.dart';
+import 'core/widgets/app_text.dart';
 
 class HealthDataPage extends StatefulWidget {
   const HealthDataPage({super.key});
@@ -208,77 +212,198 @@ class _HealthDataPageState extends State<HealthDataPage> {
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Scaffold(
-        backgroundColor: Colors.black,
+        backgroundColor: AppColors.background,
         appBar: AppBar(
-          backgroundColor: Colors.black,
-          title: const Text(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          title: AppText(
             'Health Data',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-            textScaler: TextScaler.linear(1.0),
+            fontSize: FontSizes.heading3,
+            color: AppColors.text,
+            fontWeight: FontWeight.bold,
           ),
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            icon: Icon(Icons.arrow_back, color: AppColors.text),
             onPressed: () => _onBackPressed(context),
           ),
         ),
         body: isLoading
-            ? const Center(child: CircularProgressIndicator(color: Colors.deepOrange))
-            : Column(
-          children: [
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 5,
-                  vertical: 20,
-                ),
-                child: Column(
-                  children: [
-                    _buildDataItem('Sex', gender ?? 'Not Set', _editSex),
-                    _buildDataItem('Year of Birth', birthYear?.toString() ?? 'Not Set', _editYearOfBirth),
-                    _buildDataItem('Height', height != null ? '$height cm' : 'Not Set', _editHeight),
-                    _buildDataItem('Weight', weight != null ? '$weight kg' : 'Not Set', _editWeight),
-                    _buildDataItem('Activity Level', activityLevel ?? 'Not Set', _editActivityLevel),
-                  ],
-                ),
-              ),
-            ),
-            if (!isLoading)
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: ElevatedButton(
-                  style: ButtonStyle(
-                    backgroundColor: WidgetStateProperty.resolveWith<Color>((states) {
-                      if (states.contains(WidgetState.disabled)) {
-                        return Colors.grey.shade800;
-                      }
-                      return Colors.deepOrange;
-                    }),
-                    animationDuration: const Duration(milliseconds: 300),
-                    minimumSize: WidgetStateProperty.all(const Size(double.infinity, 50)),
-                    shape: WidgetStateProperty.all(
-                      RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(50),
+            ? Center(child: CircularProgressIndicator(color: AppColors.primary))
+            : SingleChildScrollView(
+                child: Padding(
+                  padding: EdgeInsets.all(Dimensions.paddingM),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(Dimensions.paddingL),
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(Dimensions.radiusL),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  padding: EdgeInsets.all(Dimensions.paddingM),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primary.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(Dimensions.radiusM),
+                                  ),
+                                  child: Icon(
+                                    Icons.person_outline,
+                                    color: AppColors.primary,
+                                    size: Dimensions.iconL,
+                                  ),
+                                ),
+                                SizedBox(width: Dimensions.paddingM),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      AppText(
+                                        'Personal Information',
+                                        fontSize: FontSizes.heading3,
+                                        color: AppColors.text,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      SizedBox(height: Dimensions.paddingXS),
+                                      AppText(
+                                        'Your basic health information',
+                                        fontSize: FontSizes.caption,
+                                        color: AppColors.textSecondary,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: Dimensions.paddingL),
+                            _buildHealthDataCard(
+                              'Sex',
+                              gender ?? 'Not Set',
+                              Icons.wc,
+                              _editSex,
+                            ),
+                            _buildHealthDataCard(
+                              'Year of Birth',
+                              birthYear?.toString() ?? 'Not Set',
+                              Icons.cake,
+                              _editYearOfBirth,
+                            ),
+                            _buildHealthDataCard(
+                              'Height',
+                              height != null ? '$height cm' : 'Not Set',
+                              Icons.height,
+                              _editHeight,
+                            ),
+                            _buildHealthDataCard(
+                              'Weight',
+                              weight != null ? '$weight kg' : 'Not Set',
+                              Icons.monitor_weight_outlined,
+                              _editWeight,
+                            ),
+                            _buildHealthDataCard(
+                              'Activity Level',
+                              activityLevel ?? 'Not Set',
+                              Icons.directions_run,
+                              _editActivityLevel,
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ),
-                  onPressed: _hasChanges ? _saveHealthData : null,
-                  child: Text(
-                    'SAVE',
-                    style: TextStyle(
-                      color: _hasChanges ? Colors.black : Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textScaler: TextScaler.linear(1.0),
+                      SizedBox(height: Dimensions.paddingL),
+                      if (!isLoading)
+                        ElevatedButton(
+                          style: ButtonStyle(
+                            backgroundColor: MaterialStateProperty.resolveWith<Color>((states) {
+                              if (states.contains(MaterialState.disabled)) {
+                                return AppColors.surface;
+                              }
+                              return AppColors.primary;
+                            }),
+                            minimumSize: MaterialStateProperty.all(Size(double.infinity, 56)),
+                            shape: MaterialStateProperty.all(
+                              RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(Dimensions.radiusL),
+                              ),
+                            ),
+                          ),
+                          onPressed: _hasChanges ? _saveHealthData : null,
+                          child: AppText(
+                            'Save Changes',
+                            fontSize: FontSizes.body,
+                            color: _hasChanges ? AppColors.text : AppColors.textSecondary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                    ],
                   ),
                 ),
               ),
-          ],
+      ),
+    );
+  }
+
+  Widget _buildHealthDataCard(String label, String value, IconData icon, VoidCallback onEdit) {
+    final bool isNotSet = value == 'Not Set';
+
+    return Container(
+      margin: EdgeInsets.only(bottom: Dimensions.paddingM),
+      padding: EdgeInsets.all(Dimensions.paddingM),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(Dimensions.radiusM),
+        border: Border.all(
+          color: AppColors.border,
+          width: 1,
         ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: EdgeInsets.all(Dimensions.paddingS),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(Dimensions.radiusS),
+            ),
+            child: Icon(
+              icon,
+              color: AppColors.primary,
+              size: Dimensions.iconM,
+            ),
+          ),
+          SizedBox(width: Dimensions.paddingM),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AppText(
+                  label,
+                  fontSize: FontSizes.caption,
+                  color: AppColors.textSecondary,
+                ),
+                SizedBox(height: Dimensions.paddingXS),
+                AppText(
+                  value,
+                  fontSize: FontSizes.body,
+                  color: isNotSet ? AppColors.error : AppColors.text,
+                  fontWeight: FontWeight.w500,
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: Icon(
+              Icons.edit,
+              color: AppColors.primary,
+              size: Dimensions.iconM,
+            ),
+            onPressed: onEdit,
+          ),
+        ],
       ),
     );
   }
@@ -289,14 +414,11 @@ class _HealthDataPageState extends State<HealthDataPage> {
     return Column(
       children: [
         ListTile(
-          title: Text(
+          title: AppText(
             label,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-            ),
-            textScaler: TextScaler.linear(1.0),
+            fontSize: FontSizes.body,
+            color: AppColors.text,
+            fontWeight: FontWeight.w500,
           ),
           trailing: Container(
             child: Row(
@@ -304,21 +426,17 @@ class _HealthDataPageState extends State<HealthDataPage> {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 Flexible(
-                  child: Text(
+                  child: AppText(
                     value,
-                    style: TextStyle(
-                      color: isNotSet ? Colors.red : Colors.white,
-                      fontSize: 16,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                    textScaler: TextScaler.linear(1.0),
+                    fontSize: FontSizes.body,
+                    color: isNotSet ? AppColors.error : AppColors.text,
                   ),
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: Dimensions.paddingS),
                 Transform.translate(
                   offset: const Offset(16, 0),
                   child: IconButton(
-                    icon: const Icon(Icons.edit, color: Colors.white, size: 20),
+                    icon: Icon(Icons.edit, color: AppColors.text, size: Dimensions.iconM),
                     onPressed: onEdit,
                   ),
                 ),
@@ -326,10 +444,10 @@ class _HealthDataPageState extends State<HealthDataPage> {
             ),
           ),
         ),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16.0),
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: Dimensions.paddingM),
           child: Divider(
-            color: Colors.grey,
+            color: AppColors.border,
             height: 1,
           ),
         ),

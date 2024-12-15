@@ -5,6 +5,11 @@ import 'models/recipe.dart';
 import 'services/firestore_service.dart';
 import 'recipe_detail_page.dart';
 import 'widgets/nutrition_warning_dialog.dart';
+import 'core/constants/colors.dart';
+import 'core/constants/dimensions.dart';
+import 'core/constants/font_sizes.dart';
+import 'core/helpers/responsive_helper.dart';
+import 'core/widgets/app_text.dart';
 
 class PlannerPage extends StatefulWidget {
   const PlannerPage({super.key});
@@ -68,7 +73,7 @@ class _PlannerPageState extends State<PlannerPage> {
     }
   }
 
-  void _viewRecipe(Recipe recipe) async {
+  Future<void> _viewRecipe(Recipe recipe) async {
     await _firestoreService.addToRecentlyViewed(recipe);
     if (mounted) {
       await Navigator.push(
@@ -83,7 +88,6 @@ class _PlannerPageState extends State<PlannerPage> {
       print('Loading made status...');
       Map<String, bool> status = {};
       
-      // Iterate through all meals in weeklyMeals
       weeklyMeals.forEach((date, meals) {
         for (var meal in meals) {
           final mealKey = '${meal.recipe.id}_${meal.mealType}_${meal.dateKey}';
@@ -112,9 +116,24 @@ class _PlannerPageState extends State<PlannerPage> {
       });
     } catch (e) {
       setState(() => isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error loading planned meals: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.error, color: AppColors.text),
+                SizedBox(width: Dimensions.paddingS),
+                AppText(
+                  'Error loading planned meals: $e',
+                  fontSize: FontSizes.body,
+                  color: AppColors.text,
+                ),
+              ],
+            ),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
     }
   }
 
@@ -127,107 +146,85 @@ class _PlannerPageState extends State<PlannerPage> {
   Future<void> _toggleMade(PlannedMeal plannedMeal) async {
     try {
       final String mealKey = '${plannedMeal.recipe.id}_${plannedMeal.mealType}_${plannedMeal.dateKey}';
-      print('Toggling made status for meal: ${plannedMeal.recipe.title}');
-      print('Meal key: $mealKey');
-      
       final bool currentStatus = madeStatus[mealKey] ?? false;
-      print('Current made status: $currentStatus');
 
-      // Hanya lakukan pengecekan nutrisi jika akan menandai sebagai made
       if (!currentStatus) {
-        print('Checking nutrition warnings...'); 
-    
         final nutritionWarnings = await _firestoreService.checkNutritionWarnings(plannedMeal.recipe);
-        print('Nutrition warnings: $nutritionWarnings'); 
         
-        // Ubah kondisi pengecekan
-        bool shouldWarn = nutritionWarnings.entries.any((entry) {
-          final percentage = entry.value;
-          print('Checking ${entry.key}: $percentage%'); // Debug print
-          return percentage >= 80; // Warn if any nutrient is at 80% or more
-        });
-        
-        print('Should warn: $shouldWarn'); 
+        bool shouldWarn = nutritionWarnings.entries.any((entry) => entry.value >= 80);
         
         if (shouldWarn && mounted) {
-          print('Showing warning dialog...'); 
           final shouldProceed = await showDialog<bool>(
             context: context,
             barrierDismissible: false,
-            builder: (context) => NutritionWarningDialog(
-              nutritionPercentages: nutritionWarnings,
-              onProceed: () {
-                print('User clicked proceed');
-                // Hapus Navigator.of(context).pop(true) dari sini
-              },
+            builder: (context) => Theme(
+              data: Theme.of(context).copyWith(
+                dialogBackgroundColor: AppColors.surface,
+              ),
+              child: NutritionWarningDialog(
+                nutritionPercentages: nutritionWarnings,
+                onProceed: () {
+                  Navigator.of(context).pop(true);
+                },
+              ),
             ),
           );
 
-          print('Dialog result: $shouldProceed');
-
-          if (shouldProceed != true) {
-            print('User cancelled or dismissed dialog');
-            return;
-          }
+          if (shouldProceed != true) return;
         }
 
-        print('Adding recipe to made recipes...');
-        // Add to made recipes
         await _firestoreService.madeRecipe(
           plannedMeal.recipe,
           mealKey: mealKey,
           mealType: plannedMeal.mealType,
           plannedDate: plannedMeal.date,
         );
-        print('Successfully added to made recipes');
       } else {
-        print('Removing recipe from made recipes...');
-        // Remove from made recipes
         await _firestoreService.removeMadeRecipe(mealKey);
-        print('Successfully removed from made recipes');
       }
 
-      // Update local state
       if (mounted) {
-        setState(() {
-          madeStatus[mealKey] = !currentStatus;
-          print('Updated local made status to: ${madeStatus[mealKey]}');
-        });
+        setState(() => madeStatus[mealKey] = !currentStatus);
 
-        // Show feedback
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(
               children: [
                 Icon(
                   !currentStatus ? Icons.check_circle : Icons.remove_circle,
-                  color: Colors.white,
+                  color: AppColors.text,
+                  size: Dimensions.iconM,
                 ),
-                const SizedBox(width: 8),
-                Text(!currentStatus 
-                  ? 'Recipe marked as made' 
-                  : 'Recipe marked as not made'
+                SizedBox(width: Dimensions.paddingS),
+                AppText(
+                  !currentStatus 
+                    ? 'Recipe marked as made' 
+                    : 'Recipe marked as not made',
+                  fontSize: FontSizes.body,
+                  color: AppColors.text,
                 ),
               ],
             ),
-            backgroundColor: !currentStatus ? Colors.green : Colors.red,
+            backgroundColor: !currentStatus ? AppColors.success : AppColors.error,
           ),
         );
       }
     } catch (e) {
-      print('Error in _toggleMade: $e');
-      print('Stack trace: ${StackTrace.current}');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(
               children: [
-                Icon(Icons.error, color: Colors.white),
-                const SizedBox(width: 8),
-                Text('Error updating recipe status'),
+                Icon(Icons.error, color: AppColors.text, size: Dimensions.iconM),
+                SizedBox(width: Dimensions.paddingS),
+                AppText(
+                  'Error updating recipe status',
+                  fontSize: FontSizes.body,
+                  color: AppColors.text,
+                ),
               ],
             ),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.error,
           ),
         );
       }
@@ -238,49 +235,48 @@ class _PlannerPageState extends State<PlannerPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: Column(
           children: [
-            const Padding(
-              padding: EdgeInsets.fromLTRB(0, 10, 0, 5),
-              child: Text(
+            Padding(
+              padding: EdgeInsets.fromLTRB(0, Dimensions.paddingM, 0, Dimensions.paddingS),
+              child: AppText(
                 'Planned Recipes',
-                style: TextStyle(
-                  color: Colors.deepOrange,
-                  fontSize: 25,
-                  fontWeight: FontWeight.bold,
-                ),
+                fontSize: FontSizes.heading2,
+                color: AppColors.primary,
+                fontWeight: FontWeight.bold,
               ),
             ),
             // Week Selector
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: EdgeInsets.symmetric(
+                horizontal: Dimensions.paddingL, 
+                vertical: Dimensions.paddingM
+              ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   IconButton(
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.arrow_left_rounded,
-                      size: 40,
-                      color: Colors.white,
+                      size: Dimensions.iconXL,
+                      color: AppColors.text,
                     ),
                     onPressed: () => _changeWeek(-1),
                   ),
-                  Text(
+                  AppText(
                     '${DateFormat('MMM d').format(currentSunday)} - '
-                        '${DateFormat('MMM d').format(currentSunday.add(Duration(days: 6)))}',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    '${DateFormat('MMM d').format(currentSunday.add(Duration(days: 6)))}',
+                    fontSize: FontSizes.body,
+                    color: AppColors.text,
+                    fontWeight: FontWeight.bold,
                   ),
                   IconButton(
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.arrow_right_rounded,
-                      size: 40,
-                      color: Colors.white,
+                      size: Dimensions.iconXL,
+                      color: AppColors.text,
                     ),
                     onPressed: () => _changeWeek(1),
                   ),
@@ -289,7 +285,7 @@ class _PlannerPageState extends State<PlannerPage> {
             ),
             Expanded(
               child: isLoading
-                  ? const Center(child: CircularProgressIndicator(color: Colors.deepOrange,))
+                  ? Center(child: CircularProgressIndicator(color: AppColors.primary))
                   : _buildWeekMeals(currentSunday),
             ),
           ],
@@ -314,10 +310,13 @@ class _PlannerPageState extends State<PlannerPage> {
         final meals = weeklyMeals[dateKey] ?? [];
 
         return Container(
-          margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+          margin: EdgeInsets.symmetric(
+            vertical: Dimensions.paddingM, 
+            horizontal: Dimensions.paddingL
+          ),
           decoration: BoxDecoration(
-            color: Colors.grey[900],
-            borderRadius: BorderRadius.circular(12),
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(Dimensions.radiusM),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -325,155 +324,145 @@ class _PlannerPageState extends State<PlannerPage> {
               ListTile(
                 title: Row(
                   children: [
-                    Text(
+                    AppText(
                       dayName,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      fontSize: FontSizes.heading3,
+                      color: AppColors.text,
+                      fontWeight: FontWeight.bold,
                     ),
-                    const SizedBox(width: 12),
-                    Text(
+                    SizedBox(width: Dimensions.paddingM),
+                    AppText(
                       dateStr,
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.6),
-                        fontSize: 16,
-                      ),
+                      fontSize: FontSizes.body,
+                      color: AppColors.textSecondary,
                     ),
                   ],
                 ),
-                trailing: const Icon(
+                trailing: Icon(
                   Icons.chevron_right,
-                  color: Colors.white,
+                  color: AppColors.text,
+                  size: Dimensions.iconM,
                 ),
                 onTap: () => _showDayMeals(context, '$dayName, $dateStr', meals),
               ),
               if (meals.isNotEmpty)
                 SizedBox(
-                  height: 150,
+                  height: ResponsiveHelper.screenHeight(context) * 0.2,
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: EdgeInsets.symmetric(horizontal: Dimensions.paddingL),
                     itemCount: meals.length,
                     itemBuilder: (context, mealIndex) {
                       final meal = meals[mealIndex];
-
-                      // Generate a unique key for this specific planned meal
                       final mealKey = '${meal.recipe.id}_${meal.mealType}_${meal.dateKey}';
-                      // Inside the horizontal ListView.builder
-                      return GestureDetector(
-                        onTap: () => _viewRecipe(meal.recipe),
-                        child: Stack(
-                          children: [
-                            Container(
-                              width: 250,
-                              margin: const EdgeInsets.only(right: 16, bottom: 16),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(15),
-                                image: DecorationImage(
-                                  image: NetworkImage(meal.recipe.image),
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(12),
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topCenter,
-                                    end: Alignment.bottomCenter,
-                                    colors: [
-                                      Colors.transparent,
-                                      Colors.black.withOpacity(0.8),
-                                    ],
-                                  ),
-                                ),
-                                padding: const EdgeInsets.all(12),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  children: [
-                                    Text(
-                                      meal.recipe.title,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Row(
-                                      children: [
-                                        Icon(
-                                          Icons.timer,
-                                          color: Colors.orange,
-                                          size: 16,
-                                        ),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          '${meal.recipe.preparationTime} min',
-                                          style: TextStyle(
-                                            color: Colors.white70,
-                                            fontSize: 14,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 16),
-                                        Text(
-                                          meal.mealType,
-                                          style: TextStyle(
-                                            color: Colors.orange,
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            // Simplified check circle icon
-                            Positioned(
-                              top: -3,
-                              right: 16,
-                              child: IconButton(
-                                iconSize: 30,
-                                icon: Icon(
-                                  Icons.check_circle,
-                                  color: madeStatus[mealKey] ?? false
-                                      ? Colors.green
-                                      : Colors.white.withOpacity(0.6),
-                                ),
-                                onPressed: () => _toggleMade(meal),
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
+                      
+                      return _buildMealCard(meal, mealKey);
                     },
                   ),
                 )
               else
                 Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: Dimensions.paddingL,
+                    vertical: Dimensions.paddingM,
                   ),
-                  child: Text(
+                  child: AppText(
                     'No meals planned for $dayName, $dateStr',
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.6),
-                      fontSize: 14,
-                    ),
+                    fontSize: FontSizes.body,
+                    color: AppColors.textSecondary,
                   ),
                 ),
-              const SizedBox(height: 8),
+              SizedBox(height: Dimensions.paddingM),
             ],
           ),
         );
       },
+    );
+  }
+
+  Widget _buildMealCard(PlannedMeal meal, String mealKey) {
+    return GestureDetector(
+      onTap: () => _viewRecipe(meal.recipe),
+      child: Stack(
+        children: [
+          Container(
+            width: ResponsiveHelper.screenWidth(context) * 0.6,
+            margin: EdgeInsets.only(right: Dimensions.paddingL, bottom: Dimensions.paddingL),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(Dimensions.radiusM),
+              image: DecorationImage(
+                image: NetworkImage(meal.recipe.image),
+                fit: BoxFit.cover,
+              ),
+            ),
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(Dimensions.radiusM),
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.transparent,
+                    Colors.black.withOpacity(0.8),
+                  ],
+                ),
+              ),
+              padding: EdgeInsets.all(Dimensions.paddingM),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  AppText(
+                    meal.recipe.title,
+                    fontSize: FontSizes.body,
+                    color: AppColors.text,
+                    fontWeight: FontWeight.bold,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  SizedBox(height: Dimensions.paddingXS),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.timer,
+                        color: AppColors.primary,
+                        size: Dimensions.iconS,
+                      ),
+                      SizedBox(width: Dimensions.paddingXS),
+                      AppText(
+                        '${meal.recipe.preparationTime} min',
+                        fontSize: FontSizes.caption,
+                        color: AppColors.textSecondary,
+                      ),
+                      SizedBox(width: Dimensions.paddingL),
+                      AppText(
+                        meal.mealType,
+                        fontSize: FontSizes.caption,
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Positioned(
+            top: -3,
+            right: Dimensions.paddingL,
+            child: IconButton(
+              iconSize: Dimensions.iconXL,
+              icon: Icon(
+                Icons.check_circle,
+                color: madeStatus[mealKey] ?? false
+                    ? AppColors.success
+                    : AppColors.text.withOpacity(0.6),
+              ),
+              onPressed: () => _toggleMade(meal),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

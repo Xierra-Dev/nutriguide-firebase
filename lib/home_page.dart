@@ -13,6 +13,10 @@ import 'package:intl/intl.dart';
 import 'services/cache_service.dart';
 import 'assistant_page.dart';
 import 'home_notifications_page.dart';
+import 'core/constants/colors.dart';
+import 'core/constants/dimensions.dart';
+import 'core/constants/font_sizes.dart';
+import 'core/helpers/responsive_helper.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -128,11 +132,11 @@ class _HomePageState extends State<HomePage> {
 
   Color _getHealthScoreColor(double score) {
     if (score < 6) {
-      return Colors.red;
+      return AppColors.error;
     } else if (score <= 7.5) {
-      return Colors.yellow;
+      return AppColors.accent;
     } else {
-      return Colors.green;
+      return AppColors.success;
     }
   }
 
@@ -231,20 +235,26 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _showMealSelectionDialog(
-      BuildContext context, StateSetter setDialogState, Recipe recipe) {
+    BuildContext context,
+    StateSetter setDialogState,
+    Recipe recipe
+  ) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.grey[900],
-      shape: const RoundedRectangleBorder(
+      backgroundColor: AppColors.surface,
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
-          top: Radius.circular(16),
+          top: Radius.circular(Dimensions.radiusL),
         ),
       ),
       builder: (BuildContext context) {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter mealSetState) {
             return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
+              padding: EdgeInsets.symmetric(
+                vertical: Dimensions.paddingXL,
+                horizontal: Dimensions.paddingL
+              ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -252,14 +262,15 @@ class _HomePageState extends State<HomePage> {
                   Text(
                     'Select Meal Type',
                     style: TextStyle(
-                      fontSize: MediaQuery.of(context).size.width *
-                          0.05, // Adjust the multiplier as needed
+                      fontSize: ResponsiveHelper.getAdaptiveTextSize(
+                        context,
+                        FontSizes.heading3
+                      ),
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: AppColors.text,
                     ),
                   ),
-                  const SizedBox(height: 18),
-                  // Meal type selection
+                  SizedBox(height: Dimensions.paddingM),
                   ListView(
                     shrinkWrap: true,
                     children: [
@@ -273,29 +284,25 @@ class _HomePageState extends State<HomePage> {
                         title: Text(
                           mealType,
                           style: TextStyle(
-                            color: Colors.white,
-                            fontSize: MediaQuery.of(context).size.width *
-                                0.05, // Adjust the multiplier as needed
+                            color: AppColors.text,
+                            fontSize: ResponsiveHelper.getAdaptiveTextSize(
+                              context,
+                              FontSizes.body
+                            ),
                           ),
                         ),
                         onTap: () {
-                          // Update the selected meal in the parent dialog
                           setDialogState(() {
                             _selectedMeal = mealType;
                           });
-                          // Close both dialogs
-                          Navigator.of(context)
-                              .pop(); // Close meal selection dialog
-                          Navigator.of(context).pop(); // Close parent dialog
-
-                          // Reopen the parent dialog with selected meal
+                          Navigator.of(context).pop();
+                          Navigator.of(context).pop();
                           _showPlannedDialog(recipe);
                         },
                       );
                     }).toList(),
                   ),
-                  const SizedBox(height: 16),
-                  // Cancel button
+                  SizedBox(height: Dimensions.paddingM),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
@@ -303,9 +310,15 @@ class _HomePageState extends State<HomePage> {
                         onPressed: () {
                           Navigator.of(context).pop();
                         },
-                        child: const Text(
+                        child: Text(
                           'Cancel',
-                          style: TextStyle(color: Colors.red),
+                          style: TextStyle(
+                            color: AppColors.error,
+                            fontSize: ResponsiveHelper.getAdaptiveTextSize(
+                              context,
+                              FontSizes.body
+                            ),
+                          ),
                         ),
                       ),
                     ],
@@ -329,74 +342,74 @@ class _HomePageState extends State<HomePage> {
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.grey[900], // Background untuk dark mode
-      shape: const RoundedRectangleBorder(
+      backgroundColor: AppColors.surface,
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
-          top: Radius.circular(16),
+          top: Radius.circular(Dimensions.radiusL),
         ),
       ),
       builder: (BuildContext context) {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setDialogState) {
             return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+              padding: EdgeInsets.symmetric(
+                vertical: Dimensions.paddingL,
+                horizontal: Dimensions.paddingL
+              ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Header dengan navigasi antar minggu
                   Text(
                     'Choose Day',
                     style: TextStyle(
-                      fontSize: MediaQuery.of(context).size.width *
-                          0.05, // Adjust the multiplier as needed for responsiveness
+                      fontSize: ResponsiveHelper.getAdaptiveTextSize(
+                        context,
+                        FontSizes.heading3
+                      ),
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: AppColors.text,
                     ),
                   ),
-
-                  const SizedBox(height: 16),
+                  SizedBox(height: Dimensions.paddingM),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       IconButton(
                         onPressed: () {
-                          // Pindah ke minggu sebelumnya
                           setDialogState(() {
-                            _selectedDate =
-                                _selectedDate.subtract(const Duration(days: 7));
+                            _selectedDate = _selectedDate.subtract(const Duration(days: 7));
                           });
                         },
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.arrow_left_rounded,
-                          size: 40,
+                          size: Dimensions.iconXL,
+                          color: AppColors.text,
                         ),
-                        color: Colors.white,
                       ),
                       Text(
-                        // Menampilkan rentang tanggal minggu
                         '${DateFormat('MMM dd').format(_selectedDate)} - '
                         '${DateFormat('MMM dd').format(_selectedDate.add(const Duration(days: 6)))}',
                         style: TextStyle(
-                          fontSize: MediaQuery.of(context).size.width *
-                              0.05, // Adjusting the font size based on screen width
+                          fontSize: ResponsiveHelper.getAdaptiveTextSize(
+                            context,
+                            FontSizes.body
+                          ),
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          color: AppColors.text,
                         ),
                       ),
                       IconButton(
                         onPressed: () {
-                          // Pindah ke minggu berikutnya
                           setDialogState(() {
-                            _selectedDate =
-                                _selectedDate.add(const Duration(days: 7));
+                            _selectedDate = _selectedDate.add(const Duration(days: 7));
                           });
                         },
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.arrow_right_rounded,
-                          size: 40,
+                          size: Dimensions.iconXL,
+                          color: AppColors.text,
                         ),
-                        color: Colors.white,
                       ),
                     ],
                   ),
@@ -521,106 +534,124 @@ class _HomePageState extends State<HomePage> {
   }
 
 // Fungsi untuk menyimpan pilihan (sesuaikan dengan logika aplikasi Anda)
-  void _saveSelectedPlan(Recipe recipe) async {
+  Future<void> _saveSelectedPlan(Recipe recipe) async {
     try {
       List<DateTime> selectedDates = [];
-      List<DateTime> successfullyPlannedDates =
-          []; // Untuk menyimpan tanggal yang berhasil direncanakan
+      List<DateTime> successfullyPlannedDates = [];
 
       for (int i = 0; i < _daysSelected.length; i++) {
         if (_daysSelected[i]) {
-          // Normalize the date
           DateTime selectedDate = DateTime(
             _selectedDate.year,
             _selectedDate.month,
             _selectedDate.day + i,
           );
-          print('Selected date: $selectedDate');
           selectedDates.add(selectedDate);
         }
       }
 
       for (DateTime date in selectedDates) {
-        // Periksa apakah rencana dengan tanggal ini sudah ada
         bool exists = await _firestoreService.checkIfPlanExists(
           recipe.id,
           _selectedMeal,
           date,
         );
 
-        if (exists) {
-          print('Duplicate plan detected for date: $date');
-          continue; // Lewati tanggal yang sudah direncanakan
+        if (!exists) {
+          await _firestoreService.addPlannedRecipe(
+            recipe,
+            _selectedMeal,
+            date,
+          );
+          successfullyPlannedDates.add(date);
         }
-
-        // Simpan rencana baru
-        print('Saving recipe for date: $date');
-        await _firestoreService.addPlannedRecipe(
-          recipe,
-          _selectedMeal,
-          date,
-        );
-
-        successfullyPlannedDates
-            .add(date); // Tambahkan tanggal yang berhasil direncanakan
       }
 
       if (mounted) {
         if (successfullyPlannedDates.isNotEmpty) {
-          // Tampilkan SnackBar untuk tanggal yang berhasil direncanakan
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Row(
                 children: [
-                  Icon(Icons.add_task_rounded, color: Colors.white),
-                  SizedBox(width: 8),
+                  Icon(
+                    Icons.add_task_rounded,
+                    color: AppColors.text,
+                    size: Dimensions.iconM,
+                  ),
+                  SizedBox(width: Dimensions.paddingS),
                   Text(
-                      'Recipe planned for ${successfullyPlannedDates.length} day(s)'),
+                    'Recipe planned for ${successfullyPlannedDates.length} day(s)',
+                    style: TextStyle(
+                      fontSize: ResponsiveHelper.getAdaptiveTextSize(
+                        context,
+                        FontSizes.body
+                      ),
+                    ),
+                  ),
                 ],
               ),
-              backgroundColor: Colors.green,
+              backgroundColor: AppColors.success,
             ),
           );
         } else {
-          // Tampilkan SnackBar jika semua tanggal adalah duplikat
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Row(
                 children: [
-                  Icon(Icons.info, color: Colors.white),
-                  SizedBox(width: 8),
-                  Text(
-                    'No new plans were added. All selected plans already exist.',
-                    style: TextStyle(
-                      fontSize: MediaQuery.of(context).size.width *
-                          0.035, // Adjust font size based on screen width
+                  Icon(
+                    Icons.info,
+                    color: AppColors.text,
+                    size: Dimensions.iconM,
+                  ),
+                  SizedBox(width: Dimensions.paddingS),
+                  Expanded(
+                    child: Text(
+                      'No new plans were added. All selected plans already exist.',
+                      style: TextStyle(
+                        fontSize: ResponsiveHelper.getAdaptiveTextSize(
+                          context,
+                          FontSizes.body
+                        ),
+                      ),
                     ),
-                  )
+                  ),
                 ],
               ),
-              backgroundColor: Colors.blue,
+              backgroundColor: AppColors.info,
             ),
           );
         }
 
-        // Perbarui status rencana di UI
         setState(() {
-          plannedStatus[recipe.id] = true; // Tandai sebagai direncanakan
+          plannedStatus[recipe.id] = true;
         });
       }
     } catch (e) {
-      print('Error saving plan: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(
               children: [
-                Icon(Icons.error, color: Colors.white),
-                SizedBox(width: 8),
-                Expanded(child: Text('Failed to save plan: $e')),
+                Icon(
+                  Icons.error,
+                  color: AppColors.text,
+                  size: Dimensions.iconM,
+                ),
+                SizedBox(width: Dimensions.paddingS),
+                Expanded(
+                  child: Text(
+                    'Failed to save plan: $e',
+                    style: TextStyle(
+                      fontSize: ResponsiveHelper.getAdaptiveTextSize(
+                        context,
+                        FontSizes.body
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.error,
           ),
         );
       }
@@ -629,18 +660,23 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _loadRecipes() async {
     try {
-      // Jika sedang refresh, langsung ambil data baru
       if (_isRefreshing) {
         final recommended = await _mealDBService.getRecommendedRecipes();
         final popular = await _mealDBService.getPopularRecipes();
         final feed = await _mealDBService.getFeedRecipes();
 
-        // Cache data baru
         await _cacheService.cacheRecipes(
-            CacheService.RECOMMENDED_CACHE_KEY, recommended);
+          CacheService.RECOMMENDED_CACHE_KEY,
+          recommended
+        );
         await _cacheService.cacheRecipes(
-            CacheService.POPULAR_CACHE_KEY, popular);
-        await _cacheService.cacheRecipes(CacheService.FEED_CACHE_KEY, feed);
+          CacheService.POPULAR_CACHE_KEY,
+          popular
+        );
+        await _cacheService.cacheRecipes(
+          CacheService.FEED_CACHE_KEY,
+          feed
+        );
 
         if (mounted) {
           setState(() {
@@ -653,13 +689,15 @@ class _HomePageState extends State<HomePage> {
         return;
       }
 
-      // Initial load - coba load dari cache dulu
-      final cachedRecommended = await _cacheService
-          .getCachedRecipes(CacheService.RECOMMENDED_CACHE_KEY);
-      final cachedPopular =
-          await _cacheService.getCachedRecipes(CacheService.POPULAR_CACHE_KEY);
-      final cachedFeed =
-          await _cacheService.getCachedRecipes(CacheService.FEED_CACHE_KEY);
+      final cachedRecommended = await _cacheService.getCachedRecipes(
+        CacheService.RECOMMENDED_CACHE_KEY
+      );
+      final cachedPopular = await _cacheService.getCachedRecipes(
+        CacheService.POPULAR_CACHE_KEY
+      );
+      final cachedFeed = await _cacheService.getCachedRecipes(
+        CacheService.FEED_CACHE_KEY
+      );
 
       if (cachedRecommended != null &&
           cachedPopular != null &&
@@ -671,16 +709,22 @@ class _HomePageState extends State<HomePage> {
           isLoading = false;
         });
       } else {
-        // Jika tidak ada cache, fetch data baru
         final recommended = await _mealDBService.getRecommendedRecipes();
         final popular = await _mealDBService.getPopularRecipes();
         final feed = await _mealDBService.getFeedRecipes();
 
         await _cacheService.cacheRecipes(
-            CacheService.RECOMMENDED_CACHE_KEY, recommended);
+          CacheService.RECOMMENDED_CACHE_KEY,
+          recommended
+        );
         await _cacheService.cacheRecipes(
-            CacheService.POPULAR_CACHE_KEY, popular);
-        await _cacheService.cacheRecipes(CacheService.FEED_CACHE_KEY, feed);
+          CacheService.POPULAR_CACHE_KEY,
+          popular
+        );
+        await _cacheService.cacheRecipes(
+          CacheService.FEED_CACHE_KEY,
+          feed
+        );
 
         if (mounted) {
           setState(() {
@@ -717,44 +761,16 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _handleNavigationTap(int index) async {
     if (_currentIndex == index) {
-      // Jika pengguna mengetuk ikon saat ini, lakukan refresh halaman
       switch (index) {
-        case 0: // Home
-          if (index == 0) {
-            // Saved
-            _refreshIndicatorKey.currentState?.show();
-          }
+        case 0:
+        case 1:
+        case 2:
+        case 3:
+          _refreshIndicatorKey.currentState?.show();
           await _handleRefresh();
-          break;
-        case 1: // Home
-          if (index == 1) {
-            // Saved
-            _refreshIndicatorKey.currentState?.show();
-          }
-          await _handleRefresh();
-          break;
-        case 2: // Planner
-          if (index == 2) {
-            // Saved
-            _refreshIndicatorKey.currentState?.show();
-          }
-          // Tambahkan logika untuk me-refresh halaman Planner
-          await _handleRefresh();
-          print(
-              'Planner page refreshed'); // Ganti dengan metode refresh Planner
-          break;
-        case 3: // Saved
-          if (index == 3) {
-            // Saved
-            _refreshIndicatorKey.currentState?.show();
-          }
-          // Tambahkan logika untuk me-refresh halaman Saved
-          await _handleRefresh();
-          print('Saved page refreshed'); // Ganti dengan metode refresh Saved
           break;
       }
     } else {
-      // Jika pengguna mengetuk ikon berbeda, navigasikan ke indeks baru
       setState(() {
         _currentIndex = index;
       });
@@ -764,9 +780,11 @@ class _HomePageState extends State<HomePage> {
   Future<void> _loadRecentlyViewedRecipes() async {
     try {
       final recipes = await _firestoreService.getRecentlyViewedRecipes();
-      setState(() {
-        recentlyViewedRecipes = recipes;
-      });
+      if (mounted) {
+        setState(() {
+          recentlyViewedRecipes = recipes;
+        });
+      }
     } catch (e) {
       print('Error loading recently viewed recipes: $e');
     }
@@ -779,7 +797,6 @@ class _HomePageState extends State<HomePage> {
         context,
         SlideUpRoute(page: RecipeDetailPage(recipe: recipe)),
       );
-      // Reload recently viewed recipes setelah kembali
       await _loadRecentlyViewedRecipes();
     }
   }
@@ -787,32 +804,32 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: AppColors.background,
       appBar: _buildAppBar(),
       body: _buildBody(),
-      floatingActionButton: _currentIndex != 1 ? FloatingActionButton( // Tampilkan di semua halaman kecuali search page (index 1)
-        onPressed: () {
-          Navigator.push(
-            context,
-            SlideUpRoute(page: const AssistantPage()),
-          );
-        },
-        backgroundColor: Colors.deepOrange,
-        child: const Icon(
-          Icons.chat_bubble_rounded,
-          color: Colors.white,
-        ),
-      ) : null,
+      floatingActionButton: _currentIndex != 1 
+        ? FloatingActionButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                SlideUpRoute(page: const AssistantPage()),
+              );
+            },
+            backgroundColor: AppColors.primary,
+            child: Icon(
+              Icons.chat_bubble_rounded,
+              color: AppColors.text,
+              size: Dimensions.iconM,
+            ),
+          ) 
+        : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       bottomNavigationBar: _buildBottomNavigationBar(),
     );
   }
 
   AppBar? _buildAppBar() {
-    // Only show AppBar for Home page (index 0)
-    if (_currentIndex != 0) {
-      return null;
-    }
+    if (_currentIndex != 0) return null;
 
     return AppBar(
       backgroundColor: Colors.transparent,
@@ -822,16 +839,18 @@ class _HomePageState extends State<HomePage> {
         children: [
           Image.asset(
             'assets/images/logo_NutriGuide.png',
-            width: 33.5,
-            height: 33.5,
+            width: Dimensions.iconXL,
+            height: Dimensions.iconXL,
           ),
-          const SizedBox(width: 10), // Add some spacing between logo and text
+          SizedBox(width: Dimensions.paddingS),
           Text(
             'NutriGuide',
             style: TextStyle(
-              color: Colors.white,
-              fontSize: MediaQuery.of(context).size.width *
-                  0.06, // Adjust font size based on screen width
+              color: AppColors.text,
+              fontSize: ResponsiveHelper.getAdaptiveTextSize(
+                context, 
+                FontSizes.heading2
+              ),
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -839,7 +858,11 @@ class _HomePageState extends State<HomePage> {
       ),
       actions: [
         IconButton(
-          icon: const Icon(Icons.notifications_outlined, color: Colors.white),
+          icon: Icon(
+            Icons.notifications_outlined, 
+            color: AppColors.text,
+            size: Dimensions.iconM,
+          ),
           onPressed: () {
             Navigator.push(
               context,
@@ -848,7 +871,11 @@ class _HomePageState extends State<HomePage> {
           },
         ),
         IconButton(
-          icon: const Icon(Icons.person, color: Colors.white),
+          icon: Icon(
+            Icons.person, 
+            color: AppColors.text,
+            size: Dimensions.iconM,
+          ),
           onPressed: () {
             Navigator.push(
               context,
@@ -864,31 +891,31 @@ class _HomePageState extends State<HomePage> {
     switch (_currentIndex) {
       case 0:
         return RefreshIndicator(
-          key: _refreshIndicatorKey, // Key untuk animasi refresh
-          onRefresh: _handleRefresh, // Sama seperti pull-to-refresh
-          color: Colors.deepOrange,
+          key: _refreshIndicatorKey,
+          onRefresh: _handleRefresh,
+          color: AppColors.primary,
           child: _buildHomeContent(),
         );
       case 1:
         return RefreshIndicator(
-          key: _refreshIndicatorKey, // Key untuk animasi refresh
-          onRefresh: _handleRefresh, // Sama seperti pull-to-refresh
-          color: Colors.deepOrange,
-          child: SearchPage(),
+          key: _refreshIndicatorKey,
+          onRefresh: _handleRefresh,
+          color: AppColors.primary,
+          child: const SearchPage(),
         );
       case 2:
         return RefreshIndicator(
-          key: _refreshIndicatorKey, // Key untuk animasi refresh
-          onRefresh: _handleRefresh, // Sama seperti pull-to-refresh
-          color: Colors.deepOrange,
-          child: PlannerPage(),
+          key: _refreshIndicatorKey,
+          onRefresh: _handleRefresh,
+          color: AppColors.primary,
+          child: const PlannerPage(),
         );
       case 3:
         return RefreshIndicator(
-          key: _refreshIndicatorKey, // Key untuk animasi refresh
-          onRefresh: _handleRefresh, // Sama seperti pull-to-refresh
-          color: Colors.deepOrange,
-          child: SavedPage(),
+          key: _refreshIndicatorKey,
+          onRefresh: _handleRefresh,
+          color: AppColors.primary,
+          child: const SavedPage(),
         );
       default:
         return _buildHomeContent();
@@ -900,16 +927,21 @@ class _HomePageState extends State<HomePage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: EdgeInsets.symmetric(
+            horizontal: Dimensions.paddingM,
+            vertical: Dimensions.paddingS
+          ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 title,
                 style: TextStyle(
-                  color: Colors.white,
-                  fontSize: MediaQuery.of(context).size.width *
-                      0.05, // Responsive font size based on screen width
+                  color: AppColors.text,
+                  fontSize: ResponsiveHelper.getAdaptiveTextSize(
+                    context,
+                    FontSizes.heading3
+                  ),
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -918,19 +950,26 @@ class _HomePageState extends State<HomePage> {
                   Navigator.push(
                     context,
                     SlideLeftRoute(
-                        page: AllRecipesPage(title: title, recipes: recipes)),
+                      page: AllRecipesPage(title: title, recipes: recipes)
+                    ),
                   );
                 },
-                child: const Text(
+                child: Text(
                   'See All',
-                  style: TextStyle(color: Colors.deepOrange),
+                  style: TextStyle(
+                    color: AppColors.primary,
+                    fontSize: ResponsiveHelper.getAdaptiveTextSize(
+                      context,
+                      FontSizes.body
+                    ),
+                  ),
                 ),
               ),
             ],
           ),
         ),
         SizedBox(
-          height: 250,
+          height: ResponsiveHelper.screenHeight(context) * 0.3,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             itemCount: recipes.length,
@@ -939,10 +978,13 @@ class _HomePageState extends State<HomePage> {
               return GestureDetector(
                 onTap: () => _viewRecipe(recipe),
                 child: Container(
-                  width: 200,
-                  margin: const EdgeInsets.only(left: 16, bottom: 16),
+                  width: ResponsiveHelper.screenWidth(context) * 0.5,
+                  margin: EdgeInsets.only(
+                    left: Dimensions.paddingM,
+                    bottom: Dimensions.paddingM
+                  ),
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(Dimensions.radiusM),
                     image: DecorationImage(
                       image: NetworkImage(recipe.image),
                       fit: BoxFit.cover,
@@ -950,9 +992,10 @@ class _HomePageState extends State<HomePage> {
                   ),
                   child: Stack(
                     children: [
+                      // Gradient overlay
                       Container(
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(Dimensions.radiusM),
                           gradient: LinearGradient(
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
@@ -962,195 +1005,61 @@ class _HomePageState extends State<HomePage> {
                             ],
                           ),
                         ),
-                        padding: const EdgeInsets.all(12),
+                      ),
+                      // Content
+                      Padding(
+                        padding: EdgeInsets.all(Dimensions.paddingM),
                         child: Column(
-                          mainAxisAlignment: MainAxisAlignment.end,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              recipe.title,
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: MediaQuery.of(context).size.width *
-                                    0.04, // Adjust font size responsively based on screen width
-                                fontWeight: FontWeight.bold,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: 4),
+                            // Top row with area tag and more button
                             Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Icon(Icons.timer,
-                                    color: Colors.white, size: 16),
-                                const SizedBox(width: 4),
-                                Text(
-                                  '${recipe.preparationTime} min',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: MediaQuery.of(context)
-                                            .size
-                                            .width *
-                                        0.03, // Adjust font size responsively based on screen width
+                                Container(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: Dimensions.paddingS,
+                                    vertical: Dimensions.paddingXS
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withOpacity(0.5),
+                                    borderRadius: BorderRadius.circular(Dimensions.radiusS),
+                                  ),
+                                  child: Text(
+                                    recipe.area ?? 'International',
+                                    style: TextStyle(
+                                      color: AppColors.text,
+                                      fontSize: ResponsiveHelper.getAdaptiveTextSize(
+                                        context,
+                                        FontSizes.caption
+                                      ),
+                                    ),
                                   ),
                                 ),
-                                const Spacer(),
-                                Icon(Icons.favorite,
-                                    color: _getHealthScoreColor(
-                                        recipe.healthScore),
-                                    size: 16),
-                                const SizedBox(width: 4),
-                                Text(
-                                  recipe.healthScore.toStringAsFixed(1),
-                                  style: TextStyle(
-                                    color: _getHealthScoreColor(
-                                        recipe.healthScore),
-                                    fontSize: MediaQuery.of(context)
-                                            .size
-                                            .width *
-                                        0.03, // Adjust font size responsively based on screen width
-                                  ),
-                                ),
+                                _buildMoreButton(recipe),
                               ],
                             ),
-                          ],
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.black.withOpacity(0.5),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Text(
-                                recipe.area ?? 'International',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: MediaQuery.of(context).size.width *
-                                      0.03, // Adjust font size responsively based on screen width
-                                ),
-                              ),
-                            ),
-                            Container(
-                              width: 32.5,
-                              height: 32.5,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.black.withOpacity(0.5),
-                              ),
-                              child: PopupMenuButton<String>(
-                                padding: EdgeInsets.zero,
-                                iconSize: 24,
-                                icon: const Icon(
-                                  Icons.more_vert,
-                                  color: Colors.white,
-                                ),
-                                onSelected: (String value) {
-                                  if (value == 'Save Recipe') {
-                                    _toggleSave(recipe);
-                                  } else if (value == 'Plan Meal') {
-                                    _togglePlan(recipe);
-                                  }
-                                },
-                                color: Colors.grey[
-                                    900], // Mengubah warna background PopupMenu menjadi grey[900]
-                                elevation: 4,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(15),
-                                ),
-                                offset: const Offset(0, 45),
-                                constraints: const BoxConstraints(
-                                  minWidth: 175,
-                                  maxWidth: 175,
-                                ),
-                                itemBuilder: (BuildContext context) => [
-                                  PopupMenuItem<String>(
-                                    height: 60,
-                                    value: 'Save Recipe',
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 10),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.start,
-                                        children: [
-                                          Icon(
-                                            savedStatus[recipe.id] == true
-                                                ? Icons.bookmark
-                                                : Icons.bookmark_border_rounded,
-                                            size: 22,
-                                            color: savedStatus[recipe.id] ==
-                                                    true
-                                                ? Colors.deepOrange
-                                                : Colors
-                                                    .white, // Mengubah warna icon menjadi putih
-                                          ),
-                                          const SizedBox(width: 10),
-                                          Text(
-                                            savedStatus[recipe.id] == true
-                                                ? 'Saved'
-                                                : 'Save Recipe',
-                                            style: TextStyle(
-                                              fontSize: MediaQuery.of(context)
-                                                      .size
-                                                      .width *
-                                                  0.04, // Adjust font size based on screen width
-                                              color: savedStatus[recipe.id] ==
-                                                      true
-                                                  ? Colors.deepOrange
-                                                  : Colors
-                                                      .white, // Change color based on savedStatus
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
+                            // Bottom info
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  recipe.title,
+                                  style: TextStyle(
+                                    color: AppColors.text,
+                                    fontSize: ResponsiveHelper.getAdaptiveTextSize(
+                                      context,
+                                      FontSizes.body
                                     ),
+                                    fontWeight: FontWeight.bold,
                                   ),
-                                  PopupMenuItem<String>(
-                                    height: 60,
-                                    value: 'Plan Meal',
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 10),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.start,
-                                        children: [
-                                          const Icon(
-                                            Icons.calendar_today_rounded,
-                                            size: 22,
-                                            color: Colors
-                                                .white, // Mengubah warna icon menjadi putih
-                                          ),
-                                          const SizedBox(width: 10),
-                                          Text(
-                                            'Plan Meal',
-                                            style: TextStyle(
-                                              fontSize: MediaQuery.of(context)
-                                                      .size
-                                                      .width *
-                                                  0.04, // Responsive font size based on screen width
-                                              color: Colors
-                                                  .white, // White color for the text
-                                              fontWeight: FontWeight
-                                                  .w500, // Adjusted font weight
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                SizedBox(height: Dimensions.paddingXS),
+                                _buildRecipeInfo(recipe),
+                              ],
                             ),
                           ],
                         ),
@@ -1166,84 +1075,228 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  Widget _buildMoreButton(Recipe recipe) {
+    return Container(
+      width: Dimensions.iconXL,
+      height: Dimensions.iconXL,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.black.withOpacity(0.5),
+      ),
+      child: PopupMenuButton<String>(
+        padding: EdgeInsets.zero,
+        iconSize: Dimensions.iconM,
+        icon: Icon(
+          Icons.more_vert,
+          color: AppColors.text,
+        ),
+        onSelected: (String value) {
+          if (value == 'Save Recipe') {
+            _toggleSave(recipe);
+          } else if (value == 'Plan Meal') {
+            _togglePlan(recipe);
+          }
+        },
+        color: AppColors.surface,
+        elevation: 4,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(Dimensions.radiusM),
+        ),
+        offset: const Offset(0, 45),
+        constraints: BoxConstraints(
+          minWidth: ResponsiveHelper.screenWidth(context) * 0.4,
+          maxWidth: ResponsiveHelper.screenWidth(context) * 0.4,
+        ),
+        itemBuilder: (BuildContext context) => [
+          PopupMenuItem<String>(
+            height: 60,
+            value: 'Save Recipe',
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: Dimensions.paddingS),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Icon(
+                    savedStatus[recipe.id] == true
+                        ? Icons.bookmark
+                        : Icons.bookmark_border_rounded,
+                    size: Dimensions.iconM,
+                    color: savedStatus[recipe.id] == true
+                        ? AppColors.primary
+                        : AppColors.text,
+                  ),
+                  SizedBox(width: Dimensions.paddingS),
+                  Text(
+                    savedStatus[recipe.id] == true ? 'Saved' : 'Save Recipe',
+                    style: TextStyle(
+                      fontSize: ResponsiveHelper.getAdaptiveTextSize(
+                        context,
+                        FontSizes.body
+                      ),
+                      color: savedStatus[recipe.id] == true
+                          ? AppColors.primary
+                          : AppColors.text,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          PopupMenuItem<String>(
+            height: 60,
+            value: 'Plan Meal',
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: Dimensions.paddingS),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.calendar_today_rounded,
+                    size: Dimensions.iconM,
+                    color: AppColors.text,
+                  ),
+                  SizedBox(width: Dimensions.paddingS),
+                  Text(
+                    'Plan Meal',
+                    style: TextStyle(
+                      fontSize: ResponsiveHelper.getAdaptiveTextSize(
+                        context,
+                        FontSizes.body
+                      ),
+                      color: AppColors.text,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRecipeInfo(Recipe recipe) {
+    return Row(
+      children: [
+        Icon(
+          Icons.timer,
+          color: AppColors.text,
+          size: Dimensions.iconS,
+        ),
+        SizedBox(width: Dimensions.paddingXS),
+        Text(
+          '${recipe.preparationTime} min',
+          style: TextStyle(
+            color: AppColors.text,
+            fontSize: ResponsiveHelper.getAdaptiveTextSize(
+              context,
+              FontSizes.caption
+            ),
+          ),
+        ),
+        const Spacer(),
+        Icon(
+          Icons.favorite,
+          color: _getHealthScoreColor(recipe.healthScore),
+          size: Dimensions.iconS,
+        ),
+        SizedBox(width: Dimensions.paddingXS),
+        Text(
+          recipe.healthScore.toStringAsFixed(1),
+          style: TextStyle(
+            color: _getHealthScoreColor(recipe.healthScore),
+            fontSize: ResponsiveHelper.getAdaptiveTextSize(
+              context,
+              FontSizes.caption
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildHomeContent() {
-    // If it's the first-time loading, show the circular progress indicator
     if (_isFirstTimeLoading && isLoading) {
-      return const Center(
-          child: CircularProgressIndicator(color: Colors.deepOrange));
-    }
-    // If there's an error message (which can happen anytime after first load)
-    else if (errorMessage != null) {
+      return Center(
+        child: CircularProgressIndicator(color: AppColors.primary),
+      );
+    } else if (errorMessage != null) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
+            Icon(
               Icons.error_outline,
-              color: Colors.red,
-              size: 80,
+              color: AppColors.error,
+              size: Dimensions.iconXL * 2,
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: Dimensions.paddingM),
             Text(
               'Oops! Something Went Wrong',
               style: TextStyle(
-                color: Colors.white,
-                fontSize: MediaQuery.of(context).size.width *
-                    0.05, // Responsive font size based on screen width
+                color: AppColors.text,
+                fontSize: ResponsiveHelper.getAdaptiveTextSize(
+                  context,
+                  FontSizes.heading3
+                ),
                 fontWeight: FontWeight.bold,
               ),
-              textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: Dimensions.paddingS),
             Text(
               errorMessage!,
               style: TextStyle(
-                color: Colors.white70,
-                fontSize: MediaQuery.of(context).size.width *
-                    0.05, // Adjust font size based on screen width
+                color: AppColors.textSecondary,
+                fontSize: ResponsiveHelper.getAdaptiveTextSize(
+                  context,
+                  FontSizes.body
+                ),
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: Dimensions.paddingM),
             ElevatedButton(
-              onPressed: _loadRecipes,
+              onPressed: _handleRefresh,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.deepOrange,
+                backgroundColor: AppColors.primary,
+                padding: EdgeInsets.symmetric(
+                  horizontal: Dimensions.paddingL,
+                  vertical: Dimensions.paddingM,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(Dimensions.radiusM),
+                ),
               ),
-              child: const Text(
+              child: Text(
                 'Try Again',
-                style: TextStyle(color: Colors.white),
+                style: TextStyle(
+                  fontSize: ResponsiveHelper.getAdaptiveTextSize(
+                    context,
+                    FontSizes.body
+                  ),
+                ),
               ),
             ),
           ],
         ),
       );
-    } else {
-      return RefreshIndicator(
-        onRefresh: _handleRefresh,
-        color: Colors.deepOrange,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (recentlyViewedRecipes.isNotEmpty) ...[
-                    _buildRecipeSection(
-                        'Recently Viewed', recentlyViewedRecipes),
-                  ],
-                  _buildRecipeSection('Recommended', recommendedRecipes),
-                  _buildRecipeSection('Popular', popularRecipes),
-                ],
-              ),
-              _buildRecipeFeed(),
-            ],
-          ),
-        ),
-      );
     }
+
+    return ListView(
+      children: [
+        if (recentlyViewedRecipes.isNotEmpty) ...[
+          _buildRecipeSection('Recently Viewed', recentlyViewedRecipes),
+          SizedBox(height: Dimensions.paddingM),
+        ],
+        _buildRecipeSection('Recommended', recommendedRecipes),
+        SizedBox(height: Dimensions.paddingM),
+        _buildRecipeSection('Popular', popularRecipes),
+        SizedBox(height: Dimensions.paddingM),
+        _buildRecipeSection('Feed', feedRecipes),
+      ],
+    );
   }
 
   Widget _buildRecipeFeed() {
@@ -1492,37 +1545,69 @@ class _HomePageState extends State<HomePage> {
   Widget _buildBottomNavigationBar() {
     return BottomNavigationBar(
       currentIndex: _currentIndex,
-      onTap: (index) async {
-        await _handleNavigationTap(index);
-      },
-      backgroundColor: Colors.deepOrange,
-      selectedItemColor: const Color.fromARGB(255, 255, 201, 32),
-      unselectedItemColor: Colors.black,
+      onTap: _handleNavigationTap,
+      backgroundColor: AppColors.surface,
+      selectedItemColor: AppColors.primary,
+      unselectedItemColor: AppColors.textSecondary,
       type: BottomNavigationBarType.fixed,
-      selectedFontSize: MediaQuery.of(context).size.width *
-          0.04, // Ukuran font untuk label yang dipilih
-      unselectedFontSize: MediaQuery.of(context).size.width *
-          0.035, // Ukuran font untuk label yang tidak dipilih
-
-      iconSize: 25, // Ukuran ikon
-      items: const [
+      items: [
         BottomNavigationBarItem(
-          icon: Icon(Icons.home_rounded),
+          icon: Icon(
+            Icons.home_outlined,
+            size: Dimensions.iconM,
+          ),
+          activeIcon: Icon(
+            Icons.home_rounded,
+            size: Dimensions.iconM,
+          ),
           label: 'Home',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.search_rounded),
+          icon: Icon(
+            Icons.search_outlined,
+            size: Dimensions.iconM,
+          ),
+          activeIcon: Icon(
+            Icons.search_rounded,
+            size: Dimensions.iconM,
+          ),
           label: 'Search',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.calendar_today_rounded),
+          icon: Icon(
+            Icons.calendar_today_outlined,
+            size: Dimensions.iconM,
+          ),
+          activeIcon: Icon(
+            Icons.calendar_today_rounded,
+            size: Dimensions.iconM,
+          ),
           label: 'Planner',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.bookmark_border_rounded),
+          icon: Icon(
+            Icons.bookmark_border_rounded,
+            size: Dimensions.iconM,
+          ),
+          activeIcon: Icon(
+            Icons.bookmark_rounded,
+            size: Dimensions.iconM,
+          ),
           label: 'Saved',
         ),
       ],
+      selectedLabelStyle: TextStyle(
+        fontSize: ResponsiveHelper.getAdaptiveTextSize(
+          context,
+          FontSizes.caption
+        ),
+      ),
+      unselectedLabelStyle: TextStyle(
+        fontSize: ResponsiveHelper.getAdaptiveTextSize(
+          context,
+          FontSizes.caption
+        ),
+      ),
     );
   }
 }

@@ -1430,4 +1430,20 @@ class FirestoreService {
     }
   }
 
+  Future<void> planMeal(Recipe recipe, DateTime date, String mealType) async {
+    final user = _auth.currentUser;
+    if (user != null) {
+      await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .collection('planned_meals')
+          .add({
+        'recipeId': recipe.id,
+        'date': date,
+        'mealType': mealType,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+    }
+  }
+
 }

@@ -10,6 +10,10 @@ import 'recipe_detail_page.dart';
 import 'edit_recipe_page.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'widgets/nutrition_tracker.dart';
+import 'core/constants/colors.dart';
+import 'core/constants/dimensions.dart';
+import 'core/constants/font_sizes.dart';
+import 'core/widgets/app_text.dart';
 
 
 class ProfilePage extends StatefulWidget {
@@ -17,6 +21,31 @@ class ProfilePage extends StatefulWidget {
 
   @override
   _ProfilePageState createState() => _ProfilePageState();
+}
+
+// Tambahkan class ini di luar _ProfilePageState
+class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
+  _SliverAppBarDelegate(this._tabBar);
+
+  final TabBar _tabBar;
+
+  @override
+  double get minExtent => _tabBar.preferredSize.height;
+  @override
+  double get maxExtent => _tabBar.preferredSize.height;
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return Container(
+      color: AppColors.background,
+      child: _tabBar,
+    );
+  }
+
+  @override
+  bool shouldRebuild(_SliverAppBarDelegate oldDelegate) {
+    return false;
+  }
 }
 
 class SlideRightRoute extends PageRouteBuilder {
@@ -190,360 +219,218 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
 
   @override
   Widget build(BuildContext context) {
-    // Add debug print
-    print('Building profile page with userData: $userData');
     return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: Padding(
-          padding: const EdgeInsets.only(
-            left: 12,
-          ),
-          child: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white, size: 27,),
-            onPressed: () {
-              Navigator.of(context).pushReplacement(
-                SlideRightRoute(page: const HomePage()),
-              );
-            },
-          ),
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(
-              top: 2,
-              right: 10,
-            ),
-            child: IconButton(
-              icon: const Icon(Icons.settings, color: Colors.white),
-              onPressed: () {
-                Navigator.of(context).pushReplacement(
-                  SlideLeftRoute(page: const SettingsPage()),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-      body: isLoading
-          ? const Center(
-          child: CircularProgressIndicator(color: Colors.deepOrange))
-          : Column(
-        children: [
-          const SizedBox(height: 15),
-          Center(
-            child: Column(
-              children: [
-                Container(
-                  width: 100,
-                  height: 100,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.grey[800],
-                  ),
-                  child: GestureDetector( // Tambahkan GestureDetector
-                    onTap: () {
-                      if (userData != null &&
-                          userData!['profilePictureUrl'] != null &&
-                          userData!['profilePictureUrl'].toString().isNotEmpty) {
-                        showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return Dialog(
-                              backgroundColor: Colors.transparent,
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Stack(
-                                    alignment: Alignment.topRight,
-                                    children: [
-                                      ClipRRect(
-                                        borderRadius: BorderRadius.circular(12),
-                                        child: Image.network(
-                                          userData!['profilePictureUrl'],
-                                          fit: BoxFit.cover,
-                                          loadingBuilder: (context, child, loadingProgress) {
-                                            if (loadingProgress == null) return child;
-                                            return Container(
-                                              width: MediaQuery.of(context).size.width * 0.8,
-                                              height: MediaQuery.of(context).size.width * 0.8,
-                                              color: Colors.black,
-                                              child: const Center(
-                                                child: CircularProgressIndicator(
-                                                  color: Colors.deepOrange,
-                                                ),
-                                              ),
-                                            );
-                                          },
-                                          errorBuilder: (context, error, stackTrace) {
-                                            return Container(
-                                              width: MediaQuery.of(context).size.width * 0.8,
-                                              height: MediaQuery.of(context).size.width * 0.8,
-                                              color: Colors.black,
-                                              child: const Center(
-                                                child: Icon(
-                                                  Icons.error_outline,
-                                                  color: Colors.white,
-                                                  size: 50,
-                                                ),
-                                              ),
-                                            );
-                                          },
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: GestureDetector(
-                                          onTap: () => Navigator.pop(context),
-                                          child: Container(
-                                            decoration: BoxDecoration(
-                                              color: Colors.black.withOpacity(0.5),
-                                              shape: BoxShape.circle,
-                                            ),
-                                            padding: const EdgeInsets.all(8),
-                                            child: const Icon(
-                                              Icons.close,
-                                              color: Colors.white,
-                                              size: 24,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        );
-                      }
-                    },
-                    child: ClipOval(
-                      child: userData != null &&
-                            userData!['profilePictureUrl'] != null &&
-                            userData!['profilePictureUrl'].toString().isNotEmpty
-                          ? Image.network(
-                              userData!['profilePictureUrl'],
-                              fit: BoxFit.cover,
-                              loadingBuilder: (context, child, loadingProgress) {
-                                if (loadingProgress == null) return child;
-                                return Center(
-                                  child: CircularProgressIndicator(
-                                    color: Colors.deepOrange,
-                                    value: loadingProgress.expectedTotalBytes != null
-                                        ? loadingProgress.cumulativeBytesLoaded /
-                                            loadingProgress.expectedTotalBytes!
-                                        : null,
-                                  ),
-                                );
-                              },
-                              errorBuilder: (context, error, stackTrace) {
-                                return const Icon(Icons.person, size: 50, color: Colors.white);
-                              },
-                            )
-                          : const Icon(Icons.person, size: 50, color: Colors.white),
-                    ),
-                  ),
+      backgroundColor: AppColors.background,
+      body: NestedScrollView(
+        headerSliverBuilder: (context, innerBoxIsScrolled) {
+          return [
+            SliverAppBar(
+              expandedHeight: 380, // Sesuaikan dengan kebutuhan
+              floating: false,
+              pinned: true,
+              backgroundColor: AppColors.background,
+              leading: IconButton(
+                icon: Icon(Icons.arrow_back, color: AppColors.text),
+                onPressed: () => Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => const HomePage()),
                 ),
-                const SizedBox(height: 18),
-                Text(
-                  _authService.currentUser?.displayName ?? 'User',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                if (userData != null && userData!['username'] != null && userData!['username'].toString().isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      top: 7,
-                      bottom: 8,
-                    ),
-                    child: Text(
-                      userData!['username'],
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.grey[400],
-                        fontSize: 16,
-                        fontStyle: FontStyle.italic,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                if (userData != null && userData!['bio'] != null && userData!['bio'].toString().isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      top: 6,
-                      bottom: 10,
-                    ),
-                    child: Text(
-                      userData!['bio'],
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.grey[400],
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
-                const SizedBox(height: 12),
-                ElevatedButton(
-                  onPressed: () {
-                    // TODO: Navigate to edit profile
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const ProfileEditPage()),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.grey[900],
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 24, vertical: 12),
-                  ),
-                  child: const Text('Edit Profile'),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 32),
-          TabBar(
-            controller: _tabController,
-            indicatorColor: selectedColor,
-            labelColor: selectedColor,
-            unselectedLabelColor: Colors.white,
-            indicatorSize: TabBarIndicatorSize.label, // Add this line
-            indicator: UnderlineTabIndicator( // Add this decoration
-              borderSide: BorderSide(
-                width: 2.5,
-                color: selectedColor,
               ),
-              insets: EdgeInsets.symmetric(horizontal: 100.0), // Adjust this value to control the length
-            ),
-            labelStyle: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-            ),
-            unselectedLabelStyle: const TextStyle(
-              fontWeight: FontWeight.normal,
-              fontSize: 16,
-            ),
-            tabs: const [
-              Tab(text: 'Insights'),
-              Tab(text: 'Activity'),
-            ],
-          ),
-          const SizedBox(height: 10,),
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _buildInsightsTab(),
-                _buildActivityTab(),
+              actions: [
+                IconButton(
+                  icon: Icon(Icons.settings, color: AppColors.text),
+                  onPressed: () => Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const SettingsPage()),
+                  ),
+                ),
               ],
+              flexibleSpace: FlexibleSpaceBar(
+                background: Column(
+                  children: [
+                    SizedBox(height: 100), // Untuk kompensasi AppBar
+                    Container(
+                      width: 100,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppColors.surface,
+                      ),
+                      child: ClipOval(
+                        child: _buildProfileImage(),
+                      ),
+                    ),
+                    SizedBox(height: Dimensions.paddingM),
+                    AppText(
+                      _authService.currentUser?.displayName ?? 'User',
+                      fontSize: FontSizes.heading2,
+                      color: AppColors.text,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    if (userData?['username'] != null)
+                      Padding(
+                        padding: EdgeInsets.symmetric(vertical: Dimensions.paddingS),
+                        child: AppText(
+                          userData!['username'],
+                          fontSize: FontSizes.body,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    if (userData?['bio'] != null)
+                      Padding(
+                        padding: EdgeInsets.symmetric(vertical: Dimensions.paddingS),
+                        child: AppText(
+                          userData!['bio'],
+                          fontSize: FontSizes.body,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    SizedBox(height: Dimensions.paddingM),
+                    ElevatedButton(
+                      onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const ProfileEditPage()),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.surface,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: Dimensions.paddingL,
+                          vertical: Dimensions.paddingM,
+                        ),
+                      ),
+                      child: AppText(
+                        'Edit Profile',
+                        fontSize: FontSizes.body,
+                        color: AppColors.text,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
-          ),
-        ],
+            SliverPersistentHeader(
+              pinned: true,
+              delegate: _SliverAppBarDelegate(
+                TabBar(
+                  controller: _tabController,
+                  indicatorColor: AppColors.primary,
+                  labelColor: AppColors.primary,
+                  unselectedLabelColor: AppColors.text,
+                  tabs: const [
+                    Tab(text: 'Insights'),
+                    Tab(text: 'Activity'),
+                  ],
+                ),
+              ),
+            ),
+          ];
+        },
+        body: TabBarView(
+          controller: _tabController,
+          children: [
+            _buildInsightsTab(),
+            _buildActivityTab(),
+          ],
+        ),
       ),
     );
   }
+
+  Widget _buildProfileImage() {
+  return userData?['profilePictureUrl'] != null
+      ? Image.network(
+          userData!['profilePictureUrl'],
+          fit: BoxFit.cover,
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return Center(
+              child: CircularProgressIndicator(
+                color: AppColors.primary,
+              ),
+            );
+          },
+          errorBuilder: (context, error, stackTrace) {
+            return Icon(Icons.person, size: Dimensions.iconXL, color: AppColors.text);
+          },
+        )
+      : Icon(Icons.person, size: Dimensions.iconXL, color: AppColors.text);
+}
 
   Widget _buildInsightsTab() {
     return SingleChildScrollView(
-    padding: const EdgeInsets.all(16),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(
-            vertical: 25,
-            horizontal: 17.5,
-          ),
-          decoration: BoxDecoration(
-            color: Colors.grey[900],
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Your daily nutrition goals',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 7.5),
-              const Text(
-                'Balanced macros',
-                style: TextStyle(
-                  color: Colors.grey,
-                  fontSize: 14,
+      padding: EdgeInsets.all(Dimensions.paddingM),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: EdgeInsets.all(Dimensions.paddingL),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(Dimensions.radiusM),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AppText(
+                  'Your daily nutrition goals',
+                  fontSize: FontSizes.heading3,
+                  color: AppColors.text,
+                  fontWeight: FontWeight.bold,
                 ),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _buildNutritionItem('Cal', '${nutritionGoals.calories.toStringAsFixed(0)}', Colors.blue),
-                  _buildNutritionItem('Carbs', '${nutritionGoals.carbs.toStringAsFixed(0)}g', Colors.orange),
-                  _buildNutritionItem('Fiber', '${nutritionGoals.fiber.toStringAsFixed(0)}g', Colors.green),
-                  _buildNutritionItem('Protein', '${nutritionGoals.protein.toStringAsFixed(0)}g', Colors.pink),
-                  _buildNutritionItem('Fat', '${nutritionGoals.fat.toStringAsFixed(0)}g', Colors.purple),
-                ],
-              ),
-            ],
+                SizedBox(height: Dimensions.paddingXS),
+                AppText(
+                  'Balanced macros',
+                  fontSize: FontSizes.caption,
+                  color: AppColors.textSecondary,
+                ),
+                SizedBox(height: Dimensions.paddingM),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _buildNutritionItem('Cal', '${nutritionGoals.calories.toStringAsFixed(0)}', Colors.blue),
+                    _buildNutritionItem('Carbs', '${nutritionGoals.carbs.toStringAsFixed(0)}g', Colors.orange),
+                    _buildNutritionItem('Fiber', '${nutritionGoals.fiber.toStringAsFixed(0)}g', Colors.green),
+                    _buildNutritionItem('Protein', '${nutritionGoals.protein.toStringAsFixed(0)}g', Colors.pink),
+                    _buildNutritionItem('Fat', '${nutritionGoals.fat.toStringAsFixed(0)}g', Colors.purple),
+                  ],
+                ),
+              ],
+            ),
           ),
-        ),
-        const SizedBox(height: 24),
-        NutritionTracker(nutritionGoals: nutritionGoals),
-      ],
-    ),
-  );
-}
+          SizedBox(height: Dimensions.paddingL),
+          NutritionTracker(nutritionGoals: nutritionGoals),
+        ],
+      ),
+    );
+  }
 
 
   Widget _buildNutritionItem(String label, String value, Color color) {
-    return Column(
-      children: [
-        Container(
-          width: 12,
-          height: 12,
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
-          ),
+  return Column(
+    children: [
+      Container(
+        width: 12,
+        height: 12,
+        decoration: BoxDecoration(
+          color: color,
+          shape: BoxShape.circle,
         ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: const TextStyle(
-            color: Colors.grey,
-            fontSize: 12,
-          ),
-        ),
-        Text(
-          value,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ],
-    );
-  }
+      ),
+      SizedBox(height: Dimensions.paddingXS),
+      AppText(
+        label,
+        fontSize: FontSizes.caption,
+        color: AppColors.textSecondary,
+      ),
+      AppText(
+        value,
+        fontSize: FontSizes.body,
+        color: AppColors.text,
+        fontWeight: FontWeight.bold,
+      ),
+    ],
+  );
+}
 
   Widget _buildNutrientIndicator(String label, Color color) {
     return Row(
@@ -598,12 +485,12 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
 
   Widget _buildActivityTab() {
     if (isLoadingActivity) {
-      return const Center(child: CircularProgressIndicator(color: Colors.deepOrange));
+      return Center(child: CircularProgressIndicator(color: AppColors.primary));
     }
 
     return RefreshIndicator(
       onRefresh: _loadActivityData,
-      color: Colors.deepOrange,
+      color: AppColors.primary,
       child: activityRecipes.isEmpty
           ? ListView(
               children: [
@@ -619,14 +506,12 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                           height: 125,
                           fit: BoxFit.contain,
                         ),
-                        const SizedBox(height: 16),
-                        const Text(
+                        SizedBox(height: Dimensions.paddingM),
+                        AppText(
                           'No activity yet',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 17,
-                            fontWeight: FontWeight.w600,
-                          ),
+                          fontSize: FontSizes.body,
+                          color: AppColors.text,
+                          fontWeight: FontWeight.w600,
                         ),
                       ],
                     ),
@@ -635,53 +520,47 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
               ],
             )
           : ListView.builder(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(Dimensions.paddingM),
               itemCount: activityRecipes.length,
               itemBuilder: (context, index) {
                 final recipe = activityRecipes[index];
-
                 return Container(
-                  margin: const EdgeInsets.only(bottom: 16),
+                  margin: EdgeInsets.only(bottom: Dimensions.paddingM),
                   decoration: BoxDecoration(
-                    color: Colors.grey[900],
-                    borderRadius: BorderRadius.circular(12),
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(Dimensions.radiusM),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // User Info Row
                       Padding(
-                        padding: const EdgeInsets.all(12),
+                        padding: EdgeInsets.all(Dimensions.paddingM),
                         child: Row(
                           children: [
                             CircleAvatar(
                               radius: 20,
-                              backgroundImage: NetworkImage(userData?['profilePictureUrl'] ?? 'default_avatar_url'),
+                              backgroundImage: NetworkImage(userData?['profilePictureUrl'] ?? ''),
                             ),
-                            const SizedBox(width: 12),
+                            SizedBox(width: Dimensions.paddingM),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
+                                AppText(
                                   _authService.currentUser?.displayName ?? 'User',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                  fontSize: FontSizes.body,
+                                  color: AppColors.text,
+                                  fontWeight: FontWeight.bold,
                                 ),
-                                Text(
+                                AppText(
                                   'a moment ago',
-                                  style: TextStyle(
-                                    color: Colors.grey[400],
-                                    fontSize: 12,
-                                  ),
+                                  fontSize: FontSizes.caption,
+                                  color: AppColors.textSecondary,
                                 ),
                               ],
                             ),
                           ],
                         ),
                       ),
-                      // Recipe Image
                       GestureDetector(
                         onTap: () {
                           Navigator.push(
@@ -700,94 +579,57 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                               fit: BoxFit.cover,
                             ),
                             Positioned(
-                              top: 12,
-                              right: 12,
+                              top: Dimensions.paddingM,
+                              right: Dimensions.paddingM,
                               child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: Dimensions.paddingM,
+                                  vertical: Dimensions.paddingS,
+                                ),
                                 decoration: BoxDecoration(
                                   color: Colors.black.withOpacity(0.7),
-                                  borderRadius: BorderRadius.circular(4),
+                                  borderRadius: BorderRadius.circular(Dimensions.radiusS),
                                 ),
-                                child: const Text(
+                                child: AppText(
                                   'Made it ✨',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                  fontSize: FontSizes.caption,
+                                  color: AppColors.text,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ),
                           ],
                         ),
                       ),
-                      // Recipe Info
                       Padding(
-                        padding: const EdgeInsets.all(12),
+                        padding: EdgeInsets.all(Dimensions.paddingM),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
+                            AppText(
                               recipe.title.toUpperCase(),
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
+                              fontSize: FontSizes.body,
+                              color: AppColors.text,
+                              fontWeight: FontWeight.bold,
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              recipe.area ?? 'Recipe',
-                              style: TextStyle(
-                                color: Colors.grey[400],
-                                fontSize: 14,
+                            if (recipe.area != null)
+                              Padding(
+                                padding: EdgeInsets.only(top: Dimensions.paddingXS),
+                                child: AppText(
+                                  recipe.area!,
+                                  fontSize: FontSizes.caption,
+                                  color: AppColors.textSecondary,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              recipe.category ?? 'Recipe',
-                              style: TextStyle(
-                                color: Colors.grey[400],
-                                fontSize: 14,
+                            if (recipe.category != null)
+                              Padding(
+                                padding: EdgeInsets.only(top: Dimensions.paddingXS),
+                                child: AppText(
+                                  recipe.category!,
+                                  fontSize: FontSizes.caption,
+                                  color: AppColors.textSecondary,
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      // Action Button
-                      Padding(
-                        padding: const EdgeInsets.only(right: 12, bottom: 12),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            IconButton(
-                              icon: const Icon(
-                                Icons.bookmark_border,
-                                color: Colors.white,
-                              ),
-                              onPressed: () async {
-                                try {
-                                  await _firestoreService.saveRecipe(recipe);
-                                  if (mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('Recipe saved to bookmarks'),
-                                        backgroundColor: Colors.green,
-                                      ),
-                                    );
-                                  }
-                                } catch (e) {
-                                  if (mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('Failed to save recipe'),
-                                        backgroundColor: Colors.red,
-                                      ),
-                                    );
-                                  }
-                                }
-                              },
-                            ),
                           ],
                         ),
                       ),
