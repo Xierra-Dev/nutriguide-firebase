@@ -4,14 +4,15 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'firebase_options.dart';
 import 'landing_page.dart';
 import 'home_page.dart';
 import 'services/assistant_services.dart';
 import 'services/notification_service.dart';
 import 'services/firestore_service.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'services/timezone_service.dart';
 
 // Handle background messages
 @pragma('vm:entry-point')
@@ -31,12 +32,14 @@ Future<void> _handleMessage(RemoteMessage message) async {
       return;
     }
 
-    print('Adding notification to Firestore...');
-    print('User ID: ${user.uid}');
-    print('Title: ${message.notification?.title}');
-    print('Body: ${message.notification?.body}');
-    print('Data: ${message.data}');
-    
+    // Show notification
+    final notificationService = NotificationService();
+    await notificationService.showFCMNotification(
+      title: message.notification?.title ?? 'New Notification',
+      body: message.notification?.body ?? '',
+    );
+
+    // Save to Firestore
     await firestoreService.addNotification(
       title: message.notification?.title ?? 'New Notification',
       message: message.notification?.body ?? '',
@@ -44,7 +47,7 @@ Future<void> _handleMessage(RemoteMessage message) async {
       relatedId: message.data['relatedId'],
     );
     
-    print('Notification added successfully');
+    print('Notification handled successfully');
   } catch (e) {
     print('Error handling message: $e');
   }
@@ -84,6 +87,13 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
+  // Initialize Timezone
+  TimezoneService.initializeTimeZones();
+  
+  // Initialize notifications
+  final notificationService = NotificationService();
+  await notificationService.initialize();
+
   // Initialize Gemini
   Gemini.init(
     apiKey: GEMINI_API_KEY,
@@ -102,10 +112,6 @@ void main() async {
   FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
     _handleMessage(message);
   });
-  
-  // Initialize Notification Service
-  final notificationService = NotificationService();
-  await notificationService.initialize();
 
   runApp(const MealPlannerApp());
 }
