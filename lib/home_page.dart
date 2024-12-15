@@ -1294,7 +1294,7 @@ class _HomePageState extends State<HomePage> {
         SizedBox(height: Dimensions.paddingM),
         _buildRecipeSection('Popular', popularRecipes),
         SizedBox(height: Dimensions.paddingM),
-        _buildRecipeSection('Feed', feedRecipes),
+        _buildRecipeFeed(),
       ],
     );
   }
