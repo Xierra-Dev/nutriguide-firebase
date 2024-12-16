@@ -5,11 +5,6 @@ import 'package:linear_progress_bar/linear_progress_bar.dart';
 import 'home_page.dart';
 import 'personalization_page.dart';
 import 'services/themealdb_service.dart';
-import 'core/constants/colors.dart';
-import 'core/constants/dimensions.dart';
-import 'core/constants/font_sizes.dart';
-import 'core/helpers/responsive_helper.dart';
-
 
 class GoalsPage extends StatefulWidget {
   const GoalsPage({super.key});
@@ -282,193 +277,50 @@ class _GoalsPageState extends State<GoalsPage> {
   ];
 
   @override
+  @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final isSmallScreen = size.width < 360;
 
     return MediaQuery(
-      data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
+      data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
       child: Scaffold(
-        body: Container(
-          height: MediaQuery.of(context).size.height,
+        body: AnimatedContainer(
+          duration: const Duration(milliseconds: 100),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                AppColors.primary.withOpacity(0.8),
-                AppColors.primary,
-              ],
+            image: _backgroundImageUrl != null
+                ? DecorationImage(
+              image: NetworkImage(_backgroundImageUrl!),
+              fit: BoxFit.cover,
+              colorFilter: ColorFilter.mode(
+                Colors.black.withOpacity(0.3),
+                BlendMode.darken,
+              ),
+            )
+                : const DecorationImage(
+              image: AssetImage('assets/images/landing_page.jpg'),
+              fit: BoxFit.cover,
             ),
           ),
           child: SafeArea(
-            child: Stack(
-              children: [
-                // Background Pattern
-                Positioned.fill(
-                  child: Opacity(
-                    opacity: 0.03,
-                    child: Image.asset(
-                      'assets/images/pattern.png',
-                      repeat: ImageRepeat.repeat,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
                     ),
-                  ),
-                ),
-
-                // Main Content
-                SingleChildScrollView(
-                  padding: EdgeInsets.only(
-                    bottom: size.height * 0.15,
-                  ),
-                  child: Column(
-                    children: [
-                      // Progress and Title Section
-                      Container(
-                        padding: EdgeInsets.all(Dimensions.paddingL),
-                        child: Column(
-                          children: [
-                            // Progress Indicator
-                            Container(
-                              padding: EdgeInsets.all(Dimensions.paddingM),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(Dimensions.radiusL),
-                              ),
-                              child: Column(
-                                children: [
-                                  LinearProgressBar(
-                                    maxSteps: 3,
-                                    currentStep: currentStep,
-                                    progressColor: Colors.deepOrange,
-                                    backgroundColor: Colors.white24,
-                                    minHeight: 8,
-                                  ),
-                                  SizedBox(height: Dimensions.spacingS),
-                                  Text(
-                                    'Step ${currentStep + 1} of 3',
-                                    style: TextStyle(
-                                      color: Colors.white70,
-                                      fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.bodySmall),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-
-                            SizedBox(height: Dimensions.spacingXL),
-
-                            // Title Section
-                            Text(
-                              'What are your goals?',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.heading2),
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            SizedBox(height: Dimensions.spacingM),
-                            Text(
-                              'Select all that apply to you',
-                              style: TextStyle(
-                                color: Colors.white70,
-                                fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.body),
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // Goals Container
-                      Container(
-                        margin: EdgeInsets.all(Dimensions.paddingL),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(Dimensions.radiusL),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              blurRadius: 10,
-                              offset: Offset(0, 5),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          children: goals.map((goal) => _buildGoalOption(goal, goal['titleSize'] as double)).toList(),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Bottom Buttons
-                Positioned(
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  child: Container(
-                    padding: EdgeInsets.all(Dimensions.paddingL),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(Dimensions.radiusXL),
-                        topRight: Radius.circular(Dimensions.radiusXL),
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 10,
-                          offset: Offset(0, -5),
-                        ),
-                      ],
-                    ),
-                    child: Row(
+                    child: Stack(
                       children: [
-                        Expanded(
-                          child: TextButton(
-                            onPressed: _showSetUpLaterDialog,
-                            style: TextButton.styleFrom(
-                              padding: EdgeInsets.symmetric(vertical: Dimensions.paddingM),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(Dimensions.radiusL),
-                                side: BorderSide(color: Colors.grey.withOpacity(0.5)),
-                              ),
-                            ),
-                            child: Text(
-                              'Set Up Later',
-                              style: TextStyle(
-                                color: Colors.grey,
-                                fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.button),
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: Dimensions.spacingM),
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: selectedGoals.isNotEmpty ? _saveGoals : null,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.deepOrange,
-                              padding: EdgeInsets.symmetric(vertical: Dimensions.paddingM),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(Dimensions.radiusL),
-                              ),
-                            ),
-                            child: Text(
-                              'Continue',
-                              style: TextStyle(
-                                fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.button),
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
+                        _buildBackButton(size),
+                        _buildMainContent(size, isSmallScreen),
+                        _buildProgressBar(size, isSmallScreen),
+                        _buildBottomButtons(size, isSmallScreen),
                       ],
                     ),
                   ),
-                ),
-              ],
+                );
+              },
             ),
           ),
         ),
@@ -551,71 +403,49 @@ class _GoalsPageState extends State<GoalsPage> {
     );
   }
 
-  Widget _buildGoalOption(Map<String, dynamic> goal, double fontSize) {
+  Widget _buildGoalOption(Map<String, dynamic> goal, double titleSize) {
     final bool isSelected = selectedGoals.contains(goal['title']);
-    
-    return Container(
-      margin: EdgeInsets.symmetric(
-        horizontal: Dimensions.paddingM,
-        vertical: Dimensions.paddingS,
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () {
-            setState(() {
-              if (isSelected) {
-                selectedGoals.remove(goal['title']);
-              } else {
-                selectedGoals.add(goal['title']);
-              }
-            });
-          },
-          borderRadius: BorderRadius.circular(Dimensions.radiusM),
-          child: Container(
-            padding: EdgeInsets.all(Dimensions.paddingL),
-            decoration: BoxDecoration(
-              color: isSelected ? Colors.deepOrange.withOpacity(0.1) : Colors.transparent,
-              border: Border.all(
-                color: isSelected ? Colors.deepOrange : Colors.grey.withOpacity(0.3),
-                width: 2,
+    final double iconSize = (goal['size'] as double?) ?? 35.0;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 12.0),
+      child: InkWell(
+        onTap: () {
+          setState(() {
+            if (isSelected) {
+              selectedGoals.remove(goal['title']);
+            } else {
+              selectedGoals.add(goal['title'] as String);
+            }
+          });
+        },
+        child: Row(
+          children: [
+            Icon(
+              goal['icon'] as IconData,
+              color: Colors.black,
+              size: iconSize,
+            ),
+            const SizedBox(width: 20),
+            Expanded(
+              child: MediaQuery(
+                data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
+                child: Text(
+                  goal['title'] as String,
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: titleSize,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
               ),
-              borderRadius: BorderRadius.circular(Dimensions.radiusM),
             ),
-            child: Row(
-              children: [
-                Container(
-                  padding: EdgeInsets.all(Dimensions.paddingS),
-                  decoration: BoxDecoration(
-                    color: isSelected ? Colors.deepOrange.withOpacity(0.1) : Colors.grey.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(Dimensions.radiusS),
-                  ),
-                  child: Icon(
-                    goal['icon'] as IconData,
-                    color: isSelected ? Colors.deepOrange : Colors.grey,
-                    size: Dimensions.iconL,
-                  ),
-                ),
-                SizedBox(width: Dimensions.spacingL),
-                Expanded(
-                  child: Text(
-                    goal['title'] as String,
-                    style: TextStyle(
-                      color: isSelected ? Colors.deepOrange : Colors.black87,
-                      fontSize: fontSize,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                    ),
-                  ),
-                ),
-                if (isSelected)
-                  Icon(
-                    Icons.check_circle,
-                    color: Colors.deepOrange,
-                    size: Dimensions.iconM,
-                  ),
-              ],
+            Icon(
+              isSelected ? Icons.check_circle : Icons.circle,
+              color: isSelected ? Colors.green : const Color.fromARGB(255, 124, 93, 93),
+              size: 27.5,
             ),
-          ),
+          ],
         ),
       ),
     );

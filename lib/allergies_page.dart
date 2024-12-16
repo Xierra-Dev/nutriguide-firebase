@@ -4,10 +4,6 @@ import 'home_page.dart';
 import 'services/themealdb_service.dart';
 import 'package:linear_progress_bar/linear_progress_bar.dart';
 import 'goals_page.dart';
-import 'core/constants/colors.dart';
-import 'core/constants/dimensions.dart';
-import 'core/constants/font_sizes.dart';
-import 'core/helpers/responsive_helper.dart';
 
 class AllergiesPage extends StatefulWidget {
   const AllergiesPage({super.key});
@@ -248,206 +244,50 @@ class _AllergiesPageState extends State<AllergiesPage> {
   ];
 
   @override
+  @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final isSmallScreen = size.width < 360;
 
     return MediaQuery(
-      data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
+      data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
       child: Scaffold(
-        body: Container(
-          height: MediaQuery.of(context).size.height,
+        body: AnimatedContainer(
+          duration: const Duration(milliseconds: 100),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                AppColors.primary.withOpacity(0.8),
-                AppColors.primary,
-              ],
+            image: _backgroundImageUrl != null
+                ? DecorationImage(
+              image: NetworkImage(_backgroundImageUrl!),
+              fit: BoxFit.cover,
+              colorFilter: ColorFilter.mode(
+                Colors.black.withOpacity(0.3),
+                BlendMode.darken,
+              ),
+            )
+                : const DecorationImage(
+              image: AssetImage('assets/images/landing_page.jpg'),
+              fit: BoxFit.cover,
             ),
           ),
           child: SafeArea(
-            child: Stack(
-              children: [
-                // Background Pattern
-                Positioned.fill(
-                  child: Opacity(
-                    opacity: 0.03,
-                    child: Image.asset(
-                      'assets/images/pattern.png',
-                      repeat: ImageRepeat.repeat,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
                     ),
-                  ),
-                ),
-
-                // Main Content
-                SingleChildScrollView(
-                  padding: EdgeInsets.only(
-                    top: size.height * 0.02,
-                    bottom: size.height * 0.15,
-                  ),
-                  child: Column(
-                    children: [
-                      // Progress Indicator
-                      Container(
-                        padding: EdgeInsets.all(Dimensions.paddingM),
-                        margin: EdgeInsets.symmetric(horizontal: Dimensions.paddingL),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(Dimensions.radiusL),
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.2),
-                          ),
-                        ),
-                        child: Column(
-                          children: [
-                            LinearProgressBar(
-                              maxSteps: 3,
-                              currentStep: currentStep,
-                              progressColor: Colors.white,
-                              backgroundColor: Colors.white24,
-                              minHeight: 8,
-                            ),
-                            SizedBox(height: Dimensions.spacingS),
-                            Text(
-                              'Final Step',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.bodySmall),
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      SizedBox(height: Dimensions.spacingXL),
-
-                      // Title Section
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: Dimensions.paddingL),
-                        child: Column(
-                          children: [
-                            Text(
-                              'Any Food Allergies?',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.heading2),
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            SizedBox(height: Dimensions.spacingM),
-                            Text(
-                              'Help us customize your meal recommendations',
-                              style: TextStyle(
-                                color: Colors.white70,
-                                fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.body),
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      SizedBox(height: Dimensions.spacingL),
-
-                      // Allergies Container
-                      Container(
-                        width: double.infinity,
-                        margin: EdgeInsets.symmetric(horizontal: Dimensions.paddingL),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(Dimensions.radiusL),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              blurRadius: 10,
-                              offset: Offset(0, 5),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          children: allergies.map((allergy) => _buildAllergyOption(
-                            allergy,
-                            ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.body),
-                          )).toList(),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Bottom Buttons with Glass Effect
-                Positioned(
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  child: Container(
-                    padding: EdgeInsets.all(Dimensions.paddingL),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(Dimensions.radiusXL),
-                        topRight: Radius.circular(Dimensions.radiusXL),
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 10,
-                          offset: Offset(0, -5),
-                        ),
-                      ],
-                    ),
-                    child: Row(
+                    child: Stack(
                       children: [
-                        Expanded(
-                          child: TextButton(
-                            onPressed: _showSetUpLaterDialog,
-                            style: TextButton.styleFrom(
-                              padding: EdgeInsets.symmetric(vertical: Dimensions.paddingM),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(Dimensions.radiusL),
-                                side: BorderSide(color: Colors.grey.withOpacity(0.5)),
-                              ),
-                            ),
-                            child: Text(
-                              'Set Up Later',
-                              style: TextStyle(
-                                color: Colors.grey,
-                                fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.button),
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: Dimensions.spacingM),
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: _saveAllergies,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primary,
-                              padding: EdgeInsets.symmetric(vertical: Dimensions.paddingM),
-                              elevation: 2,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(Dimensions.radiusL),
-                              ),
-                            ),
-                            child: Text(
-                              'Continue',
-                              style: TextStyle(
-                                fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.button),
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.surface,
-                              ),
-                            ),
-                          ),
-                        ),
+                        _buildBackButton(size),
+                        _buildMainContent(size, isSmallScreen),
+                        _buildProgressBar(size, isSmallScreen),
+                        _buildBottomButtons(size, isSmallScreen),
                       ],
                     ),
                   ),
-                ),
-              ],
+                );
+              },
             ),
           ),
         ),
@@ -542,89 +382,39 @@ class _AllergiesPageState extends State<AllergiesPage> {
 
   Widget _buildAllergyOption(String allergy, double fontSize) {
     final bool isSelected = selectedAllergies.contains(allergy);
-    
-    // Map untuk icon alergi
-    final Map<String, IconData> allergyIcons = {
-      'Dairy': Icons.water_drop_outlined,
-      'Eggs': Icons.egg_outlined,
-      'Fish': Icons.set_meal_outlined,
-      'Shellfish': Icons.catching_pokemon_outlined,
-      'Tree nuts (e.g., almonds, walnuts, cashews)': Icons.nature_outlined,
-      'Peanuts': Icons.grain_outlined,
-      'Wheat': Icons.grass_outlined,
-      'Soy': Icons.spa_outlined,
-      'Gluten': Icons.bakery_dining_outlined,
-      'Sesame': Icons.emoji_nature_outlined,
-      'Corn': Icons.grass,
-    };
 
-    return Container(
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: const Color.fromARGB(255, 54, 54, 54).withOpacity(0.5),
-            width: 1,
-          ),
-        ),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () {
-            setState(() {
-              if (isSelected) {
-                selectedAllergies.remove(allergy);
-              } else {
-                selectedAllergies.add(allergy);
-              }
-            });
-          },
-          child: Padding(
-            padding: EdgeInsets.all(Dimensions.paddingL),
-            child: Row(
-              children: [
-                // Icon Container
-                Container(
-                  padding: EdgeInsets.all(Dimensions.paddingS),
-                  decoration: BoxDecoration(
-                    color: isSelected 
-                        ? AppColors.primary.withOpacity(0.1) 
-                        : Colors.grey.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(Dimensions.radiusS),
-                  ),
-                  child: Icon(
-                    allergyIcons[allergy] ?? Icons.warning_outlined,
-                    color: isSelected ? AppColors.primary : Colors.grey,
-                    size: Dimensions.iconM,
+    return MediaQuery(
+      data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
+      child: InkWell(
+        onTap: () {
+          setState(() {
+            if (isSelected) {
+              selectedAllergies.remove(allergy);
+            } else {
+              selectedAllergies.add(allergy);
+            }
+          });
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12.0),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  allergy,
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: fontSize,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
-                SizedBox(width: Dimensions.spacingM),
-                // Allergy Text
-                Expanded(
-                  child: Text(
-                    allergy,
-                    style: TextStyle(
-                      color: isSelected ? AppColors.primary : AppColors.textPrimary,
-                      fontSize: fontSize,
-                      fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                    ),
-                  ),
-                ),
-                // Checkbox Icon
-                Container(
-                  padding: EdgeInsets.all(Dimensions.paddingXS),
-                  decoration: BoxDecoration(
-                    color: isSelected ? AppColors.primary.withOpacity(0.1) : Colors.transparent,
-                    borderRadius: BorderRadius.circular(Dimensions.radiusS),
-                  ),
-                  child: Icon(
-                    isSelected ? Icons.check_circle : Icons.circle_outlined,
-                    color: isSelected ? AppColors.primary : Colors.grey.withOpacity(0.5),
-                    size: Dimensions.iconM,
-                  ),
-                ),
-              ],
-            ),
+              ),
+              Icon(
+                isSelected ? Icons.check_circle : Icons.circle,
+                color: isSelected ? Colors.green : const Color.fromARGB(255, 124, 93, 93),
+                size: fontSize * 1.4,
+              ),
+            ],
           ),
         ),
       ),
