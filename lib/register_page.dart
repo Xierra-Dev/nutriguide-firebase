@@ -398,23 +398,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       padding: EdgeInsets.all(Dimensions.paddingL),
                       child: Row(
                         children: [
-                          // Enhanced back button
-                          GestureDetector(
-                            onTap: () => Navigator.pop(context),
-                            child: Container(
-                              padding: EdgeInsets.all(Dimensions.paddingS),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(Dimensions.radiusM),
-                              ),
-                              child: Icon(
-                                Icons.arrow_back_ios_new,
-                                color: Colors.white,
-                                size: Dimensions.iconM,
-                              ),
-                            ),
-                          ),
-                          SizedBox(width: Dimensions.spacingL),
+                          
                           // Title
                           Text(
                             'Create Account',
