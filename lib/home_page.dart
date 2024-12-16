@@ -803,28 +803,89 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: _buildAppBar(),
-      body: _buildBody(),
-      floatingActionButton: _currentIndex != 1 
-        ? FloatingActionButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                SlideUpRoute(page: const AssistantPage()),
-              );
-            },
-            backgroundColor: AppColors.primary,
-            child: Icon(
-              Icons.chat_bubble_rounded,
-              color: AppColors.text,
-              size: Dimensions.iconM,
+    return WillPopScope(
+      onWillPop: () async {
+        return await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            backgroundColor: AppColors.surface,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(Dimensions.radiusL),
             ),
-          ) 
-        : null,
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      bottomNavigationBar: _buildBottomNavigationBar(),
+            title: Text(
+              'Exit App',
+              style: TextStyle(
+                color: AppColors.text,
+                fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.heading3),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            content: Text(
+              'Are you sure you want to exit?',
+              style: TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.body),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: Text(
+                  'No',
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.body),
+                  ),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(Dimensions.radiusM),
+                  ),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: Dimensions.paddingL,
+                    vertical: Dimensions.paddingM,
+                  ),
+                ),
+                child: Text(
+                  'Yes',
+                  style: TextStyle(
+                    color: AppColors.surface,
+                    fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.body),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ) ?? false;
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: _buildAppBar(),
+        body: _buildBody(),
+        floatingActionButton: _currentIndex != 1 
+          ? FloatingActionButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  SlideUpRoute(page: const AssistantPage()),
+                );
+              },
+              backgroundColor: AppColors.primary,
+              child: Icon(
+                Icons.chat_bubble_rounded,
+                color: AppColors.text,
+                size: Dimensions.iconM,
+              ),
+            ) 
+          : null,
+        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+        bottomNavigationBar: _buildBottomNavigationBar(),
+      ),
     );
   }
 
