@@ -12,4 +12,7 @@ class AppColors {
   static Color warning = const Color(0xFFFFB74D);
   static Color info = const Color(0xFF64B5F6);
   static Color border = const Color(0xFF2A2A2A);
+  static const Color divider = Color(0xFFE0E0E0);
+  static const Color barrier = Color(0x80000000);
+  static const Color disabled = Color(0xFFE0E0E0);
 }

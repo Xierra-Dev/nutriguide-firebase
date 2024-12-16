@@ -4,6 +4,10 @@ import 'package:material_design_icons_flutter/material_design_icons_flutter.dart
 import 'package:nutriguide/landing_page.dart';
 import 'settings_page.dart';
 import 'services/auth_service.dart';
+import 'core/constants/colors.dart';
+import 'core/constants/dimensions.dart';
+import 'core/constants/font_sizes.dart';
+import 'core/helpers/responsive_helper.dart';
 
 class AccountPage extends StatefulWidget {
   const AccountPage({super.key});
@@ -117,83 +121,151 @@ class _AccountPageState extends State<AccountPage> {
 
   @override
   Widget build(BuildContext context) {
-    final screenHeight = MediaQuery.of(context).size.height;
-    final screenWidth = MediaQuery.of(context).size.width;
+    final screenWidth = ResponsiveHelper.screenWidth(context);
+    final screenHeight = ResponsiveHelper.screenHeight(context);
 
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: Column(
           children: [
-            Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: screenWidth * 0.04,
-                vertical: screenHeight * 0.01,
+            // Enhanced Header
+            Container(
+              padding: EdgeInsets.all(Dimensions.paddingM),
+              decoration: BoxDecoration(
+                color: const Color.fromARGB(255, 0, 0, 0),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
               child: Row(
                 children: [
-                  IconButton(
-                    icon: Icon(
-                      Icons.arrow_back,
-                      color: Colors.white,
-                      size: screenHeight * 0.03,
-                    ),
-                    onPressed: () {
-                      Navigator.of(context).pushReplacement(
-                        SlideRightRoute(page: const SettingsPage()),
-                      );
-                    },
-                  ),
-                  SizedBox(width: screenWidth * 0.02),
                   Container(
-                    constraints: BoxConstraints(
-                      maxWidth: screenWidth * 0.375,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(Dimensions.radiusM),
                     ),
-                    child: Text(
-                      'Account Settings',
-                      overflow: TextOverflow.ellipsis,
-                      textScaleFactor: 1.0,
-                      style: TextStyle(
-                        fontSize: screenHeight * 0.03,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                    child: IconButton(
+                      icon: Icon(
+                        Icons.arrow_back,
+                        color: AppColors.primary,
+                        size: Dimensions.iconM,
                       ),
+                      onPressed: () {
+                        Navigator.of(context).pushReplacement(
+                          SlideRightRoute(page: const SettingsPage()),
+                        );
+                      },
+                    ),
+                  ),
+                  SizedBox(width: Dimensions.paddingM),
+                  Text(
+                    'Account Settings',
+                    style: TextStyle(
+                      fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.heading2),
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.text,
                     ),
                   ),
                 ],
               ),
             ),
+
+            // Enhanced Content
             Expanded(
               child: ListView(
-                padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04),
+                padding: EdgeInsets.all(Dimensions.paddingM),
                 children: [
-                  _buildSettingsListTile(
-                    context: context,
-                    leadingText: 'Email',
-                    trailingText: email ?? '',
-                    onTap: () {},
+                  // User Info Section
+                  Container(
+                    padding: EdgeInsets.all(Dimensions.paddingL),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(Dimensions.radiusL),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        CircleAvatar(
+                          radius: 40,
+                          backgroundColor: AppColors.primary.withOpacity(0.1),
+                          child: Icon(
+                            Icons.person,
+                            size: Dimensions.iconXL,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                        SizedBox(height: Dimensions.spacingM),
+                        Text(
+                          email ?? 'Loading...',
+                          style: TextStyle(
+                            fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.body),
+                            color: AppColors.text,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  _buildDivider(screenHeight),
-                  _buildSettingsListTile(
-                    context: context,
-                    leadingText: 'Password',
-                    trailingText: displayPassword,
-                    onTap: _showChangePasswordDialog,
-                  ),
-                  _buildDivider(screenHeight),
-                  _buildSettingsListTile(
-                    context: context,
-                    leadingText: 'Logout',
-                    trailingText: '',
-                    onTap: () => confirmLogout(context),
-                  ),
-                  _buildDivider(screenHeight),
-                  _buildSettingsListTile(
-                    context: context,
-                    leadingText: 'Delete Account',
-                    trailingText: '',
-                    onTap: () => confirmDeleteAccount(context),
-                    isDestructive: true,
+
+                  SizedBox(height: Dimensions.spacingL),
+
+                  // Account Options Section
+                  Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(Dimensions.radiusL),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        _buildEnhancedListTile(
+                          icon: Icons.email_outlined,
+                          title: 'Email',
+                          subtitle: email ?? '',
+                          onTap: () {},
+                        ),
+                        _buildDivider(),
+                        _buildEnhancedListTile(
+                          icon: Icons.lock_outline,
+                          title: 'Password',
+                          subtitle: '********',
+                          onTap: _showChangePasswordDialog,
+                        ),
+                        _buildDivider(),
+                        _buildEnhancedListTile(
+                          icon: Icons.logout,
+                          title: 'Logout',
+                          subtitle: 'Sign out of your account',
+                          onTap: () => confirmLogout(context),
+                          isWarning: true,
+                        ),
+                        _buildDivider(),
+                        _buildEnhancedListTile(
+                          icon: Icons.delete_outline,
+                          title: 'Delete Account',
+                          subtitle: 'Permanently delete your account',
+                          onTap: () => confirmDeleteAccount(context),
+                          isDestructive: true,
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -204,68 +276,70 @@ class _AccountPageState extends State<AccountPage> {
     );
   }
 
-  Widget _buildSettingsListTile({
-    required BuildContext context,
-    required String leadingText,
-    required String trailingText,
-    required VoidCallback? onTap,
+  Widget _buildEnhancedListTile({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
     bool isDestructive = false,
+    bool isWarning = false,
   }) {
-    final screenHeight = MediaQuery.of(context).size.height;
-    final screenWidth = MediaQuery.of(context).size.width;
-
     return ListTile(
-      contentPadding: EdgeInsets.symmetric(vertical: screenHeight * 0.01),
-      title: Container(
-        constraints: BoxConstraints(
-          maxWidth: screenWidth * 0.375,
+      contentPadding: EdgeInsets.symmetric(
+        horizontal: Dimensions.paddingM,
+        vertical: Dimensions.paddingS,
+      ),
+      leading: Container(
+        padding: EdgeInsets.all(Dimensions.paddingS),
+        decoration: BoxDecoration(
+          color: isDestructive
+              ? Colors.red.withOpacity(0.1)
+              : isWarning
+                  ? Colors.orange.withOpacity(0.1)
+                  : AppColors.primary.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(Dimensions.radiusM),
         ),
-        child: Text(
-          leadingText,
-          overflow: TextOverflow.ellipsis,
-          textScaleFactor: 1.0,
-          style: TextStyle(
-            color: isDestructive ? Colors.red : Colors.white,
-            fontSize: screenHeight * 0.02,
-          ),
+        child: Icon(
+          icon,
+          color: isDestructive
+              ? Colors.red
+              : isWarning
+                  ? Colors.orange
+                  : AppColors.primary,
+          size: Dimensions.iconM,
         ),
       ),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (trailingText.isNotEmpty)
-            Container(
-              constraints: BoxConstraints(
-                maxWidth: screenWidth * 0.375,
-              ),
-              margin: EdgeInsets.only(right: screenWidth * 0.02),
-              child: Text(
-                trailingText,
-                overflow: TextOverflow.ellipsis,
-                textScaleFactor: 1.0,
-                style: TextStyle(
-                  color: isDestructive ? Colors.red : Colors.white70,
-                  fontSize: screenHeight * 0.018,
-                ),
-              ),
-            ),
-          Icon(
-            Icons.arrow_forward_ios,
-            color: isDestructive ? Colors.red : Colors.white,
-            size: screenHeight * 0.02,
-          ),
-        ],
+      title: Text(
+        title,
+        style: TextStyle(
+          fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.body),
+          fontWeight: FontWeight.w500,
+          color: isDestructive ? Colors.red : AppColors.text,
+        ),
+      ),
+      subtitle: Text(
+        subtitle,
+        style: TextStyle(
+          fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.bodySmall),
+          color: AppColors.textSecondary,
+        ),
+      ),
+      trailing: Icon(
+        Icons.arrow_forward_ios,
+        color: isDestructive ? Colors.red : AppColors.textSecondary,
+        size: Dimensions.iconS,
       ),
       onTap: onTap,
     );
   }
 
-  Widget _buildDivider(double screenHeight) {
+  Widget _buildDivider() {
     return Divider(
-      color: Colors.white24,
-      height: screenHeight * 0.001,
+      color: AppColors.divider,
+      height: 1.0,
     );
   }
+  
   Future<void> changePassword() async {
     if (_currentPasswordController.text.isEmpty ||
         _newPasswordController.text.isEmpty ||
