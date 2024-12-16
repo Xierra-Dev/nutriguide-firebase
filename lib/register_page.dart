@@ -680,39 +680,39 @@ class _RegisterPageState extends State<RegisterPage> {
                             ),
 
                             SizedBox(height: Dimensions.spacingL),
-
-                            // Login link with enhanced styling
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  'Already have an account? ',
-                                  style: TextStyle(
-                                    color: const Color.fromARGB(179, 0, 0, 0),
-                                    fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.bodySmall),
-                                  ),
-                                ),
-                                GestureDetector(
-                                  onTap: () {
-                                    Navigator.pushReplacement(
-                                      context,
-                                      MaterialPageRoute(builder: (context) => const LoginPage()),
-                                    );
-                                  },
-                                  child: Text(
-                                    'Click Here to Login',
-                                    style: TextStyle(
-                                      color: AppColors.primary,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.bodySmall),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
                           ],
                         ),
                       ),
+                    ),
+                    // Move the login link outside the box
+                    SizedBox(height: Dimensions.spacingS),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Already have an account? ',
+                          style: TextStyle(
+                            color: const Color.fromARGB(179, 255, 255, 255),
+                            fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.bodySmall),
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(builder: (context) => const LoginPage()),
+                            );
+                          },
+                          child: Text(
+                            'Click Here to Login',
+                            style: TextStyle(
+                              color: const Color.fromARGB(255, 255, 255, 255),
+                              fontWeight: FontWeight.bold,
+                              fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.bodySmall),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
