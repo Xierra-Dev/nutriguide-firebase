@@ -23,7 +23,7 @@ class _AssistantPageState extends State<AssistantPage> {
   ChatUser currentUser = ChatUser(id: "0", firstName: "User");
   ChatUser geminiUser = ChatUser(
     id: "1",
-    firstName: "Gemini",
+    firstName: "Nutri Assistant",
     profileImage: "https://seeklogo.com/images/G/google-gemini-logo-A5787B2669-seeklogo.com.png",
   );
 
@@ -39,7 +39,7 @@ class _AssistantPageState extends State<AssistantPage> {
       appBar: AppBar(
         centerTitle: true,
         title: const Text(
-          "Gemini Chat",
+          "Nutri Assistant",
         ),
       ),
       body: _buildUI(),
