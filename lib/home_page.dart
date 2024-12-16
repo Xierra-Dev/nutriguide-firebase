@@ -807,59 +807,110 @@ class _HomePageState extends State<HomePage> {
       onWillPop: () async {
         return await showDialog(
           context: context,
-          builder: (context) => AlertDialog(
-            backgroundColor: AppColors.surface,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(Dimensions.radiusL),
-            ),
-            title: Text(
-              'Exit App',
-              style: TextStyle(
-                color: AppColors.text,
-                fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.heading3),
-                fontWeight: FontWeight.bold,
+          builder: (context) => Dialog(
+            backgroundColor: Colors.transparent,
+            child: Container(
+              padding: EdgeInsets.all(Dimensions.paddingL),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(Dimensions.radiusL),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 10,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(Dimensions.paddingM),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.exit_to_app_rounded,
+                      color: AppColors.primary,
+                      size: Dimensions.iconXL,
+                    ),
+                  ),
+                  SizedBox(height: Dimensions.spacingL),
+                  Text(
+                    'Exit NutriGuide',
+                    style: TextStyle(
+                      color: AppColors.text,
+                      fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.heading3),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: Dimensions.spacingM),
+                  Text(
+                    'Are you sure you want to exit the app?',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.body),
+                    ),
+                  ),
+                  SizedBox(height: Dimensions.spacingXL),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextButton(
+                          onPressed: () => Navigator.of(context).pop(false),
+                          style: TextButton.styleFrom(
+                            padding: EdgeInsets.symmetric(
+                              vertical: Dimensions.paddingM,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(Dimensions.radiusM),
+                              side: BorderSide(
+                                color: AppColors.primary.withOpacity(0.5),
+                              ),
+                            ),
+                          ),
+                          child: Text(
+                            'Cancel',
+                            style: TextStyle(
+                              color: AppColors.primary,
+                              fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.body),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: Dimensions.spacingM),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () => Navigator.of(context).pop(true),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            padding: EdgeInsets.symmetric(
+                              vertical: Dimensions.paddingM,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(Dimensions.radiusM),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: Text(
+                            'Exit',
+                            style: TextStyle(
+                              color: AppColors.surface,
+                              fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.body),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
-            content: Text(
-              'Are you sure you want to exit?',
-              style: TextStyle(
-                color: AppColors.textSecondary,
-                fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.body),
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: Text(
-                  'No',
-                  style: TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.body),
-                  ),
-                ),
-              ),
-              ElevatedButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(Dimensions.radiusM),
-                  ),
-                  padding: EdgeInsets.symmetric(
-                    horizontal: Dimensions.paddingL,
-                    vertical: Dimensions.paddingM,
-                  ),
-                ),
-                child: Text(
-                  'Yes',
-                  style: TextStyle(
-                    color: AppColors.surface,
-                    fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.body),
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
           ),
         ) ?? false;
       },
@@ -878,7 +929,7 @@ class _HomePageState extends State<HomePage> {
               backgroundColor: AppColors.primary,
               child: Icon(
                 Icons.chat_bubble_rounded,
-                color: AppColors.text,
+                color: AppColors.surface,
                 size: Dimensions.iconM,
               ),
             ) 
