@@ -123,7 +123,7 @@ class AboutNutriguidePage extends StatelessWidget {
             _buildFeatureItem('Recipe Discovery', 'Explore thousands of healthy recipes'),
             _buildFeatureItem('Meal Planning', 'Plan your meals with smart scheduling'),
             _buildFeatureItem('AI Assistant', 'Get personalized nutrition advice'),
-            _buildFeatureItem('Save & Share', 'Save your favorite recipes and share with friends'),
+            _buildFeatureItem('Save Recipe', 'Save your favorite recipes'),
             const SizedBox(height: 24),
                       
             // Copyright
