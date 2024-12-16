@@ -5,8 +5,11 @@ import 'register_page.dart';
 import 'services/auth_service.dart';
 import 'landing_page.dart';
 import 'personalization_page.dart';
+import 'core/constants/colors.dart';
+import 'core/constants/dimensions.dart';
+import 'core/constants/font_sizes.dart';
+import 'core/helpers/responsive_helper.dart';
 
-// Add ErrorDetails and LoginPageStrings classes
 class ErrorDetails {
   final String title;
   final String? message;
@@ -19,76 +22,11 @@ class ErrorDetails {
   });
 }
 
-class FixedScaleText extends StatelessWidget {
-  final String text;
-  final TextStyle? style;
-  final TextAlign? textAlign;
-
-  const FixedScaleText(
-      this.text, {
-        Key? key,
-        this.style,
-        this.textAlign,
-      }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return MediaQuery(
-      data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
-      child: Text(
-        text,
-        style: style,
-        textAlign: textAlign,
-      ),
-    );
-  }
-}
-
-class LoginPageStrings {
-  static const String networkErrorTitle = 'No Internet Connection';
-  static const String networkErrorMessage = 'Network error. Please check your internet connection.';
-  static const String invalidCredentialsTitle = 'Double Check Your Email and Password';
-  static const String emailNotVerifiedTitle = 'EMAIL NOT VERIFIED';
-  static const String emailNotVerifiedMessage = 'Please verify your email first. Check your inbox for verification link.';
-}
-
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
   @override
   _LoginPageState createState() => _LoginPageState();
-}
-
-class SlideRightRoute extends PageRouteBuilder {
-  // Keep your existing SlideRightRoute implementation
-  final Widget page;
-
-  SlideRightRoute({required this.page})
-      : super(
-    pageBuilder: (
-        BuildContext context,
-        Animation<double> primaryAnimation,
-        Animation<double> secondaryAnimation,
-        ) =>
-    page,
-    transitionsBuilder: (
-        BuildContext context,
-        Animation<double> primaryAnimation,
-        Animation<double> secondaryAnimation,
-        Widget child,
-        ) {
-      return SlideTransition(
-        position: Tween<Offset>(
-          begin: const Offset(-1.0, 0.0),
-          end: Offset.zero,
-        ).animate(CurvedAnimation(
-          parent: primaryAnimation,
-          curve: Curves.easeOutQuad,
-        )),
-        child: child,
-      );
-    },
-  );
 }
 
 class _LoginPageState extends State<LoginPage> {
@@ -109,26 +47,56 @@ class _LoginPageState extends State<LoginPage> {
   String _loadingMessage = '';
   DateTime? _lastLoginAttempt;
 
-  // Add new helper methods
+  @override
+  void initState() {
+    super.initState();
+    _emailController.addListener(_updateEmailEmpty);
+    _passwordController.addListener(_updatePasswordEmpty);
+
+    _emailFocusNode.addListener(() {
+      setState(() {
+        _isEmailFocused = _emailFocusNode.hasFocus;
+      });
+    });
+
+    _passwordFocusNode.addListener(() {
+      setState(() {
+        _isPasswordFocused = _passwordFocusNode.hasFocus;
+      });
+    });
+  }
+
+  void _updateEmailEmpty() {
+    setState(() {
+      _isEmailEmpty = _emailController.text.isEmpty;
+    });
+  }
+
+  void _updatePasswordEmpty() {
+    setState(() {
+      _isPasswordEmpty = _passwordController.text.isEmpty;
+    });
+  }
+
   ErrorDetails _getErrorDetails(dynamic error) {
     final errorStr = error.toString();
 
     if (errorStr.contains('The supplied auth credential is incorrect')) {
       return ErrorDetails(
-        title: LoginPageStrings.invalidCredentialsTitle,
+        title: 'Double Check Your Email and Password',
         message: null,
         imagePath: 'assets/images/double-check-password-email.png',
       );
     } else if (errorStr.contains('A network error')) {
       return ErrorDetails(
-        title: LoginPageStrings.networkErrorTitle,
-        message: LoginPageStrings.networkErrorMessage,
+        title: 'No Internet Connection',
+        message: 'Network error. Please check your internet connection.',
         imagePath: 'assets/images/no-internet.png',
       );
     } else if (errorStr.contains('email-not-verified')) {
       return ErrorDetails(
-        title: LoginPageStrings.emailNotVerifiedTitle,
-        message: LoginPageStrings.emailNotVerifiedMessage,
+        title: 'EMAIL NOT VERIFIED',
+        message: 'Please verify your email first. Check your inbox for verification link.',
         imagePath: 'assets/images/email-verification.png',
       );
     }
@@ -179,7 +147,6 @@ class _LoginPageState extends State<LoginPage> {
     });
   }
 
-  // Update the _login method
   Future<void> _login() async {
     final now = DateTime.now();
     if (_lastLoginAttempt != null &&
@@ -201,7 +168,6 @@ class _LoginPageState extends State<LoginPage> {
       final isFirstTime = await _authService.isFirstTimeLogin();
 
       _navigateBasedOnLoginStatus(isFirstTime);
-
     } catch (e) {
       final errorDetails = _getErrorDetails(e);
       _showLoginDialog(
@@ -215,48 +181,6 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  // Keep your existing methods and overrides
-  @override
-  void initState() {
-    super.initState();
-    _emailController.addListener(_updateEmailEmpty);
-    _passwordController.addListener(_updatePasswordEmpty);
-
-    _emailFocusNode.addListener(() {
-      setState(() {
-        _isEmailFocused = _emailFocusNode.hasFocus;
-      });
-    });
-
-    _passwordFocusNode.addListener(() {
-      setState(() {
-        _isPasswordFocused = _passwordFocusNode.hasFocus;
-      });
-    });
-  }
-
-  void _updateEmailEmpty() {
-    setState(() {
-      _isEmailEmpty = _emailController.text.isEmpty;
-    });
-  }
-
-  void _updatePasswordEmpty() {
-    setState(() {
-      _isPasswordEmpty = _passwordController.text.isEmpty;
-    });
-  }
-
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    _emailFocusNode.dispose();
-    _passwordFocusNode.dispose();
-    super.dispose();
-  }
-
-  // Keep your existing _showLoginDialog method and build method
   void _showLoginDialog({
     required bool isSuccess,
     String? message,
@@ -277,72 +201,63 @@ class _LoginPageState extends State<LoginPage> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      barrierColor: Colors.transparent,
+      barrierColor: Colors.black.withOpacity(0.5),
       builder: (BuildContext context) {
-        final screenWidth = MediaQuery.of(context).size.width;
-        final scaleFactor = screenWidth / 400.0;
-
-        return Stack(
-          children: [
-            Positioned.fill(
-              child: GestureDetector(
-                onTap: () {},
-                child: Container(
-                  color: Colors.black.withOpacity(0.4),
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(Dimensions.radiusL),
+          ),
+          child: Container(
+            padding: EdgeInsets.all(Dimensions.paddingL),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Image.asset(
+                  specificImage ?? 'assets/images/error-occur.png',
+                  height: 100,
+                  width: 100,
                 ),
-              ),
-            ),
-            Center(
-              child: AlertDialog(
-                backgroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(50 * scaleFactor),
+                SizedBox(height: Dimensions.spacingL),
+                Text(
+                  title ?? 'AN ERROR OCCURRED',
+                  style: TextStyle(
+                    color: AppColors.error,
+                    fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.body),
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-                insetPadding: EdgeInsets.symmetric(
-                  horizontal: 10 * scaleFactor,
-                  vertical: 40 * scaleFactor,
-                ),
-                contentPadding: EdgeInsets.all(20 * scaleFactor),
-                content: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        SizedBox(height: 30 * scaleFactor),
-                        Image.asset(
-                          specificImage ?? 'assets/images/error-occur.png',
-                          height: 100 * scaleFactor,
-                          width: 100 * scaleFactor,
-                        ),
-                        SizedBox(height: 25 * scaleFactor),
-                        FixedScaleText(
-                          title ?? 'AN ERROR OCCUR WHEN LOGGING IN TO YOUR ACCOUNT',
-                          style: TextStyle(
-                            color: Colors.red,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 22 * scaleFactor,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        SizedBox(height: 25 * scaleFactor),
-                        if (message != null)
-                          FixedScaleText(
-                            message,
-                            style: TextStyle(
-                              fontSize: 18 * scaleFactor,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        SizedBox(height: 20 * scaleFactor),
-                      ],
+                if (message != null) ...[
+                  SizedBox(height: Dimensions.spacingM),
+                  Text(
+                    message,
+                    style: TextStyle(
+                      fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.bodySmall),
+                      color: AppColors.textSecondary,
                     ),
-                    // Rest of your dialog code remains unchanged
-                  ],
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+                SizedBox(height: Dimensions.spacingL),
+                ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.error,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(Dimensions.radiusM),
+                    ),
+                  ),
+                  child: Text(
+                    'Try Again',
+                    style: TextStyle(
+                      color: AppColors.surface,
+                      fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.button),
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
-          ],
+          ),
         );
       },
     ).then((_) {
@@ -356,274 +271,273 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    final screenSize = MediaQuery.of(context).size;
-
     return MediaQuery(
-      // This prevents system font scaling
-      data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
+      data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
       child: Scaffold(
-        body: SizedBox(
-          height: screenSize.height,
-          child: Stack(
-            children: [
-              // Image Container (positioned at top)
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                child: Container(
-                  height: screenSize.height * 0.43,
-                  decoration: const BoxDecoration(
-                    image: DecorationImage(
-                      image: AssetImage('assets/images/register_page.jpg'),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-              ),
-              Positioned(
-                top: screenSize.height * 0.395,
-                left: 0,
-                right: 0,
-                child: Container(
-                  width: double.infinity,
-                  height: screenSize.height * 0.165,
-                  decoration: BoxDecoration(
-                    color: Colors.lightGreen,
-                    borderRadius: BorderRadius.circular(25),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 12.75),
-                    child: FixedScaleText(
-                      'Login',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
-              ),
-
-              Positioned(
-                top: screenSize.height * 0.46,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: Container(
-                  decoration: const BoxDecoration(
-                    color: Colors.amber,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(30),
-                      topRight: Radius.circular(30),
-                    ),
-                  ),
-                  child: Center(
-                    child: SingleChildScrollView(
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: screenSize.width * 0.06,
-                          vertical: 0,
+        body: Container(
+          height: MediaQuery.of(context).size.height,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                AppColors.primary.withOpacity(0.8),
+                AppColors.primary,
+              ],
+            ),
+          ),
+          child: SafeArea(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  // Logo and Welcome Text
+                  Container(
+                    padding: EdgeInsets.all(Dimensions.paddingXL),
+                    child: Column(
+                      children: [
+                        // App Logo
+                        Container(
+                          padding: EdgeInsets.all(Dimensions.paddingL),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.15),
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 20,
+                                spreadRadius: 5,
+                              ),
+                            ],
+                          ),
+                          child: Image.asset(
+                            'assets/images/logo_NutriGuide.png',
+                            width: 80,
+                            height: 80,
+                          ),
                         ),
-                        child: Form(
-                          key: _formKey,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              TextFormField(
-                                controller: _emailController,
-                                decoration: InputDecoration(
-                                  labelText: (_isEmailEmpty && !_isEmailFocused)
-                                      ? 'Enter Your Email'
-                                      : 'Email',
-                                  labelStyle: TextStyle(fontSize: 16),
-                                  floatingLabelBehavior: FloatingLabelBehavior.auto,
-                                  filled: true,
-                                  fillColor: Colors.grey[100],
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(50),
-                                    borderSide: BorderSide.none,
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(50),
-                                    borderSide: const BorderSide(color: Colors.deepOrange),
-                                  ),
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 25,
-                                    vertical: 12,
-                                  ),
-                                ),
-                                style: const TextStyle(fontSize: 16),
-                                focusNode: _emailFocusNode,
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Please enter your email';
-                                  }
-                                  return null;
-                                },
-                              ),
-                              SizedBox(height: screenSize.height * 0.03),
-
-                              TextFormField(
-                                controller: _passwordController,
-                                decoration: InputDecoration(
-                                  labelText: (_isPasswordEmpty && !_isPasswordFocused)
-                                      ? 'Enter Your Password'
-                                      : 'Password',
-                                  labelStyle: const TextStyle(fontSize: 16),
-                                  filled: true,
-                                  fillColor: Colors.grey[100],
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(50),
-                                    borderSide: BorderSide.none,
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(50),
-                                    borderSide: const BorderSide(color: Colors.deepOrange),
-                                  ),
-                                  suffixIcon: Padding(
-                                    padding: const EdgeInsets.only(right: 12.5),
-                                    child: IconButton(
-                                      icon: Icon(
-                                        _isPasswordVisible ? MdiIcons.eyeOff : MdiIcons.eye,
-                                        color: Colors.grey,
-                                      ),
-                                      onPressed: () {
-                                        setState(() {
-                                          _isPasswordVisible = !_isPasswordVisible;
-                                        });
-                                      },
-                                    ),
-                                  ),
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 25,
-                                    vertical: 12,
-                                  ),
-                                ),
-                                style: const TextStyle(fontSize: 16),
-                                obscureText: !_isPasswordVisible,
-                                focusNode: _passwordFocusNode,
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Please enter your password';
-                                  }
-                                  return null;
-                                },
-                              ),
-                              SizedBox(height: screenSize.height * 0.15),
-
-                              SizedBox(
-                                width: double.infinity,
-                                height: 45,
-                                child: ElevatedButton(
-                                  onPressed: _isLoading ? null : _login,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.blue[300],
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(50),
-                                    ),
-                                  ),
-                                  child: _isLoading
-                                      ? const CircularProgressIndicator(color: Colors.deepOrange)
-                                      : const FixedScaleText(
-                                    'Login',
-                                    style: TextStyle(
-                                      fontSize: 18.5,
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ),
-
-                              Align(
-                                alignment: Alignment.center,
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const FixedScaleText(
-                                      'Already have an account?',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 5),
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.pushReplacement(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => const RegisterPage(),
-                                          ),
-                                        );
-                                      },
-                                      child: const FixedScaleText(
-                                        'Register here',
-                                        style: TextStyle(
-                                          color: Colors.red,
-                                          fontWeight: FontWeight.w900,
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                        SizedBox(height: Dimensions.spacingL),
+                        // Welcome Text
+                        Text(
+                          'Welcome Back!',
+                          style: TextStyle(
+                            fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.heading1),
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            shadows: [
+                              Shadow(
+                                offset: Offset(0, 2),
+                                blurRadius: 4,
+                                color: Colors.black.withOpacity(0.25),
                               ),
                             ],
                           ),
                         ),
+                        SizedBox(height: Dimensions.spacingM),
+                        Text(
+                          'Sign in to continue your nutrition journey',
+                          style: TextStyle(
+                            fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.body),
+                            color: Colors.white.withOpacity(0.9),
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Login Form Container
+                  Container(
+                    margin: EdgeInsets.symmetric(horizontal: Dimensions.paddingL),
+                    padding: EdgeInsets.all(Dimensions.paddingL),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(Dimensions.radiusL),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 20,
+                          spreadRadius: 5,
+                        ),
+                      ],
+                    ),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          // Email Field with enhanced styling
+                          TextFormField(
+                            controller: _emailController,
+                            focusNode: _emailFocusNode,
+                            decoration: InputDecoration(
+                              labelText: 'Email',
+                              hintText: 'Enter your email',
+                              prefixIcon: Icon(
+                                Icons.email_outlined,
+                                color: AppColors.primary,
+                                size: Dimensions.iconM,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(Dimensions.radiusM),
+                                borderSide: BorderSide(color: AppColors.border),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(Dimensions.radiusM),
+                                borderSide: BorderSide(color: AppColors.border),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(Dimensions.radiusM),
+                                borderSide: BorderSide(color: AppColors.primary, width: 2),
+                              ),
+                              filled: true,
+                              fillColor: Colors.grey[50],
+                            ),
+                          ),
+
+                          SizedBox(height: Dimensions.spacingL),
+
+                          // Password Field with enhanced styling
+                          TextFormField(
+                            controller: _passwordController,
+                            focusNode: _passwordFocusNode,
+                            obscureText: !_isPasswordVisible,
+                            decoration: InputDecoration(
+                              labelText: 'Password',
+                              hintText: 'Enter your password',
+                              prefixIcon: Icon(
+                                Icons.lock_outline,
+                                color: AppColors.primary,
+                                size: Dimensions.iconM,
+                              ),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _isPasswordVisible ? Icons.visibility_off : Icons.visibility,
+                                  color: AppColors.primary,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _isPasswordVisible = !_isPasswordVisible;
+                                  });
+                                },
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(Dimensions.radiusM),
+                                borderSide: BorderSide(color: AppColors.border),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(Dimensions.radiusM),
+                                borderSide: BorderSide(color: AppColors.border),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(Dimensions.radiusM),
+                                borderSide: BorderSide(color: AppColors.primary, width: 2),
+                              ),
+                              filled: true,
+                              fillColor: Colors.grey[50],
+                            ),
+                          ),
+
+                          SizedBox(height: Dimensions.spacingXL),
+
+                          // Enhanced Login Button
+                          Container(
+                            height: 55,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  AppColors.primary,
+                                  AppColors.primary.withOpacity(0.8),
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(Dimensions.radiusL),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.primary.withOpacity(0.3),
+                                  blurRadius: 8,
+                                  offset: Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: ElevatedButton(
+                              onPressed: _isLoading ? null : _login,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.transparent,
+                                shadowColor: Colors.transparent,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(Dimensions.radiusL),
+                                ),
+                              ),
+                              child: _isLoading
+                                  ? SizedBox(
+                                      height: 24,
+                                      width: 24,
+                                      child: CircularProgressIndicator(
+                                        color: Colors.white,
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : Text(
+                                      'Sign In',
+                                      style: TextStyle(
+                                        fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.button),
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                ),
-              ),
-              // Back Button
-              Positioned(
-                top: 45,
-                left: 25,
-                child: Container(
-                  decoration: const BoxDecoration(
-                    color: Colors.black54,
-                    shape: BoxShape.circle,
-                  ),
-                  child: ClipOval(
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: () {
-                          Navigator.of(context).pop(
-                            SlideRightRoute(
-                              page: const LandingPage(),
-                            ),
-                          );
-                        },
-                        child: const SizedBox(
-                          width: 40,
-                          height: 40,
-                          child: Icon(
-                            Icons.arrow_back,
+
+                  // Register Link with enhanced styling
+                  Padding(
+                    padding: EdgeInsets.all(Dimensions.paddingL),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Don\'t have an account? ',
+                          style: TextStyle(
                             color: Colors.white,
-                            size: 20,
+                            fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.bodySmall),
                           ),
                         ),
-                      ),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const RegisterPage()),
+                            );
+                          },
+                          child: Text(
+                            'Register',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.bodySmall),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ),
+                ],
               ),
-
-              if (_isDialogShowing)
-                Positioned.fill(
-                  child: Container(color: Colors.black.withOpacity(0.4)),
-                )
-            ],
+            ),
           ),
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    _emailFocusNode.dispose();
+    _passwordFocusNode.dispose();
+    super.dispose();
   }
 }

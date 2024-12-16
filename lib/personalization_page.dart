@@ -7,6 +7,11 @@ import 'goals_page.dart';
 import 'home_page.dart';
 import 'package:linear_progress_bar/linear_progress_bar.dart';
 import 'services/themealdb_service.dart';
+import 'core/constants/colors.dart';
+import 'core/constants/dimensions.dart';
+import 'core/constants/font_sizes.dart';
+import 'core/helpers/responsive_helper.dart';
+
 
 class PersonalizationPage extends StatefulWidget {
   const PersonalizationPage({super.key});
@@ -206,47 +211,193 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Disable system text scaling
     return MediaQuery(
-      data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
+      data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
       child: Scaffold(
-        body: AnimatedContainer(
-          duration: const Duration(milliseconds: 100),
+        body: Container(
+          height: MediaQuery.of(context).size.height,
           decoration: BoxDecoration(
-            image: _backgroundImageUrl != null
-                ? DecorationImage(
-              image: NetworkImage(_backgroundImageUrl!),
-              fit: BoxFit.cover,
-              colorFilter: ColorFilter.mode(
-                Colors.black.withOpacity(0.3),
-                BlendMode.darken,
-              ),
-            )
-                : const DecorationImage(
-              image: AssetImage('assets/images/landing_page.jpg'),
-              fit: BoxFit.cover,
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                AppColors.primary.withOpacity(0.8),
+                AppColors.primary,
+              ],
             ),
           ),
           child: SafeArea(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final size = MediaQuery.of(context).size;
-                final isSmallScreen = size.width < 360;
-                return SingleChildScrollView(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: constraints.maxHeight,
+            child: Stack(
+              children: [
+                // Background Pattern
+                Positioned.fill(
+                  child: Opacity(
+                    opacity: 0.03,
+                    child: Image.asset(
+                      'assets/images/pattern.png',
+                      repeat: ImageRepeat.repeat,
                     ),
-                    child: Stack(
+                  ),
+                ),
+
+                SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      // Progress and Title Section
+                      Container(
+                        padding: EdgeInsets.all(Dimensions.paddingL),
+                        child: Column(
+                          children: [
+                            // Progress Indicator
+                            Container(
+                              padding: EdgeInsets.all(Dimensions.paddingM),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(Dimensions.radiusL),
+                              ),
+                              child: Column(
+                                children: [
+                                  LinearProgressBar(
+                                    maxSteps: 3,
+                                    currentStep: currentStep,
+                                    progressColor: Colors.deepOrange,
+                                    backgroundColor: Colors.white24,
+                                    valueColor: const AlwaysStoppedAnimation<Color>(Colors.deepOrange),
+                                    semanticsLabel: "Progress",
+                                    semanticsValue: "Step ${currentStep + 1} of 3",
+                                    minHeight: 8,
+                                  ),
+                                  SizedBox(height: Dimensions.spacingS),
+                                  Text(
+                                    'Step ${currentStep + 1} of 3',
+                                    style: TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.bodySmall),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            SizedBox(height: Dimensions.spacingXL),
+
+                            // Title Section
+                            Text(
+                              'Tell Us About Yourself',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.heading2),
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SizedBox(height: Dimensions.spacingM),
+                            Text(
+                              'Help us personalize your experience',
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.body),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Form Container
+                      Container(
+                        margin: EdgeInsets.all(Dimensions.paddingL),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(Dimensions.radiusL),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 10,
+                              offset: Offset(0, 5),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          children: [
+                            _buildFormField('Gender', gender, Icons.person_outline, _showGenderDialog),
+                            _buildFormField('Birth Year', birthYear?.toString(), Icons.cake_outlined, _showBirthYearDialog),
+                            _buildFormField('Height', height != null ? '$height cm' : null, Icons.height, _showHeightDialog),
+                            _buildFormField('Weight', weight != null ? '$weight kg' : null, Icons.monitor_weight_outlined, _showWeightDialog),
+                            _buildFormField('Activity Level', activityLevel, Icons.directions_run, _showActivityLevelDialog),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Bottom Buttons
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: Container(
+                    padding: EdgeInsets.all(Dimensions.paddingL),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(Dimensions.radiusXL),
+                        topRight: Radius.circular(Dimensions.radiusXL),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 10,
+                          offset: Offset(0, -5),
+                        ),
+                      ],
+                    ),
+                    child: Row(
                       children: [
-                        _buildMainContent(size, isSmallScreen),
-                        _buildProgressBar(size, isSmallScreen),
-                        _buildBottomButtons(size, isSmallScreen),
+                        Expanded(
+                          child: TextButton(
+                            onPressed: _showSetUpLaterDialog,
+                            style: TextButton.styleFrom(
+                              padding: EdgeInsets.symmetric(vertical: Dimensions.paddingM),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(Dimensions.radiusL),
+                                side: BorderSide(color: Colors.grey.withOpacity(0.5)),
+                              ),
+                            ),
+                            child: Text(
+                              'Set Up Later',
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.button),
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: Dimensions.spacingM),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: _saveData,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.deepOrange,
+                              padding: EdgeInsets.symmetric(vertical: Dimensions.paddingM),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(Dimensions.radiusL),
+                              ),
+                            ),
+                            child: Text(
+                              'Continue',
+                              style: TextStyle(
+                                fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.button),
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),
-                );
-              },
+                ),
+              ],
             ),
           ),
         ),
@@ -254,67 +405,122 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
     );
   }
 
-  Widget _buildMainContent(Size size, bool isSmallScreen) {
-    return MediaQuery(
-      data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
-      child: Padding(
-        padding: EdgeInsets.only(
-          top: size.height * 0.15,
-          bottom: size.height * 0.25,
-          left: size.width * 0.02,
-          right: size.width * 0.02,
-        ),
-        child: Container(
-          width: double.infinity,
-          margin: EdgeInsets.symmetric(
-            horizontal: size.width * 0.02,
-          ),
-          padding: EdgeInsets.symmetric(
-            horizontal: size.width * 0.05,
-            vertical: size.height * 0.04,
-          ),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Colors.white.withOpacity(0.875),
-                const Color.fromARGB(255, 66, 66, 66)
-              ],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
+    Widget _buildFormField(String label, String? value, IconData icon, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.all(Dimensions.paddingL),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: Colors.grey.withOpacity(0.2),
+              width: 1,
             ),
-            borderRadius: BorderRadius.circular(50),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'REVIEW YOUR HEALTH DATA',
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: isSmallScreen ? 20 : 23.5,
-                  fontWeight: FontWeight.w800,
-                  height: 1.0,
-                ),
-                textAlign: TextAlign.center,
-                textHeightBehavior: TextHeightBehavior(applyHeightToFirstAscent: false),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: EdgeInsets.all(Dimensions.paddingS),
+              decoration: BoxDecoration(
+                color: Colors.deepOrange.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(Dimensions.radiusM),
               ),
-              SizedBox(height: size.height * 0.01),
-              Text(
-                'Your data will be used for your personalization.\nPlease review before proceeding',
-                style: TextStyle(
-                  color: Colors.red,
-                  fontSize: isSmallScreen ? 10 : 12.25,
-                  fontWeight: FontWeight.w600,
-                  height: 1.0,
-                ),
-                textAlign: TextAlign.center,
-                textHeightBehavior: TextHeightBehavior(applyHeightToFirstAscent: false),
+              child: Icon(
+                icon,
+                color: Colors.deepOrange,
+                size: Dimensions.iconM,
               ),
-              SizedBox(height: size.height * 0.02),
-              ..._buildFields(size, isSmallScreen),
+            ),
+            SizedBox(width: Dimensions.spacingL),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.bodySmall),
+                    ),
+                  ),
+                  SizedBox(height: Dimensions.spacingXS),
+                  Text(
+                    value ?? 'Not Set',
+                    style: TextStyle(
+                      color: value == null ? Colors.grey : Colors.black,
+                      fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.body),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.chevron_right,
+              color: Colors.grey,
+              size: Dimensions.iconM,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMainContent(Size size, bool isSmallScreen) {
+    return Padding(
+      padding: EdgeInsets.only(
+        top: size.height * 0.15,
+        bottom: size.height * 0.25,
+        left: size.width * 0.02,
+        right: size.width * 0.02,
+      ),
+      child: Container(
+        width: double.infinity,
+        margin: EdgeInsets.symmetric(
+          horizontal: size.width * 0.02,
+        ),
+        padding: EdgeInsets.symmetric(
+          horizontal: Dimensions.paddingL,
+          vertical: Dimensions.paddingXL,
+        ),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Colors.white.withOpacity(0.875),
+              const Color.fromARGB(255, 66, 66, 66)
             ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
           ),
+          borderRadius: BorderRadius.circular(Dimensions.radiusL),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'REVIEW YOUR HEALTH DATA',
+              style: TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.heading3),
+                fontWeight: FontWeight.w800,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: Dimensions.spacingM),
+            Text(
+              'Your data will be used for your personalization.\nPlease review before proceeding',
+              style: TextStyle(
+                color: AppColors.error,
+                fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.bodySmall),
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: Dimensions.spacingL),
+            ..._buildFields(size, isSmallScreen),
+          ],
         ),
       ),
     );
@@ -334,84 +540,63 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
     final maxLabelWidth = size.width * 0.175;
     final maxValueWidth = size.width * 0.175;
 
-    return MediaQuery(
-      data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
-      child: Column(
-        children: [
-          Padding(
-            padding: EdgeInsets.symmetric(
-              vertical: size.height * 0.01,
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  width: maxLabelWidth,
-                  child: MediaQuery(
-                    data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
+    return Column(
+      children: [
+        Padding(
+          padding: EdgeInsets.symmetric(
+            vertical: Dimensions.paddingS,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                width: maxLabelWidth,
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.body),
+                    fontWeight: FontWeight.w700,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Row(
+                children: [
+                  Container(
+                    width: maxValueWidth,
                     child: Text(
-                      label,
+                      value ?? 'Not Set',
                       style: TextStyle(
-                        color: const Color.fromARGB(255, 37, 37, 37),
-                        fontSize: isSmallScreen ? 18 : 21,
-                        fontWeight: FontWeight.w700,
-                        height: 1.0,
+                        color: value == null ? AppColors.error : AppColors.textPrimary,
+                        fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.body),
+                        fontWeight: value == null ? FontWeight.w600 : FontWeight.w800,
                       ),
                       overflow: TextOverflow.ellipsis,
-                      textHeightBehavior: const TextHeightBehavior(
-                        applyHeightToFirstAscent: false,
-                        applyHeightToLastDescent: false,
-                      ),
                     ),
                   ),
-                ),
-                Row(
-                  children: [
-                    Container(
-                      width: maxValueWidth,
-                      child: MediaQuery(
-                        data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
-                        child: Text(
-                          value ?? 'Not Set',
-                          style: TextStyle(
-                            color: value == null ? Colors.red : Colors.black,
-                            fontSize: isSmallScreen ? 16 : 18.5,
-                            fontWeight: value == null ? FontWeight.w600 : FontWeight.w800,
-                            height: 1.0,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                          textHeightBehavior: const TextHeightBehavior(
-                            applyHeightToFirstAscent: false,
-                            applyHeightToLastDescent: false,
-                          ),
-                        ),
-                      ),
+                  SizedBox(width: Dimensions.spacingXS),
+                  IconButton(
+                    icon: Icon(
+                      Icons.edit,
+                      color: AppColors.error,
+                      size: Dimensions.iconM,
                     ),
-                    SizedBox(width: size.width * 0.01),
-                    IconButton(
-                      icon: Icon(
-                        Icons.edit,
-                        color: Colors.red,
-                        size: isSmallScreen ? 20 : 23,
-                      ),
-                      onPressed: onTap,
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                      splashRadius: isSmallScreen ? 15 : 20,
-                    ),
-                  ],
-                ),
-              ],
-            ),
+                    onPressed: onTap,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    splashRadius: isSmallScreen ? 15 : 20,
+                  ),
+                ],
+              ),
+            ],
           ),
-          const Divider(
-            color: Colors.black,
-            height: 3,
-            indent: 0,
-            endIndent: 0,
-          ),
-        ],
-      ),
+        ),
+        Divider(
+          color: AppColors.border,
+          height: 3,
+        ),
+      ],
     );
   }
 

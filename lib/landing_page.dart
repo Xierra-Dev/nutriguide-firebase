@@ -7,6 +7,11 @@ import 'register_page.dart';
 import 'services/themealdb_service.dart';
 import 'services/auth_service.dart';
 import 'permission/notifications_permission.dart';
+import 'core/constants/font_sizes.dart';
+import 'core/constants/dimensions.dart';
+import 'core/constants/colors.dart';
+import 'core/helpers/responsive_helper.dart';
+import 'package:shimmer/shimmer.dart';
 
 class LandingPage extends StatefulWidget {
   const LandingPage({super.key});
@@ -107,6 +112,43 @@ class _LandingPageState extends State<LandingPage> with SingleTickerProviderStat
     }
   }
 
+  Widget _buildShimmerTitle() {
+    return ShaderMask(
+      shaderCallback: (bounds) => LinearGradient(
+        colors: [
+          Colors.white,
+          Colors.white.withOpacity(0.5),
+          Colors.white,
+        ],
+        stops: const [0.0, 0.5, 1.0],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        tileMode: TileMode.clamp,
+      ).createShader(bounds),
+      child: Shimmer.fromColors(
+        period: const Duration(seconds: 3),
+        baseColor: Colors.white,
+        highlightColor: Colors.deepOrange.shade300,
+        child: Text(
+          'NutriGuide',
+          style: TextStyle(
+            fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.heading2 * 1.5),
+            fontWeight: FontWeight.bold,
+            fontFamily: 'Roboto',
+            letterSpacing: 1.5,
+            shadows: [
+              Shadow(
+                color: Colors.black.withOpacity(0.3),
+                offset: const Offset(2, 2),
+                blurRadius: 4,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   // Responsive text style method
   TextStyle _responsiveTextStyle(BuildContext context, {
     required double baseSize,
@@ -124,7 +166,7 @@ class _LandingPageState extends State<LandingPage> with SingleTickerProviderStat
     return TextStyle(
       fontSize: fontSize,
       fontWeight: fontWeight,
-      fontFamily: 'Pacifico',
+      fontFamily: 'Roboto',
       foreground: Paint()
         ..shader = LinearGradient(
           colors: gradientColors ?? [
@@ -147,11 +189,12 @@ class _LandingPageState extends State<LandingPage> with SingleTickerProviderStat
   @override
   Widget build(BuildContext context) {
     return MediaQuery.withClampedTextScaling(
+      maxScaleFactor: 1.0,
       child: Scaffold(
         body: Stack(
           fit: StackFit.expand,
           children: [
-            // Background Image Logic (Unchanged)
+            // Background Image with Enhanced Gradient Overlay
             if (_previousImageUrl != null)
               Container(
                 decoration: BoxDecoration(
@@ -161,6 +204,19 @@ class _LandingPageState extends State<LandingPage> with SingleTickerProviderStat
                     colorFilter: ColorFilter.mode(
                       Colors.black.withOpacity(0.3),
                       BlendMode.darken,
+                    ),
+                  ),
+                ),
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.transparent,
+                        Colors.black.withOpacity(0.7),
+                        Colors.black.withOpacity(0.9),
+                      ],
                     ),
                   ),
                 ),
@@ -180,25 +236,29 @@ class _LandingPageState extends State<LandingPage> with SingleTickerProviderStat
                       ),
                     ),
                   ),
-                ),
-              ),
-
-            if (_currentImageUrl == null && _previousImageUrl == null)
-              Container(
-                decoration: const BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage('assets/images/landing_page.jpg'),
-                    fit: BoxFit.cover,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.transparent,
+                          Colors.black.withOpacity(0.7),
+                          Colors.black.withOpacity(0.9),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ),
 
-            // Main Content
+            // Main Content with Enhanced Design
             SafeArea(
               child: Column(
                 children: [
-                  // Logo/Title Section - Centered at Top
+                  // Logo/Title Section with Enhanced Design
                   Expanded(
+                    flex: 3,
                     child: Center(
                       child: AnimatedOpacity(
                         duration: const Duration(milliseconds: 800),
@@ -206,20 +266,59 @@ class _LandingPageState extends State<LandingPage> with SingleTickerProviderStat
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(
-                              'Plan',
-                              style: _responsiveTextStyle(context, baseSize: 48),
-                              textAlign: TextAlign.center,
+                            // Enhanced App Logo
+                            Container(
+                              padding: EdgeInsets.all(Dimensions.paddingL),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.15),
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.primary.withOpacity(0.3),
+                                    blurRadius: 20,
+                                    spreadRadius: 5,
+                                  ),
+                                ],
+                              ),
+                              child: Image.asset(
+                                'assets/images/logo_NutriGuide.png',
+                                width: Dimensions.iconXXL,
+                                height: Dimensions.iconXXL,
+                                fit: BoxFit.contain,
+                              ),
                             ),
-                            Text(
-                              'Your',
-                              style: _responsiveTextStyle(context, baseSize: 48),
-                              textAlign: TextAlign.center,
-                            ),
-                            Text(
-                              'Food',
-                              style: _responsiveTextStyle(context, baseSize: 48),
-                              textAlign: TextAlign.center,
+                            SizedBox(height: Dimensions.spacingL),
+                            
+                            // Enhanced App Name with Gradient
+                            _buildShimmerTitle(),
+                            SizedBox(height: Dimensions.spacingM),
+                            
+                            // Enhanced Tagline
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: Dimensions.paddingL,
+                                vertical: Dimensions.paddingS,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(0.3),
+                                borderRadius: BorderRadius.circular(Dimensions.radiusL),
+                              ),
+                              child: Text(
+                                'Your Personal Nutrition Assistant',
+                                style: TextStyle(
+                                  fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.body),
+                                  color: Colors.white.withOpacity(0.9),
+                                  letterSpacing: 0.5,
+                                  shadows: [
+                                    Shadow(
+                                      color: Colors.black.withOpacity(0.3),
+                                      offset: const Offset(1, 1),
+                                      blurRadius: 2,
+                                    ),
+                                  ],
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
                             ),
                           ],
                         ),
@@ -227,21 +326,33 @@ class _LandingPageState extends State<LandingPage> with SingleTickerProviderStat
                     ),
                   ),
 
-                  // Buttons and Terms - Fixed at Bottom
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      return Padding(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: constraints.maxWidth < 600
-                              ? 16.0
-                              : constraints.maxWidth * 0.2,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            AnimatedOpacity(
-                              duration: const Duration(milliseconds: 800),
-                              opacity: _isLoading ? 0.0 : 1.0,
+                  // Enhanced Buttons Section
+                  Expanded(
+                    flex: 2,
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: Dimensions.paddingL,
+                        vertical: Dimensions.paddingXL,
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          // Enhanced Register Button
+                          AnimatedOpacity(
+                            duration: const Duration(milliseconds: 800),
+                            opacity: _isLoading ? 0.0 : 1.0,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(Dimensions.radiusL),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.primary.withOpacity(0.3),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
                               child: ElevatedButton(
                                 onPressed: () {
                                   Navigator.push(
@@ -250,23 +361,37 @@ class _LandingPageState extends State<LandingPage> with SingleTickerProviderStat
                                   );
                                 },
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color.fromARGB(255, 255, 106, 0),
-                                  foregroundColor: Colors.black,
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
-                                  textStyle: TextStyle(
-                                    fontSize: 18 * (constraints.maxWidth / 375),
+                                  backgroundColor: AppColors.primary,
+                                  foregroundColor: Colors.white,
+                                  padding: EdgeInsets.symmetric(vertical: Dimensions.paddingL),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(Dimensions.radiusL),
+                                  ),
+                                  elevation: 0,
+                                ),
+                                child: Text(
+                                  'Register',
+                                  style: TextStyle(
+                                    fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.button),
                                     fontWeight: FontWeight.bold,
+                                    letterSpacing: 1,
                                   ),
                                 ),
-                                child: const Text('Register'),
                               ),
                             ),
+                          ),
 
-                            const SizedBox(height: 20),
+                          SizedBox(height: Dimensions.spacingL),
 
-                            AnimatedOpacity(
-                              duration: const Duration(milliseconds: 800),
-                              opacity: _isLoading ? 0.0 : 1.0,
+                          // Enhanced Login Button
+                          AnimatedOpacity(
+                            duration: const Duration(milliseconds: 800),
+                            opacity: _isLoading ? 0.0 : 1.0,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(Dimensions.radiusL),
+                                border: Border.all(color: Colors.white.withOpacity(0.3)),
+                              ),
                               child: ElevatedButton(
                                 onPressed: () {
                                   Navigator.push(
@@ -275,60 +400,52 @@ class _LandingPageState extends State<LandingPage> with SingleTickerProviderStat
                                   );
                                 },
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color.fromARGB(255, 42, 227, 206),
-                                  foregroundColor: Colors.black,
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
-                                  textStyle: TextStyle(
-                                    fontSize: 18 * (constraints.maxWidth / 375),
-                                    fontWeight: FontWeight.bold,
+                                  backgroundColor: Colors.white.withOpacity(0.1),
+                                  foregroundColor: Colors.white,
+                                  padding: EdgeInsets.symmetric(vertical: Dimensions.paddingL),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(Dimensions.radiusL),
+                                  ),
+                                  elevation: 0,
+                                ),
+                                child: Text(
+                                  'Sign In',
+                                  style: TextStyle(
+                                    fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.button),
+                                    fontWeight: FontWeight.w600,
+                                    letterSpacing: 1,
                                   ),
                                 ),
-                                child: const Text('Login'),
                               ),
                             ),
+                          ),
 
-                            // Terms and Privacy Policy
-                            AnimatedOpacity(
-                              duration: const Duration(milliseconds: 800),
-                              opacity: _isLoading ? 0.0 : 1.0,
-                              child: Padding(
-                                padding: const EdgeInsets.only(top: 20, bottom: 20),
-                                child: RichText(
-                                  textAlign: TextAlign.center,
-                                  text: TextSpan(
-                                    text: 'By using NutriGuide you agree to our\n ',
-                                    style: TextStyle(
-                                      fontSize: 14 * (constraints.maxWidth / 375),
-                                      fontWeight: FontWeight.w500,
-                                      color: Colors.red,
-                                    ),
-                                    children: [
-                                      TextSpan(
-                                        text: 'Terms',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.red,
-                                          fontSize: 14 * (constraints.maxWidth / 375),
-                                        ),
-                                      ),
-                                      const TextSpan(text: ' and '),
-                                      TextSpan(
-                                        text: 'Privacy Policy',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.red,
-                                          fontSize: 14 * (constraints.maxWidth / 375),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                          SizedBox(height: Dimensions.spacingXL),
+
+                          // Enhanced Terms and Privacy
+                          AnimatedOpacity(
+                            duration: const Duration(milliseconds: 800),
+                            opacity: _isLoading ? 0.0 : 1.0,
+                            child: Container(
+                              padding: EdgeInsets.all(Dimensions.paddingS),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(0.3),
+                                borderRadius: BorderRadius.circular(Dimensions.radiusM),
+                              ),
+                              child: Text(
+                                'By continuing, you agree to our Terms of Service\nand Privacy Policy',
+                                style: TextStyle(
+                                  fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.bodySmall),
+                                  color: Colors.white.withOpacity(0.7),
+                                  height: 1.5,
                                 ),
+                                textAlign: TextAlign.center,
                               ),
                             ),
-                          ],
-                        ),
-                      );
-                    },
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ],
               ),

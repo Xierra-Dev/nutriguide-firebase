@@ -5,6 +5,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:nutriguide/landing_page.dart';
 import 'package:nutriguide/login_page.dart';
 import 'services/auth_service.dart';
+import 'core/constants/colors.dart';
+import 'core/constants/dimensions.dart';
+import 'core/constants/font_sizes.dart';
+import 'core/helpers/responsive_helper.dart';
 
 class EmailVerificationPage extends StatefulWidget {
   final String email;
@@ -105,16 +109,155 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
             'emailVerified': true
           });
 
-          // Navigate to next screen
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const LoginPage()),
-          );
+          // Show success dialog
+          _showVerificationSuccessDialog();  // Tambahkan ini
         }
       } else {
         timer.cancel();
         // Handle timeout - maybe show a dialog or option to resend
       }
     });
+  }
+
+  void _showVerificationSuccessDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return WillPopScope(
+          onWillPop: _onWillPop,
+          child: Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(Dimensions.radiusL),
+            ),
+            child: Container(
+              padding: EdgeInsets.all(Dimensions.paddingL),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(Dimensions.radiusL),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Success Icon with Animation
+                  TweenAnimationBuilder(
+                    duration: Duration(milliseconds: 800),
+                    tween: Tween<double>(begin: 0, end: 1),
+                    builder: (context, double value, child) {
+                      return Transform.scale(
+                        scale: value,
+                        child: Container(
+                          width: 100,
+                          height: 100,
+                          decoration: BoxDecoration(
+                            color: AppColors.success.withOpacity(0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.check_circle,
+                            color: AppColors.success,
+                            size: Dimensions.iconXL,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+
+                  SizedBox(height: Dimensions.spacingL),
+
+                  // Success Title with Animation
+                  FadeTransition(
+                    opacity: CurvedAnimation(
+                      parent: ModalRoute.of(context)!.animation!,
+                      curve: Interval(0.5, 1.0),
+                    ),
+                    child: Text(
+                      'Email Verified!',
+                      style: TextStyle(
+                        color: AppColors.success,
+                        fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.heading3),
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+
+                  SizedBox(height: Dimensions.spacingM),
+
+                  // Success Message
+                  Text(
+                    'Your email has been successfully verified.\nYou can now login to your account.',
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.body),
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+
+                  SizedBox(height: Dimensions.spacingXL),
+
+                  // Login Button with Animation
+                  SlideTransition(
+                    position: Tween<Offset>(
+                      begin: Offset(0, 0.5),
+                      end: Offset.zero,
+                    ).animate(CurvedAnimation(
+                      parent: ModalRoute.of(context)!.animation!,
+                      curve: Interval(0.5, 1.0, curve: Curves.easeOut),
+                    )),
+                    child: Container(
+                      width: double.infinity,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            AppColors.primary,
+                            AppColors.primary.withOpacity(0.8),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(Dimensions.radiusL),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).pushAndRemoveUntil(
+                            MaterialPageRoute(
+                              builder: (context) => const LoginPage(),
+                            ),
+                            (route) => false,
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(Dimensions.radiusL),
+                          ),
+                        ),
+                        child: Text(
+                          'Login Now',
+                          style: TextStyle(
+                            fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.button),
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   Future<void> resendVerificationEmail() async {
@@ -162,7 +305,32 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
     }
   }
 
-  @override
+  void checkEmailVerified() async {
+    await FirebaseAuth.instance.currentUser?.reload();
+    setState(() {
+      isEmailVerified = _authService.isEmailVerified();
+    });
+    
+    if (isEmailVerified) {
+      timer?.cancel();
+      
+      // Update Firestore
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(FirebaseAuth.instance.currentUser!.uid)
+          .update({
+        'emailVerified': true
+      });
+
+      // Show success dialog
+      _showVerificationSuccessDialog();
+    }
+  }
+
+  Future<bool> _onWillPop() async {
+    return false; // Prevents dialog from being dismissed with back button
+  }
+
   @override
   Widget build(BuildContext context) {
     return MediaQuery(

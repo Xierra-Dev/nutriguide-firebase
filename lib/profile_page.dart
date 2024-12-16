@@ -337,24 +337,101 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
   }
 
   Widget _buildProfileImage() {
-  return userData?['profilePictureUrl'] != null
-      ? Image.network(
-          userData!['profilePictureUrl'],
-          fit: BoxFit.cover,
-          loadingBuilder: (context, child, loadingProgress) {
-            if (loadingProgress == null) return child;
-            return Center(
-              child: CircularProgressIndicator(
-                color: AppColors.primary,
-              ),
-            );
-          },
-          errorBuilder: (context, error, stackTrace) {
-            return Icon(Icons.person, size: Dimensions.iconXL, color: AppColors.text);
-          },
-        )
-      : Icon(Icons.person, size: Dimensions.iconXL, color: AppColors.text);
-}
+    return GestureDetector(
+      onTap: () {
+        if (userData?['profilePictureUrl'] != null) {
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return Dialog(
+                backgroundColor: Colors.transparent,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Stack(
+                      alignment: Alignment.topRight,
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(Dimensions.radiusM),
+                          child: Image.network(
+                            userData!['profilePictureUrl'],
+                            fit: BoxFit.cover,
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return Container(
+                                width: MediaQuery.of(context).size.width * 0.8,
+                                height: MediaQuery.of(context).size.width * 0.8,
+                                decoration: BoxDecoration(
+                                  color: AppColors.surface,
+                                  borderRadius: BorderRadius.circular(Dimensions.radiusM),
+                                ),
+                                child: Center(
+                                  child: CircularProgressIndicator(
+                                    color: AppColors.primary,
+                                  ),
+                                ),
+                              );
+                            },
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                width: MediaQuery.of(context).size.width * 0.8,
+                                height: MediaQuery.of(context).size.width * 0.8,
+                                decoration: BoxDecoration(
+                                  color: AppColors.surface,
+                                  borderRadius: BorderRadius.circular(Dimensions.radiusM),
+                                ),
+                                child: Icon(
+                                  Icons.error_outline,
+                                  size: Dimensions.iconXL,
+                                  color: AppColors.error,
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        IconButton(
+                          icon: Container(
+                            padding: EdgeInsets.all(Dimensions.paddingXS),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.5),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.close,
+                              color: AppColors.surface,
+                              size: Dimensions.iconM,
+                            ),
+                          ),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
+        }
+      },
+      child: userData?['profilePictureUrl'] != null
+          ? Image.network(
+              userData!['profilePictureUrl'],
+              fit: BoxFit.cover,
+              loadingBuilder: (context, child, loadingProgress) {
+                if (loadingProgress == null) return child;
+                return Center(
+                  child: CircularProgressIndicator(
+                    color: AppColors.primary,
+                  ),
+                );
+              },
+              errorBuilder: (context, error, stackTrace) {
+                return Icon(Icons.person, size: Dimensions.iconXL, color: AppColors.text);
+              },
+            )
+          : Icon(Icons.person, size: Dimensions.iconXL, color: AppColors.text),
+    );
+  }
 
   Widget _buildInsightsTab() {
     return SingleChildScrollView(

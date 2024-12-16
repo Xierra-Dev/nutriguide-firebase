@@ -5,6 +5,7 @@ class AppColors {
   static const Color background = Colors.black;
   static const Color surface = Color(0xFF1E1E1E);
   static const Color text = Colors.white;
+  static const Color textPrimary = Color(0xFF000000); 
   static const Color textSecondary = Colors.white70;
   static const Color accent = Color.fromARGB(255, 255, 201, 32);
   static const Color error = Colors.red;
