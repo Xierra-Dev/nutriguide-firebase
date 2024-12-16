@@ -277,7 +277,6 @@ class _GoalsPageState extends State<GoalsPage> {
   ];
 
   @override
-  @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final isSmallScreen = size.width < 360;
@@ -354,7 +353,7 @@ class _GoalsPageState extends State<GoalsPage> {
   Widget _buildMainContent(Size size, bool isSmallScreen) {
     return Padding(
       padding: EdgeInsets.only(
-        top: size.height * 0.15,
+        top: size.height * 0.225,
         bottom: size.height * 0.25,
         left: size.width * 0.02,
         right: size.width * 0.02,
@@ -453,7 +452,7 @@ class _GoalsPageState extends State<GoalsPage> {
 
   Widget _buildProgressBar(Size size, bool isSmallScreen) {
     return Positioned(
-      bottom: size.height * 0.225,
+      bottom: size.height * 0.265,
       left: 0,
       right: 0,
       child: Padding(

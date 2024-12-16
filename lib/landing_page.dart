@@ -332,7 +332,7 @@ class _LandingPageState extends State<LandingPage> with SingleTickerProviderStat
                     child: Padding(
                       padding: EdgeInsets.symmetric(
                         horizontal: Dimensions.paddingL,
-                        vertical: Dimensions.paddingXL,
+                        vertical: Dimensions.paddingXS,
                       ),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.end,

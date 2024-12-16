@@ -35,6 +35,13 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
     _loadUserData();
   }
 
+  String _truncateText(String? text, {int maxLength = 14}) {
+    if (text == null) return 'Not Set';
+    return text.length > maxLength
+        ? '${text.substring(0, maxLength)}..'
+        : text;
+  }
+
   Future<void> _loadUserData() async {
     setState(() => _isLoading = true);
     try {
@@ -331,8 +338,8 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
   }
 
   Widget _buildField(String label, String? value, VoidCallback onTap, Size size, bool isSmallScreen) {
-    final maxLabelWidth = size.width * 0.175;
-    final maxValueWidth = size.width * 0.175;
+    // Truncate the value
+    String displayValue = _truncateText(value);
 
     return MediaQuery(
       data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
@@ -346,7 +353,6 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Container(
-                  width: maxLabelWidth,
                   child: MediaQuery(
                     data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
                     child: Text(
@@ -368,11 +374,10 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
                 Row(
                   children: [
                     Container(
-                      width: maxValueWidth,
                       child: MediaQuery(
-                        data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
+                        data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
                         child: Text(
-                          value ?? 'Not Set',
+                          displayValue,
                           style: TextStyle(
                             color: value == null ? Colors.red : Colors.black,
                             fontSize: isSmallScreen ? 16 : 18.5,
