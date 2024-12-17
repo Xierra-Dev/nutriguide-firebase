@@ -29,13 +29,16 @@ class LoginPage extends StatefulWidget {
   _LoginPageState createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final AuthService _authService = AuthService();
   final FocusNode _emailFocusNode = FocusNode();
   final FocusNode _passwordFocusNode = FocusNode();
+
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
 
   bool _isPasswordVisible = false;
   bool _isEmailEmpty = true;
@@ -64,6 +67,21 @@ class _LoginPageState extends State<LoginPage> {
         _isPasswordFocused = _passwordFocusNode.hasFocus;
       });
     });
+
+    // Initialize animation controller
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    );
+
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeIn,
+      ),
+    );
+
+    _animationController.forward();
   }
 
   void _updateEmailEmpty() {
@@ -102,7 +120,7 @@ class _LoginPageState extends State<LoginPage> {
     }
 
     return ErrorDetails(
-      title: 'AN ERROR OCCUR WHEN LOGGING IN TO YOUR ACCOUNT',
+      title: 'AN ERROR OCCURRED',
       message: 'Please try again later',
       imagePath: 'assets/images/error-occur.png',
     );
@@ -135,7 +153,7 @@ class _LoginPageState extends State<LoginPage> {
       context,
       MaterialPageRoute(
         builder: (context) =>
-        isFirstTime ? const PersonalizationPage() : const HomePage(),
+            isFirstTime ? const PersonalizationPage() : const HomePage(),
       ),
     );
   }
@@ -187,12 +205,7 @@ class _LoginPageState extends State<LoginPage> {
     String? title,
     String? specificImage,
   }) {
-    if (isSuccess) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const HomePage()),
-      );
-      return;
-    }
+    if (_isDialogShowing) return;
 
     setState(() {
       _isDialogShowing = true;
@@ -207,6 +220,7 @@ class _LoginPageState extends State<LoginPage> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(Dimensions.radiusL),
           ),
+          backgroundColor: AppColors.surface,
           child: Container(
             padding: EdgeInsets.all(Dimensions.paddingL),
             child: Column(
@@ -222,7 +236,8 @@ class _LoginPageState extends State<LoginPage> {
                   title ?? 'AN ERROR OCCURRED',
                   style: TextStyle(
                     color: AppColors.error,
-                    fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.body),
+                    fontSize: ResponsiveHelper.getAdaptiveTextSize(
+                        context, FontSizes.body),
                     fontWeight: FontWeight.bold,
                   ),
                   textAlign: TextAlign.center,
@@ -232,7 +247,8 @@ class _LoginPageState extends State<LoginPage> {
                   Text(
                     message,
                     style: TextStyle(
-                      fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.bodySmall),
+                      fontSize: ResponsiveHelper.getAdaptiveTextSize(
+                          context, FontSizes.bodySmall),
                       color: AppColors.textSecondary,
                     ),
                     textAlign: TextAlign.center,
@@ -251,7 +267,8 @@ class _LoginPageState extends State<LoginPage> {
                     'Try Again',
                     style: TextStyle(
                       color: AppColors.surface,
-                      fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.button),
+                      fontSize: ResponsiveHelper.getAdaptiveTextSize(
+                          context, FontSizes.button),
                     ),
                   ),
                 ),
@@ -281,249 +298,301 @@ class _LoginPageState extends State<LoginPage> {
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                AppColors.primary.withOpacity(0.8),
-                AppColors.primary,
+                AppColors.surface,
+                AppColors.background,
               ],
             ),
           ),
           child: SafeArea(
             child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  // Logo and Welcome Text
-                  Container(
-                    padding: EdgeInsets.all(Dimensions.paddingXL),
-                    child: Column(
-                      children: [
-                        // App Logo
-                        Container(
-                          padding: EdgeInsets.all(Dimensions.paddingL),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.15),
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
-                                blurRadius: 20,
-                                spreadRadius: 5,
-                              ),
-                            ],
-                          ),
-                          child: Image.asset(
-                            'assets/images/logo_NutriGuide.png',
-                            width: 80,
-                            height: 80,
-                          ),
-                        ),
-                        SizedBox(height: Dimensions.spacingL),
-                        // Welcome Text
-                        Text(
-                          'Welcome Back!',
-                          style: TextStyle(
-                            fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.heading1),
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                            shadows: [
-                              Shadow(
-                                offset: Offset(0, 2),
-                                blurRadius: 4,
-                                color: Colors.black.withOpacity(0.25),
-                              ),
-                            ],
-                          ),
-                        ),
-                        SizedBox(height: Dimensions.spacingM),
-                        Text(
-                          'Sign in to continue your nutrition journey',
-                          style: TextStyle(
-                            fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.body),
-                            color: Colors.white.withOpacity(0.9),
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // Login Form Container
-                  Container(
-                    margin: EdgeInsets.symmetric(horizontal: Dimensions.paddingL),
-                    padding: EdgeInsets.all(Dimensions.paddingL),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(Dimensions.radiusL),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 20,
-                          spreadRadius: 5,
-                        ),
-                      ],
-                    ),
-                    child: Form(
-                      key: _formKey,
+              child: FadeTransition(
+                opacity: _fadeAnimation,
+                child: Column(
+                  children: [
+                    // Logo and Welcome Text
+                    Container(
+                      padding: EdgeInsets.all(Dimensions.paddingXL),
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          // Email Field with enhanced styling
-                          TextFormField(
-                            controller: _emailController,
-                            focusNode: _emailFocusNode,
-                            decoration: InputDecoration(
-                              labelText: 'Email',
-                              hintText: 'Enter your email',
-                              prefixIcon: Icon(
-                                Icons.email_outlined,
-                                color: AppColors.primary,
-                                size: Dimensions.iconM,
-                              ),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(Dimensions.radiusM),
-                                borderSide: BorderSide(color: AppColors.border),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(Dimensions.radiusM),
-                                borderSide: BorderSide(color: AppColors.border),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(Dimensions.radiusM),
-                                borderSide: BorderSide(color: AppColors.primary, width: 2),
-                              ),
-                              filled: true,
-                              fillColor: Colors.grey[50],
-                            ),
-                          ),
-
-                          SizedBox(height: Dimensions.spacingL),
-
-                          // Password Field with enhanced styling
-                          TextFormField(
-                            controller: _passwordController,
-                            focusNode: _passwordFocusNode,
-                            obscureText: !_isPasswordVisible,
-                            decoration: InputDecoration(
-                              labelText: 'Password',
-                              hintText: 'Enter your password',
-                              prefixIcon: Icon(
-                                Icons.lock_outline,
-                                color: AppColors.primary,
-                                size: Dimensions.iconM,
-                              ),
-                              suffixIcon: IconButton(
-                                icon: Icon(
-                                  _isPasswordVisible ? Icons.visibility_off : Icons.visibility,
-                                  color: AppColors.primary,
-                                ),
-                                onPressed: () {
-                                  setState(() {
-                                    _isPasswordVisible = !_isPasswordVisible;
-                                  });
-                                },
-                              ),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(Dimensions.radiusM),
-                                borderSide: BorderSide(color: AppColors.border),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(Dimensions.radiusM),
-                                borderSide: BorderSide(color: AppColors.border),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(Dimensions.radiusM),
-                                borderSide: BorderSide(color: AppColors.primary, width: 2),
-                              ),
-                              filled: true,
-                              fillColor: Colors.grey[50],
-                            ),
-                          ),
-
-                          SizedBox(height: Dimensions.spacingXL),
-
-                          // Enhanced Login Button
+                          // App Logo with glow effect
                           Container(
-                            height: 55,
+                            padding: EdgeInsets.all(Dimensions.paddingL),
                             decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  AppColors.primary,
-                                  AppColors.primary.withOpacity(0.8),
-                                ],
-                              ),
-                              borderRadius: BorderRadius.circular(Dimensions.radiusL),
+                              color: AppColors.primary.withOpacity(0.1),
+                              shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppColors.primary.withOpacity(0.3),
-                                  blurRadius: 8,
-                                  offset: Offset(0, 4),
+                                  color: AppColors.primary.withOpacity(0.2),
+                                  blurRadius: 30,
+                                  spreadRadius: 5,
                                 ),
                               ],
                             ),
-                            child: ElevatedButton(
-                              onPressed: _isLoading ? null : _login,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.transparent,
-                                shadowColor: Colors.transparent,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(Dimensions.radiusL),
+                            child: Image.asset(
+                              'assets/images/logo_NutriGuide.png',
+                              width: 80,
+                              height: 80,
+                            ),
+                          ),
+                          SizedBox(height: Dimensions.spacingL),
+                          // Welcome Text
+                          Text(
+                            'Welcome Back!',
+                            style: TextStyle(
+                              fontSize: ResponsiveHelper.getAdaptiveTextSize(
+                                  context, FontSizes.heading1),
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              shadows: [
+                                Shadow(
+                                  offset: const Offset(0, 2),
+                                  blurRadius: 4,
+                                  color: Colors.black.withOpacity(0.25),
+                                ),
+                              ],
+                            ),
+                          ),
+                          SizedBox(height: Dimensions.spacingM),
+                          Text(
+                            'Sign in to continue your nutrition journey',
+                            style: TextStyle(
+                              fontSize: ResponsiveHelper.getAdaptiveTextSize(
+                                  context, FontSizes.body),
+                              color: Colors.white.withOpacity(0.9),
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Login Form Container with frosted glass effect
+                    Container(
+                      margin:
+                          EdgeInsets.symmetric(horizontal: Dimensions.paddingL),
+                      padding: EdgeInsets.all(Dimensions.paddingL),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface.withOpacity(0.9),
+                        borderRadius:
+                            BorderRadius.circular(Dimensions.radiusL),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.1),
+                          width: 1,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.2),
+                            blurRadius: 20,
+                            spreadRadius: 5,
+                          ),
+                        ],
+                      ),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            // Email Field
+                            TextFormField(
+                              controller: _emailController,
+                              focusNode: _emailFocusNode,
+                              style: const TextStyle(color: Colors.white),
+                              decoration: InputDecoration(
+                                labelText: 'Email',
+                                labelStyle: TextStyle(
+                                  color: _isEmailFocused
+                                      ? AppColors.primary
+                                      : Colors.white70,
+                                ),
+                                hintText: 'Enter your email',
+                                hintStyle:
+                                    TextStyle(color: Colors.white38),
+                                prefixIcon: Icon(
+                                  Icons.email_outlined,
+                                  color: _isEmailFocused
+                                      ? AppColors.primary
+                                      : Colors.white70,
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(
+                                      Dimensions.radiusM),
+                                  borderSide:
+                                      BorderSide(color: Colors.white24),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(
+                                      Dimensions.radiusM),
+                                  borderSide: BorderSide(
+                                      color: AppColors.primary, width: 2),
+                                ),
+                                filled: true,
+                                fillColor:
+                                    AppColors.surface.withOpacity(0.5),
+                              ),
+                            ),
+
+                            SizedBox(height: Dimensions.spacingL),
+
+                            // Password Field
+                            TextFormField(
+                              controller: _passwordController,
+                              focusNode: _passwordFocusNode,
+                              obscureText: !_isPasswordVisible,
+                              style: const TextStyle(color: Colors.white),
+                              decoration: InputDecoration(
+                                labelText: 'Password',
+                                labelStyle: TextStyle(
+                                  color: _isPasswordFocused
+                                      ? AppColors.primary
+                                      : Colors.white70,
+                                ),
+                                hintText: 'Enter your password',
+                                hintStyle:
+                                    TextStyle(color: Colors.white38),
+                                prefixIcon: Icon(
+                                  Icons.lock_outline,
+                                  color: _isPasswordFocused
+                                      ? AppColors.primary
+                                      : Colors.white70,
+                                ),
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    _isPasswordVisible
+                                        ? Icons.visibility_off
+                                        : Icons.visibility,
+                                    color: _isPasswordFocused
+                                        ? AppColors.primary
+                                        : Colors.white70,
+                                  ),
+                                  onPressed: () {
+                                    setState(() {
+                                      _isPasswordVisible =
+                                          !_isPasswordVisible;
+                                    });
+                                  },
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(
+                                      Dimensions.radiusM),
+                                  borderSide:
+                                      BorderSide(color: Colors.white24),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(
+                                      Dimensions.radiusM),
+                                  borderSide: BorderSide(
+                                      color: AppColors.primary, width: 2),
+                                ),
+                                filled: true,
+                                fillColor:
+                                    AppColors.surface.withOpacity(0.5),
+                              ),
+                            ),
+
+                            SizedBox(height: Dimensions.spacingXL),
+
+                            // Enhanced Login Button with gradient
+                            Container(
+                              height: 55,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    AppColors.primary,
+                                    const Color(0xFFFF6E40),
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(
+                                    Dimensions.radiusL),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.primary
+                                        .withOpacity(0.3),
+                                    blurRadius: 12,
+                                    offset: const Offset(0, 6),
+                                  ),
+                                ],
+                              ),
+                              child: ElevatedButton(
+                                onPressed: _isLoading ? null : _login,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.transparent,
+                                  shadowColor: Colors.transparent,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(
+                                        Dimensions.radiusL),
+                                  ),
+                                ),
+                                child: AnimatedSwitcher(
+                                  duration:
+                                      const Duration(milliseconds: 200),
+                                  child: _isLoading
+                                      ? const SizedBox(
+                                          height: 24,
+                                          width: 24,
+                                          child:
+                                              CircularProgressIndicator(
+                                            color: Colors.white,
+                                            strokeWidth: 2,
+                                          ),
+                                        )
+                                      : Text(
+                                          'Sign In',
+                                          style: TextStyle(
+                                            fontSize: ResponsiveHelper
+                                                .getAdaptiveTextSize(
+                                                    context,
+                                                    FontSizes.button),
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                          ),
+                                        ),
                                 ),
                               ),
-                              child: _isLoading
-                                  ? SizedBox(
-                                      height: 24,
-                                      width: 24,
-                                      child: CircularProgressIndicator(
-                                        color: Colors.white,
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                  : Text(
-                                      'Sign In',
-                                      style: TextStyle(
-                                        fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.button),
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
-                                      ),
-                                    ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    // Register Link
+                    Padding(
+                      padding: EdgeInsets.all(Dimensions.paddingL),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Don\'t have an account? ',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: ResponsiveHelper.getAdaptiveTextSize(
+                                  context, FontSizes.bodySmall),
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        const RegisterPage()),
+                              );
+                            },
+                            child: Text(
+                              'Register',
+                              style: TextStyle(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.bold,
+                                fontSize:
+                                    ResponsiveHelper.getAdaptiveTextSize(
+                                        context, FontSizes.bodySmall),
+                              ),
                             ),
                           ),
                         ],
                       ),
                     ),
-                  ),
-
-                  // Register Link with enhanced styling
-                  Padding(
-                    padding: EdgeInsets.all(Dimensions.paddingL),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Don\'t have an account? ',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.bodySmall),
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => const RegisterPage()),
-                            );
-                          },
-                          child: Text(
-                            'Register',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.bodySmall),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -538,6 +607,7 @@ class _LoginPageState extends State<LoginPage> {
     _passwordController.dispose();
     _emailFocusNode.dispose();
     _passwordFocusNode.dispose();
+    _animationController.dispose();
     super.dispose();
   }
 }
