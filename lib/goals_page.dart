@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-import 'services/firestore_service.dart';
-import 'allergies_page.dart';
-import 'package:linear_progress_bar/linear_progress_bar.dart';
-import 'home_page.dart';
-import 'personalization_page.dart';
-import 'services/themealdb_service.dart';
+import 'package:nutriguide/services/firestore_service.dart';
+import 'package:nutriguide/core/constants/colors.dart';
+import 'package:nutriguide/core/constants/dimensions.dart';
+import 'package:nutriguide/core/constants/font_sizes.dart';
+import 'package:nutriguide/core/helpers/responsive_helper.dart';
+import 'package:nutriguide/allergies_page.dart';
+import 'package:nutriguide/personalization_page.dart';
+import 'package:nutriguide/home_page.dart';
 
 class GoalsPage extends StatefulWidget {
   const GoalsPage({super.key});
@@ -13,112 +15,413 @@ class GoalsPage extends StatefulWidget {
   _GoalsPageState createState() => _GoalsPageState();
 }
 
-class SlideRightRoute extends PageRouteBuilder {
-  final Widget page;
-
-  SlideRightRoute({required this.page})
-      : super(
-    pageBuilder: (
-        BuildContext context,
-        Animation<double> primaryAnimation,
-        Animation<double> secondaryAnimation,
-        ) => page,
-    transitionsBuilder: (
-        BuildContext context,
-        Animation<double> primaryAnimation,
-        Animation<double> secondaryAnimation,
-        Widget child,
-        ) {
-      return SlideTransition(
-        position: Tween<Offset>(
-          begin: const Offset(-1.0, 0.0),
-          end: Offset.zero,
-        ).animate(CurvedAnimation(
-          parent: primaryAnimation,
-          curve: Curves.easeOutQuad,
-        ),),
-        child: child,
-      );
-    },
-  );
-}
-
-class SlideLeftRoute extends PageRouteBuilder {
-  final Widget page;
-
-  SlideLeftRoute({required this.page})
-      : super(
-    pageBuilder: (
-        BuildContext context,
-        Animation<double> primaryAnimation,
-        Animation<double> secondaryAnimation,
-        ) =>
-    page,
-    transitionsBuilder: (
-        BuildContext context,
-        Animation<double> primaryAnimation,
-        Animation<double> secondaryAnimation,
-        Widget child,
-        ) {
-      return SlideTransition(
-        position: Tween<Offset>(
-          begin: const Offset(1.0, 0.0),
-          end: Offset.zero,
-        ).animate(CurvedAnimation(
-          parent: primaryAnimation,
-          curve: Curves.easeOutQuad,
-        )),
-        child: child,
-      );
-    },
-  );
-}
-
-class _GoalsPageState extends State<GoalsPage> {
+class _GoalsPageState extends State<GoalsPage> with SingleTickerProviderStateMixin {
   final FirestoreService _firestoreService = FirestoreService();
-  final TheMealDBService _mealService = TheMealDBService();
-  String? _backgroundImageUrl;
-  Set<String> selectedGoals = {};
+  final Set<String> selectedGoals = <String>{};
   bool _isLoading = false;
-  int currentStep = 1;
+  int currentStep = 2; // Changed to 2 since this is the second step
+
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+
+  final List<Map<String, dynamic>> goals = [
+    {
+      'title': 'Weight Less',
+      'icon': Icons.trending_down_outlined,
+      'description': 'Achieve healthy weight reduction',
+    },
+    {
+      'title': 'Get Healthier',
+      'icon': Icons.favorite_outline,
+      'description': 'Improve overall health and wellness',
+    },
+    {
+      'title': 'Look Better',
+      'icon': Icons.person_outline,
+      'description': 'Enhance physical appearance',
+    },
+    {
+      'title': 'Reduce Stress',
+      'icon': Icons.spa_outlined,
+      'description': 'Manage stress through better nutrition',
+    },
+    {
+      'title': 'Sleep Better',
+      'icon': Icons.nightlight_outlined,
+      'description': 'Improve sleep quality naturally',
+    },
+  ];
 
   @override
   void initState() {
     super.initState();
-    _loadRandomMealImage();
-    _loadGoals();
+    _setupAnimations();
   }
 
-  Future<void> _loadGoals() async {
-    try {
-      final userGoals = await _firestoreService.getUserGoals();
-      setState(() {
-        selectedGoals = Set.from(userGoals);
-      });
-    } catch (e) {
-      print('Error loading goals: $e');
-      setState(() {});
-    }
+  void _setupAnimations() {
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    );
+
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeIn,
+      ),
+    );
+
+    _animationController.forward();
   }
 
-  Future<void> _loadRandomMealImage() async {
-    try {
-      final imageUrl = await _mealService.getRandomMealImage();
-      if (mounted) {
+  @override
+  Widget build(BuildContext context) {
+    return WillPopScope(
+      onWillPop: () async => false,
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        body: FadeTransition(
+          opacity: _fadeAnimation,
+          child: Stack(
+            children: [
+              // Background gradient
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      AppColors.surface,
+                      AppColors.background,
+                    ],
+                  ),
+                ),
+              ),
+
+              // Content
+              SafeArea(
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      _buildHeader(),
+                      _buildGoalsContainer(),
+                      _buildBottomButtons(),
+                    ],
+                  ),
+                ),
+              ),
+
+              // Back button
+              _buildBackButton(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Container(
+      padding: EdgeInsets.all(Dimensions.paddingXL),
+      child: Column(
+        children: [
+          // Logo with glow effect (similar to personalization page)
+          Container(
+            padding: EdgeInsets.all(Dimensions.paddingL),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.1),
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withOpacity(0.2),
+                  blurRadius: 30,
+                  spreadRadius: 5,
+                ),
+              ],
+            ),
+            child: Icon(
+              Icons.flag_outlined,  // Changed to represent goals
+              size: 60,
+              color: AppColors.primary,
+            ),
+          ),
+          SizedBox(height: Dimensions.spacingL),
+          // Progress indicator
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(
+              3,
+              (index) => Container(
+                margin: EdgeInsets.symmetric(horizontal: 4),
+                width: 12,
+                height: 12,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: index + 1 == currentStep ? AppColors.primary : Colors.white24,
+                ),
+              ),
+            ),
+          ),
+          SizedBox(height: Dimensions.spacingL),
+          Text(
+            'Set Your Goals',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.heading2),
+              fontWeight: FontWeight.bold,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: Dimensions.spacingM),
+          Text(
+            'Select at least 1 goal to continue.',
+            style: TextStyle(
+              color: Colors.white70,
+              fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.body),
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGoalsContainer() {
+    return Container(
+      margin: EdgeInsets.all(Dimensions.paddingL),
+      decoration: BoxDecoration(
+        color: AppColors.surface.withOpacity(0.9),
+        borderRadius: BorderRadius.circular(Dimensions.radiusL),
+        border: Border.all(
+          color: Colors.white.withOpacity(0.1),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 20,
+            spreadRadius: 5,
+          ),
+        ],
+      ),
+      child: Column(
+        children: goals.map((goal) => _buildGoalOption(goal)).toList(),
+      ),
+    );
+  }
+
+  Widget _buildGoalOption(Map<String, dynamic> goal) {
+    final bool isSelected = selectedGoals.contains(goal['title']);
+    
+    return InkWell(
+      onTap: () {
         setState(() {
-          _backgroundImageUrl = imageUrl;
-          _isLoading = false;
+          if (isSelected) {
+            selectedGoals.remove(goal['title']);
+          } else {
+            selectedGoals.add(goal['title']);
+          }
         });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
+      },
+      child: Container(
+        padding: EdgeInsets.all(Dimensions.paddingL),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: Colors.white.withOpacity(0.1),
+              width: 1,
+            ),
+          ),
+        ),
+        child: Row(
+          children: [
+            // Icon container with gradient (similar to personalization page)
+            Container(
+              padding: EdgeInsets.all(Dimensions.paddingS),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    isSelected ? AppColors.primary : Colors.white24,
+                    isSelected ? AppColors.primary.withOpacity(0.7) : Colors.white12,
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(Dimensions.radiusM),
+              ),
+              child: Icon(
+                goal['icon'] as IconData,
+                color: Colors.white,
+                size: Dimensions.iconM,
+              ),
+            ),
+            SizedBox(width: Dimensions.spacingL),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    goal['title'] as String,
+                    style: TextStyle(
+                      color: isSelected ? AppColors.primary : Colors.white,
+                      fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.body),
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    ),
+                  ),
+                  SizedBox(height: Dimensions.spacingXS),
+                  Text(
+                    goal['description'] as String,
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.bodySmall),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (isSelected)
+              Container(
+                padding: EdgeInsets.all(Dimensions.paddingXS),
+                decoration: BoxDecoration(
+                  color: AppColors.primary,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.check,
+                  color: Colors.white,
+                  size: Dimensions.iconS,
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
   }
 
+    Widget _buildBottomButtons() {
+    final bool hasSelectedGoals = selectedGoals.isNotEmpty;
+
+    return Container(
+      padding: EdgeInsets.all(Dimensions.paddingL),
+      child: Column(
+        children: [
+          // Continue Button with gradient
+          Container(
+            height: 55,
+            decoration: BoxDecoration(
+              gradient: hasSelectedGoals
+                  ? LinearGradient(
+                      colors: [
+                        AppColors.primary,
+                        Color(0xFFFF6E40),
+                      ],
+                    )
+                  : LinearGradient(
+                      colors: [
+                        Colors.grey[800]!,
+                        Colors.grey[700]!,
+                      ],
+                    ),
+              borderRadius: BorderRadius.circular(Dimensions.radiusL),
+              boxShadow: hasSelectedGoals
+                  ? [
+                      BoxShadow(
+                        color: AppColors.primary.withOpacity(0.3),
+                        blurRadius: 12,
+                        offset: Offset(0, 6),
+                      ),
+                    ]
+                  : [],
+            ),
+            child: ElevatedButton(
+              onPressed: hasSelectedGoals ? _saveGoals : null,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.transparent,
+                shadowColor: Colors.transparent,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(Dimensions.radiusL),
+                ),
+                disabledBackgroundColor: Colors.transparent,
+              ),
+              child: AnimatedSwitcher(
+                duration: Duration(milliseconds: 200),
+                child: _isLoading
+                    ? SizedBox(
+                        height: 24,
+                        width: 24,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : Text(
+                        'Continue',
+                        style: TextStyle(
+                          fontSize: ResponsiveHelper.getAdaptiveTextSize(
+                              context, FontSizes.button),
+                          fontWeight: FontWeight.bold,
+                          color: hasSelectedGoals ? Colors.white : Colors.grey[400],
+                        ),
+                      ),
+              ),
+            ),
+          ),
+          SizedBox(height: Dimensions.spacingL),
+          // Set Up Later Button
+          TextButton(
+            onPressed: _showSetUpLaterDialog,
+            style: TextButton.styleFrom(
+              padding: EdgeInsets.symmetric(
+                vertical: Dimensions.paddingM,
+                horizontal: Dimensions.paddingXL,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(Dimensions.radiusL),
+                side: BorderSide(color: Colors.white24),
+              ),
+            ),
+            child: Text(
+              'Set Up Later',
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.button),
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBackButton() {
+    return Positioned(
+      top: MediaQuery.of(context).padding.top + Dimensions.paddingM,
+      left: Dimensions.paddingL,
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.surface.withOpacity(0.9),
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2),
+              blurRadius: 10,
+              offset: Offset(0, 2),
+            ),
+          ],
+        ),
+        child: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const PersonalizationPage()),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  // Keep existing methods for dialog and navigation
   void _showSetUpLaterDialog() {
     showDialog(
       context: context,
@@ -243,335 +546,26 @@ class _GoalsPageState extends State<GoalsPage> {
     );
   }
 
-  final List<Map<String, dynamic>> goals = [
-    {
-      'title': 'Weight Less',
-      'icon': Icons.scale,
-      'size': 25.0,
-      'titleSize': 20.0,
-    },
-    {
-      'title': 'Get Healthier',
-      'icon': Icons.restaurant,
-      'size': 25.0,
-      'titleSize': 20.0,
-    },
-    {
-      'title': 'Look Better',
-      'icon': Icons.fitness_center,
-      'size': 25.0,
-      'titleSize': 20.0,
-    },
-    {
-      'title': 'Reduce Stress',
-      'icon': Icons.favorite,
-      'size': 25.0,
-      'titleSize': 20.0,
-    },
-    {
-      'title': 'Sleep Better',
-      'icon': Icons.nightlight_round,
-      'size': 25.0,
-      'titleSize': 20.0,
-    },
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final isSmallScreen = size.width < 360;
-
-    return MediaQuery(
-      data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
-      child: Scaffold(
-        body: AnimatedContainer(
-          duration: const Duration(milliseconds: 100),
-          decoration: BoxDecoration(
-            image: _backgroundImageUrl != null
-                ? DecorationImage(
-              image: NetworkImage(_backgroundImageUrl!),
-              fit: BoxFit.cover,
-              colorFilter: ColorFilter.mode(
-                Colors.black.withOpacity(0.3),
-                BlendMode.darken,
-              ),
-            )
-                : const DecorationImage(
-              image: AssetImage('assets/images/landing_page.jpg'),
-              fit: BoxFit.cover,
-            ),
-          ),
-          child: SafeArea(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return SingleChildScrollView(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: constraints.maxHeight,
-                    ),
-                    child: Stack(
-                      children: [
-                        _buildBackButton(size),
-                        _buildMainContent(size, isSmallScreen),
-                        _buildProgressBar(size, isSmallScreen),
-                        _buildBottomButtons(size, isSmallScreen),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBackButton(Size size) {
-    return Positioned(
-      top: size.height * 0.02,
-      left: size.width * 0.05,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.85),
-          shape: BoxShape.circle,
-        ),
-        child: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () {
-            Navigator.of(context).pushReplacement(
-              SlideRightRoute(
-                page: const PersonalizationPage(),
-              ),
-            );
-          },
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMainContent(Size size, bool isSmallScreen) {
-    return Padding(
-      padding: EdgeInsets.only(
-        top: size.height * 0.225,
-        bottom: size.height * 0.25,
-        left: size.width * 0.02,
-        right: size.width * 0.02,
-      ),
-      child: Container(
-        width: double.infinity,
-        margin: EdgeInsets.symmetric(
-          horizontal: size.width * 0.02,
-        ),
-        padding: EdgeInsets.symmetric(
-          horizontal: size.width * 0.05,
-          vertical: size.height * 0.04,
-        ),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Colors.white.withOpacity(0.875),
-              const Color.fromARGB(255, 66, 66, 66)
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-          borderRadius: BorderRadius.circular(50),
-        ),
-        child: MediaQuery(
-          data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'What are your current goals?',
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: isSmallScreen ? 20 : 23.5,
-                  fontWeight: FontWeight.w800,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: size.height * 0.02),
-              ...goals.map((goal) => _buildGoalOption(goal, isSmallScreen ? 18 : 20.0)).toList(),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildGoalOption(Map<String, dynamic> goal, double titleSize) {
-    final bool isSelected = selectedGoals.contains(goal['title']);
-    final double iconSize = (goal['size'] as double?) ?? 35.0;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 12.0),
-      child: InkWell(
-        onTap: () {
-          setState(() {
-            if (isSelected) {
-              selectedGoals.remove(goal['title']);
-            } else {
-              selectedGoals.add(goal['title'] as String);
-            }
-          });
-        },
-        child: Row(
-          children: [
-            Icon(
-              goal['icon'] as IconData,
-              color: Colors.black,
-              size: iconSize,
-            ),
-            const SizedBox(width: 20),
-            Expanded(
-              child: MediaQuery(
-                data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
-                child: Text(
-                  goal['title'] as String,
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: titleSize,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ),
-            Icon(
-              isSelected ? Icons.check_circle : Icons.circle,
-              color: isSelected ? Colors.green : const Color.fromARGB(255, 124, 93, 93),
-              size: 27.5,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildProgressBar(Size size, bool isSmallScreen) {
-    return Positioned(
-      bottom: size.height * 0.265,
-      left: 0,
-      right: 0,
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: size.width * 0.05,
-        ),
-        child: LinearProgressBar(
-          maxSteps: 3,
-          progressType: LinearProgressBar.progressTypeDots,
-          currentStep: currentStep,
-          progressColor: kPrimaryColor,
-          backgroundColor: kColorsGrey400,
-          dotsAxis: Axis.horizontal,
-          dotsActiveSize: isSmallScreen ? 10 : 12.5,
-          dotsInactiveSize: isSmallScreen ? 8 : 10,
-          dotsSpacing: EdgeInsets.only(
-            right: size.width * 0.02,
-          ),
-          valueColor: const AlwaysStoppedAnimation<Color>(Colors.red),
-          semanticsLabel: "Label",
-          semanticsValue: "Value",
-          minHeight: size.height * 0.01,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBottomButtons(Size size, bool isSmallScreen) {
-    return Positioned(
-      bottom: 0,
-      left: 0,
-      right: 0,
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: size.width * 0.065,
-          vertical: size.height * 0.02,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (selectedGoals.isNotEmpty)
-              ElevatedButton(
-                onPressed: _saveGoals,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.deepOrange,
-                  padding: EdgeInsets.symmetric(
-                    vertical: size.height * 0.0125,
-                  ),
-                  foregroundColor: Colors.black,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(50),
-                  ),
-                ),
-                child: _isLoading
-                    ? const CircularProgressIndicator(color: Colors.amber)
-                    : MediaQuery(
-                  data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
-                  child: Text(
-                    'SAVE',
-                    style: TextStyle(
-                      fontSize: isSmallScreen ? 18 : 20,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.black,
-                    ),
-                  ),
-                ),
-              ),
-            SizedBox(height: size.height * 0.02),
-            TextButton(
-              onPressed: _showSetUpLaterDialog,
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.white,
-                padding: EdgeInsets.symmetric(
-                  vertical: size.height * 0.0125,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(25),
-                  side: const BorderSide(color: Colors.white),
-                ),
-              ),
-              child: MediaQuery(
-                data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
-                child: Text(
-                  'SET UP LATER',
-                  style: TextStyle(
-                    fontSize: isSmallScreen ? 14 : 16,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Future<void> _saveGoals() async {
-    setState(() {
-      _isLoading = true;
-    });
-
+    setState(() => _isLoading = true);
     try {
       await _firestoreService.saveUserGoals(selectedGoals.toList());
       Navigator.pushReplacement(
         context,
-        SlideLeftRoute(page: const AllergiesPage()),
+        MaterialPageRoute(builder: (context) => const AllergiesPage()),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error saving goals: $e')),
       );
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      setState(() => _isLoading = false);
     }
   }
 
-}const kPrimaryColor = Colors.red;
-const kColorsGrey400 = Colors.orangeAccent;
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+}

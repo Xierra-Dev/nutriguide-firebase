@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
-import 'services/firestore_service.dart';
-import 'widgets/custom_number_picker.dart';
-import 'widgets/custom_gender_picker.dart';
-import 'widgets/custom_activitiyLevel_picker.dart';
-import 'goals_page.dart';
-import 'home_page.dart';
-import 'package:linear_progress_bar/linear_progress_bar.dart';
-import 'services/themealdb_service.dart';
+import 'package:nutriguide/goals_page.dart';
+import 'package:nutriguide/services/firestore_service.dart';
+import 'package:nutriguide/widgets/custom_gender_picker.dart';
+import 'package:nutriguide/widgets/custom_number_picker.dart';
+import 'package:nutriguide/widgets/custom_activitiyLevel_picker.dart';
+import 'package:nutriguide/core/constants/colors.dart';
+import 'package:nutriguide/core/constants/dimensions.dart';
+import 'package:nutriguide/core/constants/font_sizes.dart';
+import 'package:nutriguide/core/helpers/responsive_helper.dart';
+import 'package:nutriguide/home_page.dart';
 
 class PersonalizationPage extends StatefulWidget {
   const PersonalizationPage({super.key});
@@ -15,76 +17,364 @@ class PersonalizationPage extends StatefulWidget {
   _PersonalizationPageState createState() => _PersonalizationPageState();
 }
 
-class _PersonalizationPageState extends State<PersonalizationPage> {
+class _PersonalizationPageState extends State<PersonalizationPage> with SingleTickerProviderStateMixin {
   final FirestoreService _firestoreService = FirestoreService();
-  final TheMealDBService _mealService = TheMealDBService();
+  
   String? gender;
   int? birthYear;
-  String heightUnit = 'cm';
   double? height;
   double? weight;
   String? activityLevel;
+  String heightUnit = 'cm';
+  int currentStep = 1;
   bool _isLoading = false;
-  int currentStep = 0;
-  String? _backgroundImageUrl;
+
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
 
   @override
   void initState() {
     super.initState();
-    _loadRandomMealImage();
-    _loadUserData();
+    _setupAnimations();
   }
 
-  String _truncateText(String? text, {int maxLength = 14}) {
-    if (text == null) return 'Not Set';
-    return text.length > maxLength
-        ? '${text.substring(0, maxLength)}..'
-        : text;
+  void _setupAnimations() {
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    );
+
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeIn,
+      ),
+    );
+
+    _animationController.forward();
   }
 
-  Future<void> _loadUserData() async {
-    setState(() => _isLoading = true);
-    try {
-      Map<String, dynamic>? userData = await _firestoreService.getUserPersonalization();
-      if (userData != null) {
-        setState(() {
-          gender = userData['gender'] as String?;
-          birthYear = userData['birthYear'] as int?;
-          heightUnit = userData['heightUnit'] as String? ?? 'cm';
-          height = (userData['height'] as num?)?.toDouble();
-          weight = (userData['weight'] as num?)?.toDouble();
-          activityLevel = userData['activityLevel'] as String?;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading user data: $e')),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-    }
+  @override
+  Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final isSmallScreen = size.width < 600;
+
+    return WillPopScope(
+      onWillPop: () async => false,
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        body: FadeTransition(
+          opacity: _fadeAnimation,
+          child: Stack(
+            children: [
+              // Background gradient
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      AppColors.surface,
+                      AppColors.background,
+                    ],
+                  ),
+                ),
+              ),
+
+              // Content
+              SafeArea(
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      // Header with logo and title
+                      _buildHeader(),
+                      
+                      // Form Container with frosted glass effect
+                      _buildFormContainer(),
+
+                      // Bottom buttons
+                      _buildBottomButtons(),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
-  Future<void> _loadRandomMealImage() async {
-    try {
-      final imageUrl = await _mealService.getRandomMealImage();
-      if (mounted) {
-        setState(() {
-          _backgroundImageUrl = imageUrl;
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
+  Widget _buildHeader() {
+    return Container(
+      padding: EdgeInsets.all(Dimensions.paddingXL),
+      child: Column(
+        children: [
+          // Logo with glow effect
+          Container(
+            padding: EdgeInsets.all(Dimensions.paddingL),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.1),
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withOpacity(0.2),
+                  blurRadius: 30,
+                  spreadRadius: 5,
+                ),
+              ],
+            ),
+            child: Icon(
+              Icons.person_outline,
+              size: 60,
+              color: AppColors.primary,
+            ),
+          ),
+          SizedBox(height: Dimensions.spacingL),
+          // Progress indicator
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(
+              3,
+              (index) => Container(
+                margin: EdgeInsets.symmetric(horizontal: 4),
+                width: 12,
+                height: 12,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: index + 1 == currentStep ? AppColors.primary : Colors.white24,
+                ),
+              ),
+            ),
+          ),
+          SizedBox(height: Dimensions.spacingL),
+          Text(
+            'Personalize Your Experience',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.heading2),
+              fontWeight: FontWeight.bold,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: Dimensions.spacingM),
+          Text(
+            'Help us customize your nutrition journey',
+            style: TextStyle(
+              color: Colors.white70,
+              fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.body),
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFormContainer() {
+    return Container(
+      margin: EdgeInsets.all(Dimensions.paddingL),
+      decoration: BoxDecoration(
+        color: AppColors.surface.withOpacity(0.9),
+        borderRadius: BorderRadius.circular(Dimensions.radiusL),
+        border: Border.all(
+          color: Colors.white.withOpacity(0.1),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 20,
+            spreadRadius: 5,
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          _buildFormField('Gender', gender, Icons.person_outline, _showGenderDialog),
+          _buildFormField('Birth Year', birthYear?.toString(), Icons.cake_outlined, _showBirthYearDialog),
+          _buildFormField('Height', height != null ? '$height cm' : null, Icons.height, _showHeightDialog),
+          _buildFormField('Weight', weight != null ? '$weight kg' : null, Icons.monitor_weight_outlined, _showWeightDialog),
+          _buildFormField('Activity Level', activityLevel, Icons.directions_run, _showActivityLevelDialog),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFormField(String label, String? value, IconData icon, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.all(Dimensions.paddingL),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: Colors.white.withOpacity(0.1),
+              width: 1,
+            ),
+          ),
+        ),
+        child: Row(
+          children: [
+            // Icon container with gradient
+            Container(
+              padding: EdgeInsets.all(Dimensions.paddingS),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    AppColors.primary,
+                    AppColors.primary.withOpacity(0.7),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(Dimensions.radiusM),
+              ),
+              child: Icon(
+                icon,
+                color: Colors.white,
+                size: Dimensions.iconM,
+              ),
+            ),
+            SizedBox(width: Dimensions.spacingL),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.bodySmall),
+                    ),
+                  ),
+                  SizedBox(height: Dimensions.spacingXS),
+                  Text(
+                    value ?? 'Not Set',
+                    style: TextStyle(
+                      color: value == null ? AppColors.error : Colors.white,
+                      fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.body),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.chevron_right,
+              color: Colors.white70,
+              size: Dimensions.iconM,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProgressIndicator(Size size, bool isSmallScreen) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: size.width * 0.05,
+        vertical: Dimensions.paddingL,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: List.generate(
+          3,
+          (index) => Container(
+            margin: EdgeInsets.symmetric(horizontal: 4),
+            width: isSmallScreen ? 10 : 12,
+            height: isSmallScreen ? 10 : 12,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: index + 1 == currentStep ? AppColors.primary : Colors.white24,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBottomButtons() {
+    return Container(
+      padding: EdgeInsets.all(Dimensions.paddingL),
+      child: Column(
+        children: [
+          // Continue Button with gradient
+          Container(
+            height: 55,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.primary,
+                  Color(0xFFFF6E40),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(Dimensions.radiusL),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withOpacity(0.3),
+                  blurRadius: 12,
+                  offset: Offset(0, 6),
+                ),
+              ],
+            ),
+            child: ElevatedButton(
+              onPressed: _isLoading ? null : _saveData,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.transparent,
+                shadowColor: Colors.transparent,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(Dimensions.radiusL),
+                ),
+              ),
+              child: AnimatedSwitcher(
+                duration: Duration(milliseconds: 200),
+                child: _isLoading
+                    ? SizedBox(
+                        height: 24,
+                        width: 24,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : Text(
+                        'Continue',
+                        style: TextStyle(
+                          fontSize: ResponsiveHelper.getAdaptiveTextSize(
+                              context, FontSizes.button),
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+              ),
+            ),
+          ),
+          SizedBox(height: Dimensions.spacingL),
+          // Set Up Later Button
+          TextButton(
+            onPressed: _showSetUpLaterDialog,
+            style: TextButton.styleFrom(
+              padding: EdgeInsets.symmetric(
+                vertical: Dimensions.paddingM,
+                horizontal: Dimensions.paddingXL,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(Dimensions.radiusL),
+                side: BorderSide(color: Colors.white24),
+              ),
+            ),
+            child: Text(
+              'Set Up Later',
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.button),
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showSetUpLaterDialog() {
@@ -211,319 +501,6 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    // Disable system text scaling
-    return MediaQuery(
-      data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
-      child: Scaffold(
-        body: AnimatedContainer(
-          duration: const Duration(milliseconds: 100),
-          decoration: BoxDecoration(
-            image: _backgroundImageUrl != null
-                ? DecorationImage(
-              image: NetworkImage(_backgroundImageUrl!),
-              fit: BoxFit.cover,
-              colorFilter: ColorFilter.mode(
-                Colors.black.withOpacity(0.3),
-                BlendMode.darken,
-              ),
-            )
-                : const DecorationImage(
-              image: AssetImage('assets/images/landing_page.jpg'),
-              fit: BoxFit.cover,
-            ),
-          ),
-          child: SafeArea(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final size = MediaQuery.of(context).size;
-                final isSmallScreen = size.width < 360;
-                return SingleChildScrollView(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: constraints.maxHeight,
-                    ),
-                    child: Stack(
-                      children: [
-                        _buildMainContent(size, isSmallScreen),
-                        _buildProgressBar(size, isSmallScreen),
-                        _buildBottomButtons(size, isSmallScreen),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMainContent(Size size, bool isSmallScreen) {
-    return MediaQuery(
-      data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
-      child: Padding(
-        padding: EdgeInsets.only(
-          top: size.height * 0.15,
-          bottom: size.height * 0.25,
-          left: size.width * 0.02,
-          right: size.width * 0.02,
-        ),
-        child: Container(
-          width: double.infinity,
-          margin: EdgeInsets.symmetric(
-            horizontal: size.width * 0.02,
-          ),
-          padding: EdgeInsets.symmetric(
-            horizontal: size.width * 0.05,
-            vertical: size.height * 0.04,
-          ),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Colors.white.withOpacity(0.875),
-                const Color.fromARGB(255, 66, 66, 66)
-              ],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-            ),
-            borderRadius: BorderRadius.circular(50),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'REVIEW YOUR HEALTH DATA',
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: isSmallScreen ? 20 : 23.5,
-                  fontWeight: FontWeight.w800,
-                  height: 1.0,
-                ),
-                textAlign: TextAlign.center,
-                textHeightBehavior: TextHeightBehavior(applyHeightToFirstAscent: false),
-              ),
-              SizedBox(height: size.height * 0.01),
-              Text(
-                'Your data will be used for your personalization.\nPlease review before proceeding',
-                style: TextStyle(
-                  color: Colors.red,
-                  fontSize: isSmallScreen ? 10 : 12.25,
-                  fontWeight: FontWeight.w600,
-                  height: 1.0,
-                ),
-                textAlign: TextAlign.center,
-                textHeightBehavior: TextHeightBehavior(applyHeightToFirstAscent: false),
-              ),
-              SizedBox(height: size.height * 0.02),
-              ..._buildFields(size, isSmallScreen),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  List<Widget> _buildFields(Size size, bool isSmallScreen) {
-    return [
-      _buildField('Sex', gender, _showGenderDialog, size, isSmallScreen),
-      _buildField('Year of Birth', birthYear?.toString(), _showBirthYearDialog, size, isSmallScreen),
-      _buildField('Height', height != null ? '$height ${heightUnit == 'cm' ? 'cm' : 'ft'}' : null, _showHeightDialog, size, isSmallScreen),
-      _buildField('Weight', weight != null ? '$weight kg' : null, _showWeightDialog, size, isSmallScreen),
-      _buildField('Activity Level', activityLevel, _showActivityLevelDialog, size, isSmallScreen),
-    ];
-  }
-
-  Widget _buildField(String label, String? value, VoidCallback onTap, Size size, bool isSmallScreen) {
-    // Truncate the value
-    String displayValue = _truncateText(value);
-
-    return MediaQuery(
-      data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
-      child: Column(
-        children: [
-          Padding(
-            padding: EdgeInsets.symmetric(
-              vertical: size.height * 0.01,
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  child: MediaQuery(
-                    data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
-                    child: Text(
-                      label,
-                      style: TextStyle(
-                        color: const Color.fromARGB(255, 37, 37, 37),
-                        fontSize: isSmallScreen ? 18 : 21,
-                        fontWeight: FontWeight.w700,
-                        height: 1.0,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                      textHeightBehavior: const TextHeightBehavior(
-                        applyHeightToFirstAscent: false,
-                        applyHeightToLastDescent: false,
-                      ),
-                    ),
-                  ),
-                ),
-                Row(
-                  children: [
-                    Container(
-                      child: MediaQuery(
-                        data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
-                        child: Text(
-                          displayValue,
-                          style: TextStyle(
-                            color: value == null ? Colors.red : Colors.black,
-                            fontSize: isSmallScreen ? 16 : 18.5,
-                            fontWeight: value == null ? FontWeight.w600 : FontWeight.w800,
-                            height: 1.0,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                          textHeightBehavior: const TextHeightBehavior(
-                            applyHeightToFirstAscent: false,
-                            applyHeightToLastDescent: false,
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: size.width * 0.01),
-                    IconButton(
-                      icon: Icon(
-                        Icons.edit,
-                        color: Colors.red,
-                        size: isSmallScreen ? 20 : 23,
-                      ),
-                      onPressed: onTap,
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                      splashRadius: isSmallScreen ? 15 : 20,
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const Divider(
-            color: Colors.black,
-            height: 3,
-            indent: 0,
-            endIndent: 0,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildProgressBar(Size size, bool isSmallScreen) {
-    return MediaQuery(
-      data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
-      child: Positioned(
-        bottom: size.height * 0.225,
-        left: 0,
-        right: 0,
-        child: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: size.width * 0.05,
-          ),
-          child: LinearProgressBar(
-            maxSteps: 3,
-            progressType: LinearProgressBar.progressTypeDots,
-            currentStep: currentStep,
-            progressColor: kPrimaryColor,
-            backgroundColor: kColorsGrey400,
-            dotsAxis: Axis.horizontal,
-            dotsActiveSize: isSmallScreen ? 10 : 12.5,
-            dotsInactiveSize: isSmallScreen ? 8 : 10,
-            dotsSpacing: EdgeInsets.only(
-              right: size.width * 0.02,
-            ),
-            valueColor: const AlwaysStoppedAnimation<Color>(Colors.red),
-            semanticsLabel: "Label",
-            semanticsValue: "Value",
-            minHeight: size.height * 0.01,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBottomButtons(Size size, bool isSmallScreen) {
-    return MediaQuery(
-      data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
-      child: Positioned(
-        bottom: 0,
-        left: 0,
-        right: 0,
-        child: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: size.width * 0.065,
-            vertical: size.height * 0.02,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              ElevatedButton(
-                onPressed: _saveData,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.deepOrange,
-                  padding: EdgeInsets.symmetric(
-                    vertical: size.height * 0.0125,
-                  ),
-                  foregroundColor: Colors.black,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(50),
-                  ),
-                ),
-                child: _isLoading
-                    ? const CircularProgressIndicator(color: Colors.amber)
-                    : Text(
-                  'SAVE',
-                  style: TextStyle(
-                    fontSize: isSmallScreen ? 18 : 20,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.black,
-                    height: 1.0,
-                  ),
-                  textHeightBehavior: TextHeightBehavior(applyHeightToFirstAscent: false),
-                ),
-              ),
-              SizedBox(height: size.height * 0.02),
-              TextButton(
-                onPressed: _showSetUpLaterDialog,
-                style: TextButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  padding: EdgeInsets.symmetric(
-                    vertical: size.height * 0.0125,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(25),
-                    side: const BorderSide(color: Colors.white),
-                  ),
-                ),
-                child: Text(
-                  'SET UP LATER',
-                  style: TextStyle(
-                    fontSize: isSmallScreen ? 14 : 16,
-                    fontWeight: FontWeight.w800,
-                    height: 1.0,
-                  ),
-                  textHeightBehavior: TextHeightBehavior(applyHeightToFirstAscent: false),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   void _showGenderDialog() {
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -634,7 +611,10 @@ class _PersonalizationPageState extends State<PersonalizationPage> {
       setState(() => _isLoading = false);
     }
   }
-}
 
-const kPrimaryColor = Colors.red;
-const kColorsGrey400 = Colors.orangeAccent;
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+}

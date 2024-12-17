@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'services/firestore_service.dart';
 import 'home_page.dart';
-import 'services/themealdb_service.dart';
-import 'package:linear_progress_bar/linear_progress_bar.dart';
 import 'goals_page.dart';
+import 'core/constants/colors.dart';
+import 'core/constants/dimensions.dart';
+import 'core/constants/font_sizes.dart';
+import 'core/helpers/responsive_helper.dart';
 
 class AllergiesPage extends StatefulWidget {
   const AllergiesPage({super.key});
@@ -12,97 +14,385 @@ class AllergiesPage extends StatefulWidget {
   _AllergiesPageState createState() => _AllergiesPageState();
 }
 
-class SlideRightRoute extends PageRouteBuilder {
-  final Widget page;
-
-  SlideRightRoute({required this.page})
-      : super(
-    pageBuilder: (
-        BuildContext context,
-        Animation<double> primaryAnimation,
-        Animation<double> secondaryAnimation,
-        ) => page,
-    transitionsBuilder: (
-        BuildContext context,
-        Animation<double> primaryAnimation,
-        Animation<double> secondaryAnimation,
-        Widget child,
-        ) {
-      return SlideTransition(
-        position: Tween<Offset>(
-          begin: const Offset(-1.0, 0.0),
-          end: Offset.zero,
-        ).animate(CurvedAnimation(
-          parent: primaryAnimation,
-          curve: Curves.easeOutQuad,
-        ),),
-        child: child,
-      );
-    },
-  );
-}
-
-class SlideLeftRoute extends PageRouteBuilder {
-  final Widget page;
-
-  SlideLeftRoute({required this.page})
-      : super(
-    pageBuilder: (
-        BuildContext context,
-        Animation<double> primaryAnimation,
-        Animation<double> secondaryAnimation,
-        ) =>
-    page,
-    transitionsBuilder: (
-        BuildContext context,
-        Animation<double> primaryAnimation,
-        Animation<double> secondaryAnimation,
-        Widget child,
-        ) {
-      return SlideTransition(
-        position: Tween<Offset>(
-          begin: const Offset(1.0, 0.0),
-          end: Offset.zero,
-        ).animate(CurvedAnimation(
-          parent: primaryAnimation,
-          curve: Curves.easeOutQuad,
-        )),
-        child: child,
-      );
-    },
-  );
-}
-
-class _AllergiesPageState extends State<AllergiesPage> {
+class _AllergiesPageState extends State<AllergiesPage> with SingleTickerProviderStateMixin {
   final FirestoreService _firestoreService = FirestoreService();
-  final TheMealDBService _mealService = TheMealDBService();
-  String? _backgroundImageUrl;
   Set<String> selectedAllergies = {};
   bool _isLoading = false;
-  int currentStep = 2;
+  int currentStep = 3;
+
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+
+  // Improved allergy data structure with icons and descriptions
+  final List<Map<String, dynamic>> allergies = [
+    {
+      'name': 'Dairy',
+      'icon': Icons.egg_outlined,
+      'description': 'Milk and dairy products',
+    },
+    {
+      'name': 'Eggs',
+      'icon': Icons.egg_alt_outlined,
+      'description': 'Chicken eggs and egg products',
+    },
+    {
+      'name': 'Fish',
+      'icon': Icons.set_meal_outlined,
+      'description': 'All types of fish',
+    },
+    {
+      'name': 'Shellfish',
+      'icon': Icons.water_outlined,
+      'description': 'Crustaceans and mollusks',
+    },
+    {
+      'name': 'Tree nuts',
+      'icon': Icons.nature_outlined,
+      'description': 'Almonds, cashews, walnuts, etc.',
+    },
+    {
+      'name': 'Peanuts',
+      'icon': Icons.grass_outlined,
+      'description': 'Peanuts and peanut products',
+    },
+    {
+      'name': 'Wheat',
+      'icon': Icons.grass,
+      'description': 'Wheat and wheat products',
+    },
+    {
+      'name': 'Soy',
+      'icon': Icons.eco_outlined,
+      'description': 'Soybeans and soy products',
+    },
+    {
+      'name': 'Gluten',
+      'icon': Icons.bakery_dining_outlined,
+      'description': 'Found in wheat, barley, and rye',
+    },
+    {
+      'name': 'Sesame',
+      'icon': Icons.grain_outlined,
+      'description': 'Sesame seeds and oil',
+    },
+  ];
 
   @override
   void initState() {
     super.initState();
-    _loadRandomMealImage();
+    _setupAnimations();
   }
 
-  Future<void> _loadRandomMealImage() async {
-    try {
-      final imageUrl = await _mealService.getRandomMealImage();
-      if (mounted) {
-        setState(() {
-          _backgroundImageUrl = imageUrl;
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
+  void _setupAnimations() {
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    );
+
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeIn,
+      ),
+    );
+
+    _animationController.forward();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return WillPopScope(
+      onWillPop: () async => false,
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        body: Stack(
+          children: [
+
+            Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      AppColors.surface,
+                      AppColors.background,
+                    ],
+                  ),
+                ),
+              ),
+            
+            // Main content
+            SafeArea(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: Dimensions.paddingL),
+                  child: Column(
+                    children: [
+                      _buildHeader(),
+                      _buildAllergiesGrid(),
+                      _buildBottomButtons(),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+            // Back button
+            _buildBackButton(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Container(
+      padding: EdgeInsets.all(Dimensions.paddingXL),
+      child: Column(
+        children: [
+          // Animated logo container
+          TweenAnimationBuilder(
+            duration: Duration(milliseconds: 1500),
+            tween: Tween<double>(begin: 0, end: 1),
+            builder: (context, double value, child) {
+              return Container(
+                padding: EdgeInsets.all(Dimensions.paddingL),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.1 * value),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withOpacity(0.2 * value),
+                      blurRadius: 30 * value,
+                      spreadRadius: 5 * value,
+                    ),
+                  ],
+                ),
+                child: Icon(
+                  Icons.no_food_outlined,
+                  size: 60,
+                  color: AppColors.primary.withOpacity(value),
+                ),
+              );
+            },
+          ),
+          SizedBox(height: Dimensions.spacingL),
+          
+          // Progress dots
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(
+              3,
+              (index) => AnimatedContainer(
+                duration: Duration(milliseconds: 300),
+                margin: EdgeInsets.symmetric(horizontal: 4),
+                width: index + 1 == currentStep ? 24 : 12,
+                height: 12,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(6),
+                  color: index + 1 == currentStep ? AppColors.primary : Colors.white24,
+                ),
+              ),
+            ),
+          ),
+          SizedBox(height: Dimensions.spacingXL),
+          
+          // Title and subtitle with animation
+          FadeTransition(
+            opacity: _fadeAnimation,
+            child: Column(
+              children: [
+                Text(
+                  'Any Food Allergies?',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.heading2),
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: Dimensions.spacingM),
+                Text(
+                  'Select all that apply to you',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.body),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAllergiesGrid() {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: NeverScrollableScrollPhysics(),
+      padding: EdgeInsets.symmetric(horizontal: Dimensions.paddingM),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 1.5,
+        crossAxisSpacing: Dimensions.spacingM,
+        mainAxisSpacing: Dimensions.spacingM,
+      ),
+      itemCount: allergies.length,
+      itemBuilder: (context, index) {
+        final allergy = allergies[index];
+        final isSelected = selectedAllergies.contains(allergy['name']);
+        
+        return AnimatedContainer(
+          duration: Duration(milliseconds: 200),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () {
+                setState(() {
+                  if (isSelected) {
+                    selectedAllergies.remove(allergy['name']);
+                  } else {
+                    selectedAllergies.add(allergy['name']);
+                  }
+                });
+              },
+              borderRadius: BorderRadius.circular(Dimensions.radiusL),
+              child: Container(
+                padding: EdgeInsets.all(Dimensions.paddingM),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: isSelected
+                        ? [AppColors.primary.withOpacity(0.2), AppColors.primary.withOpacity(0.3)]
+                        : [Colors.white.withOpacity(0.05), Colors.white.withOpacity(0.08)],
+                  ),
+                  borderRadius: BorderRadius.circular(Dimensions.radiusL),
+                  border: Border.all(
+                    color: isSelected ? AppColors.primary : Colors.white.withOpacity(0.1),
+                    width: isSelected ? 2 : 1,
+                  ),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      allergy['icon'],
+                      color: isSelected ? AppColors.primary : Colors.white70,
+                      size: 28,
+                    ),
+                    SizedBox(height: Dimensions.spacingS),
+                    Text(
+                      allergy['name'],
+                      style: TextStyle(
+                        color: isSelected ? AppColors.primary : Colors.white,
+                        fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.bodySmall),
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildBottomButtons() {
+    return Container(
+      padding: EdgeInsets.all(Dimensions.paddingL),
+      child: Column(
+        children: [
+          // Continue Button with gradient and animation
+          Container(
+            height: 55,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.primary,
+                  Color(0xFFFF6E40),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(Dimensions.radiusL),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withOpacity(0.3),
+                  blurRadius: 12,
+                  offset: Offset(0, 6),
+                ),
+              ],
+            ),
+            child: ElevatedButton(
+              onPressed: _isLoading ? null : _saveAllergies,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.transparent,
+                shadowColor: Colors.transparent,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(Dimensions.radiusL),
+                ),
+              ),
+              child: AnimatedSwitcher(
+                duration: Duration(milliseconds: 200),
+                child: _isLoading
+                    ? SizedBox(
+                        height: 24,
+                        width: 24,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Complete Setup',
+                            style: TextStyle(
+                              fontSize: ResponsiveHelper.getAdaptiveTextSize(
+                                  context, FontSizes.button),
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          SizedBox(width: 8),
+                          Icon(Icons.arrow_forward, color: Colors.white),
+                        ],
+                      ),
+              ),
+            ),
+          ),
+          SizedBox(height: Dimensions.spacingL),
+          
+          // Set Up Later Button with hover effect
+          TextButton(
+            onPressed: _showSetUpLaterDialog,
+            style: TextButton.styleFrom(
+              padding: EdgeInsets.symmetric(
+                vertical: Dimensions.paddingM,
+                horizontal: Dimensions.paddingXL,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(Dimensions.radiusL),
+                side: BorderSide(color: Colors.white24),
+              ),
+            ),
+            child: Text(
+              'Set Up Later',
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.button),
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showSetUpLaterDialog() {
@@ -229,89 +519,28 @@ class _AllergiesPageState extends State<AllergiesPage> {
     );
   }
 
-  final List<String> allergies = [
-    'Dairy',
-    'Eggs',
-    'Fish',
-    'Shellfish',
-    'Tree nuts (e.g., almonds, walnuts, cashews)',
-    'Peanuts',
-    'Wheat',
-    'Soy',
-    'Gluten',
-    'Sesame',
-    'Corn',
-  ];
-
-  @override
-  @override
-  Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final isSmallScreen = size.width < 360;
-
-    return MediaQuery(
-      data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
-      child: Scaffold(
-        body: AnimatedContainer(
-          duration: const Duration(milliseconds: 100),
-          decoration: BoxDecoration(
-            image: _backgroundImageUrl != null
-                ? DecorationImage(
-              image: NetworkImage(_backgroundImageUrl!),
-              fit: BoxFit.cover,
-              colorFilter: ColorFilter.mode(
-                Colors.black.withOpacity(0.3),
-                BlendMode.darken,
-              ),
-            )
-                : const DecorationImage(
-              image: AssetImage('assets/images/landing_page.jpg'),
-              fit: BoxFit.cover,
-            ),
-          ),
-          child: SafeArea(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return SingleChildScrollView(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: constraints.maxHeight,
-                    ),
-                    child: Stack(
-                      children: [
-                        _buildBackButton(size),
-                        _buildMainContent(size, isSmallScreen),
-                        _buildProgressBar(size, isSmallScreen),
-                        _buildBottomButtons(size, isSmallScreen),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-
-  Widget _buildBackButton(Size size) {
+  Widget _buildBackButton() {
     return Positioned(
-      top: size.height * 0.02,
-      left: size.width * 0.05,
+      top: MediaQuery.of(context).padding.top + Dimensions.paddingM,
+      left: Dimensions.paddingL,
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.85),
+          color: AppColors.surface.withOpacity(0.9),
           shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2),
+              blurRadius: 10,
+              offset: Offset(0, 2),
+            ),
+          ],
         ),
         child: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
-            Navigator.of(context).pushReplacement(
-              SlideRightRoute(
-                page: const GoalsPage(),
-              ),
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const GoalsPage()),
             );
           },
         ),
@@ -319,228 +548,238 @@ class _AllergiesPageState extends State<AllergiesPage> {
     );
   }
 
-  Widget _buildMainContent(Size size, bool isSmallScreen) {
-    return MediaQuery(
-      data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
-      child: Padding(
-        padding: EdgeInsets.only(
-          top: size.height * 0.15,
-          bottom: size.height * 0.25,
-          left: size.width * 0.02,
-          right: size.width * 0.02,
-        ),
-        child: Container(
-          width: double.infinity,
-          margin: EdgeInsets.symmetric(
-            horizontal: size.width * 0.02,
-          ),
-          padding: EdgeInsets.symmetric(
-            horizontal: size.width * 0.05,
-            vertical: size.height * 0.04,
-          ),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Colors.white.withOpacity(0.875),
-                const Color.fromARGB(255, 66, 66, 66)
-              ],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-            ),
-            borderRadius: BorderRadius.circular(50),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Allergies',
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: isSmallScreen ? 20 : 23.5,
-                  fontWeight: FontWeight.w800,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: size.height * 0.02),
-              SingleChildScrollView(
-                child: Column(
-                  children: allergies
-                      .map((allergy) => _buildAllergyOption(
-                    allergy,
-                    isSmallScreen ? 16 : 18,
-                  ))
-                      .toList(),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAllergyOption(String allergy, double fontSize) {
-    final bool isSelected = selectedAllergies.contains(allergy);
-
-    return MediaQuery(
-      data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
-      child: InkWell(
-        onTap: () {
-          setState(() {
-            if (isSelected) {
-              selectedAllergies.remove(allergy);
-            } else {
-              selectedAllergies.add(allergy);
-            }
-          });
-        },
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12.0),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  allergy,
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: fontSize,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-              Icon(
-                isSelected ? Icons.check_circle : Icons.circle,
-                color: isSelected ? Colors.green : const Color.fromARGB(255, 124, 93, 93),
-                size: fontSize * 1.4,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildProgressBar(Size size, bool isSmallScreen) {
-    return Positioned(
-      bottom: size.height * 0.215,
-      left: 0,
-      right: 0,
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: size.width * 0.05,
-        ),
-        child: LinearProgressBar(
-          maxSteps: 3,
-          progressType: LinearProgressBar.progressTypeDots,
-          currentStep: currentStep,
-          progressColor: kPrimaryColor,
-          backgroundColor: kColorsGrey400,
-          dotsAxis: Axis.horizontal,
-          dotsActiveSize: isSmallScreen ? 10 : 12.5,
-          dotsInactiveSize: isSmallScreen ? 8 : 10,
-          dotsSpacing: EdgeInsets.only(
-            right: size.width * 0.02,
-          ),
-          valueColor: const AlwaysStoppedAnimation<Color>(Colors.red),
-          semanticsLabel: "Label",
-          semanticsValue: "Value",
-          minHeight: size.height * 0.01,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBottomButtons(Size size, bool isSmallScreen) {
-    return MediaQuery(
-      data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
-      child: Positioned(
-        bottom: 0,
-        left: 0,
-        right: 0,
-        child: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: size.width * 0.065,
-            vertical: size.height * 0.02,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              ElevatedButton(
-                onPressed: _saveAllergies,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.deepOrange,
-                  padding: EdgeInsets.symmetric(
-                    vertical: size.height * 0.0125,
-                  ),
-                  foregroundColor: Colors.black,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(50),
-                  ),
-                ),
-                child: _isLoading
-                    ? const CircularProgressIndicator(color: Colors.amber)
-                    : Text(
-                  'SAVE',
-                  style: TextStyle(
-                    fontSize: isSmallScreen ? 18 : 20,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.black,
-                  ),
-                ),
-              ),
-              SizedBox(height: size.height * 0.02),
-              TextButton(
-                onPressed: _showSetUpLaterDialog,
-                style: TextButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  padding: EdgeInsets.symmetric(
-                    vertical: size.height * 0.0125,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(25),
-                    side: const BorderSide(color: Colors.white),
-                  ),
-                ),
-                child: Text(
-                  'SET UP LATER',
-                  style: TextStyle(
-                    fontSize: isSmallScreen ? 14 : 16,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   Future<void> _saveAllergies() async {
-    setState(() {
-      _isLoading = true;
-    });
+    // Show confirmation dialog with enhanced design
+    final bool? confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false, // Prevent dismissing by tapping outside
+      builder: (BuildContext context) {
+        return TweenAnimationBuilder(
+          duration: Duration(milliseconds: 300),
+          tween: Tween<double>(begin: 0, end: 1),
+          builder: (context, double value, child) {
+            return Transform.scale(
+              scale: 0.95 + (0.05 * value),
+              child: Opacity(
+                opacity: value,
+                child: Dialog(
+                  backgroundColor: Colors.transparent,
+                  elevation: 0,
+                  child: Container(
+                    constraints: BoxConstraints(maxWidth: 400),
+                    padding: EdgeInsets.all(Dimensions.paddingL),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          AppColors.surface.withOpacity(0.95),
+                          AppColors.surface,
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(Dimensions.radiusL),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.1),
+                        width: 1,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.3),
+                          blurRadius: 20,
+                          spreadRadius: 5,
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Animated success icon
+                        TweenAnimationBuilder(
+                          duration: Duration(milliseconds: 600),
+                          tween: Tween<double>(begin: 0, end: 1),
+                          builder: (context, double value, child) {
+                            return Transform.scale(
+                              scale: value,
+                              child: Container(
+                                padding: EdgeInsets.all(Dimensions.paddingL),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary.withOpacity(0.1),
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppColors.primary.withOpacity(0.2),
+                                      blurRadius: 20 * value,
+                                      spreadRadius: 5 * value,
+                                    ),
+                                  ],
+                                ),
+                                child: Icon(
+                                  Icons.check_circle_outline,
+                                  color: AppColors.primary,
+                                  size: 50,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                        SizedBox(height: Dimensions.spacingXL),
+                        
+                        // Title with shimmer effect
+                        ShaderMask(
+                          shaderCallback: (bounds) => LinearGradient(
+                            colors: [
+                              Colors.white,
+                              Colors.white.withOpacity(0.9),
+                              Colors.white,
+                            ],
+                            stops: [0.0, 0.5, 1.0],
+                            transform: GradientRotation(value * 3.14 * 2),
+                          ).createShader(bounds),
+                          child: Text(
+                            'Ready to Start?',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: ResponsiveHelper.getAdaptiveTextSize(
+                                  context, FontSizes.heading3),
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        SizedBox(height: Dimensions.spacingM),
+                        
+                        // Message
+                        Text(
+                          'We\'ll personalize your experience based on your preferences.',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: ResponsiveHelper.getAdaptiveTextSize(
+                                context, FontSizes.body),
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        SizedBox(height: Dimensions.spacingXL),
+                        
+                        // Buttons with hover effect
+                        Row(
+                          children: [
+                            // Cancel Button
+                            Expanded(
+                              child: MouseRegion(
+                                cursor: SystemMouseCursors.click,
+                                child: TweenAnimationBuilder(
+                                  duration: Duration(milliseconds: 200),
+                                  tween: Tween<double>(begin: 0, end: 1),
+                                  builder: (context, double value, child) {
+                                    return TextButton(
+                                      onPressed: () => Navigator.of(context).pop(false),
+                                      style: TextButton.styleFrom(
+                                        padding: EdgeInsets.symmetric(
+                                            vertical: Dimensions.paddingM),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(Dimensions.radiusL),
+                                          side: BorderSide(color: Colors.white24),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        'Review Changes',
+                                        style: TextStyle(
+                                          color: Colors.white70,
+                                          fontSize: ResponsiveHelper.getAdaptiveTextSize(
+                                              context, FontSizes.button),
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
+                            SizedBox(width: Dimensions.spacingM),
+                            
+                            // Confirm Button
+                            Expanded(
+                              child: MouseRegion(
+                                cursor: SystemMouseCursors.click,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        AppColors.primary,
+                                        Color(0xFFFF6E40),
+                                      ],
+                                    ),
+                                    borderRadius:
+                                        BorderRadius.circular(Dimensions.radiusL),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: AppColors.primary.withOpacity(0.3),
+                                        blurRadius: 12,
+                                        offset: Offset(0, 6),
+                                      ),
+                                    ],
+                                  ),
+                                  child: ElevatedButton(
+                                    onPressed: () => Navigator.of(context).pop(true),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.transparent,
+                                      shadowColor: Colors.transparent,
+                                      padding: EdgeInsets.symmetric(
+                                          vertical: Dimensions.paddingM),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(Dimensions.radiusL),
+                                      ),
+                                    ),
+                                    child: Text(
+                                      'Let\'s Begin!',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: ResponsiveHelper.getAdaptiveTextSize(
+                                            context, FontSizes.button),
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
 
-    try {
-      await _firestoreService.saveUserAllergies(selectedAllergies.toList());
-      // Navigate to HomePage
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const HomePage()),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error saving allergies: $e')),
-      );
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
+    // Proceed only if confirmed
+    if (confirmed == true) {
+      setState(() => _isLoading = true);
+      try {
+        await _firestoreService.saveUserAllergies(selectedAllergies.toList());
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const HomePage()),
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error saving allergies: $e')),
+        );
+      } finally {
+        setState(() => _isLoading = false);
+      }
     }
   }
-}
 
-const kPrimaryColor = Colors.red;
-const kColorsGrey400 = Colors.orangeAccent;
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+}

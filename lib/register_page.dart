@@ -349,42 +349,38 @@ class _RegisterPageState extends State<RegisterPage> with SingleTickerProviderSt
 
   Widget _buildHeader() {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Container(
-          padding: EdgeInsets.all(Dimensions.paddingL),
-          decoration: BoxDecoration(
-            color: AppColors.primary.withOpacity(0.1),
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primary.withOpacity(0.2),
-                blurRadius: 30,
-                spreadRadius: 5,
-              ),
-            ],
-          ),
-          child: Image.asset(
-            'assets/images/logo_NutriGuide.png',
-            width: 60,
-            height: 60,
+        Center(
+          child: Container(
+            padding: EdgeInsets.all(Dimensions.paddingL),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.1),
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withOpacity(0.2),
+                  blurRadius: 10,
+                  spreadRadius: 5,
+                ),
+              ],
+            ),
+            child: Image.asset(
+              'assets/images/logo_NutriGuide.png',
+              width: 30,
+              height: 30,
+            ),
           ),
         ),
         SizedBox(height: Dimensions.spacingL),
-        Text(
-          'Create Account',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.heading2),
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        SizedBox(height: Dimensions.spacingS),
-        Text(
-          'Start your nutrition journey with us',
-          style: TextStyle(
-            color: Colors.white.withOpacity(0.7),
-            fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.body),
+        Center(
+          child: Text(
+            'Create Account',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.heading2),
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
       ],
