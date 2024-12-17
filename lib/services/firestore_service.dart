@@ -6,7 +6,6 @@ import 'storage_service.dart';
 import 'package:intl/intl.dart';
 import '../models/planned_recipe.dart';
 import '../models/nutrition_goals.dart';
-import '../models/chat_message.dart';
 import 'package:dash_chat_2/dash_chat_2.dart' as dash;
 import '../models/notification.dart';
 import '../services/notification_service.dart';

@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
-import 'email_verification_page.dart';
-import 'personalization_page.dart';
 import 'dart:async';
 import 'login_page.dart';
 import 'register_page.dart';
 import 'services/themealdb_service.dart';
-import 'services/auth_service.dart';
 import 'permission/notifications_permission.dart';
 import 'core/constants/font_sizes.dart';
 import 'core/constants/dimensions.dart';
@@ -56,7 +53,6 @@ class _LandingPageState extends State<LandingPage> with SingleTickerProviderStat
   String? _previousImageUrl;
   bool _isLoading = true;
   final TheMealDBService _mealService = TheMealDBService();
-  final AuthService _authService = AuthService();
   Timer? _imageChangeTimer;
   AnimationController? _controller;
   Animation<double>? _animation;

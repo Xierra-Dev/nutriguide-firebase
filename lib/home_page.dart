@@ -7,7 +7,6 @@ import 'all_recipes_page.dart';
 import 'search_page.dart';
 import 'saved_page.dart';
 import 'profile_page.dart';
-import 'notifications_page.dart';
 import 'planner_page.dart';
 import 'package:intl/intl.dart';
 import 'services/cache_service.dart';

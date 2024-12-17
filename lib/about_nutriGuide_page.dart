@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'settings_page.dart';
 
 class SlideRightRoute extends PageRouteBuilder {
   final Widget page;
