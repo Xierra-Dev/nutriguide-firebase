@@ -104,7 +104,6 @@ class NutritionWarningDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     bool hasExceeded = nutritionPercentages.values.any((value) => value >= 100);
-    bool hasWarning = nutritionPercentages.values.any((value) => value >= 80);
 
     return MediaQuery.withNoTextScaling(
       child: Dialog(

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'models/notification.dart';
 import 'services/firestore_service.dart';
 import 'recipe_detail_page.dart';

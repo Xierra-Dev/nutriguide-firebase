@@ -13,8 +13,7 @@ import 'services/assistant_services.dart';
 import 'services/notification_service.dart';
 import 'services/firestore_service.dart';
 import 'services/timezone_service.dart';
-import 'core/widgets/responsive_text_wrapper.dart';
-import 'core/constants/colors.dart';
+
 
 // Handle background messages
 @pragma('vm:entry-point')

@@ -121,9 +121,6 @@ class _AccountPageState extends State<AccountPage> {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = ResponsiveHelper.screenWidth(context);
-    final screenHeight = ResponsiveHelper.screenHeight(context);
-
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
