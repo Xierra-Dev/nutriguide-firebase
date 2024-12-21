@@ -147,7 +147,6 @@ class AuthService {
   FirebaseAuthException _handleAuthException(FirebaseAuthException e) {
     return e;
   }
-
   // Update display name
   Future<void> updateDisplayName(String displayName) async {
     try {
@@ -162,7 +161,6 @@ class AuthService {
       rethrow;
     }
   }
-
   // Check if email is verified
   bool isEmailVerified() {
     return _auth.currentUser?.emailVerified ?? false;
@@ -176,27 +174,6 @@ class AuthService {
       throw Exception('Error sending verification email: $e');
     }
   }
-
-  // Custom method to ensure user can only proceed if email is verified
-  Future<void> ensureEmailVerified() async {
-    User? user = _auth.currentUser;
-    if (user == null) {
-      throw Exception('Tidak ada pengguna yang login');
-    }
-
-    // Reload user to get the latest verification status
-    await user.reload();
-
-    if (!user.emailVerified) {
-      // Logout user if email is not verified
-      await signOut();
-      throw FirebaseAuthException(
-          code: 'email-not-verified',
-          message: 'Silakan verifikasi email Anda terlebih dahulu.'
-      );
-    }
-  }
-
   Future<bool> isFirstTimeLogin() async {
     User? user = _auth.currentUser;
     if (user == null) return true;
