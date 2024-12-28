@@ -244,7 +244,7 @@ class _AllRecipesPageState extends State<AllRecipesPage> {
       ),
       builder: (BuildContext context) {
         return MediaQuery(
-          data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
+          data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
           child: StatefulBuilder(
             builder: (BuildContext context, StateSetter mealSetState) {
               return Padding(
@@ -600,11 +600,10 @@ class _AllRecipesPageState extends State<AllRecipesPage> {
   }
 
   @override
-  @override
   Widget build(BuildContext context) {
     return MediaQuery(
       data: MediaQuery.of(context).copyWith(
-        textScaleFactor: 1.0, // Mengunci skala teks menjadi 1.0
+        textScaler: TextScaler.linear(1.0), // Mengunci skala teks menjadi 1.0
       ),
       child: Scaffold(
         backgroundColor: Colors.black,

@@ -5,10 +5,10 @@ class NutritionWarningDialog extends StatelessWidget {
   final VoidCallback onProceed;
 
   const NutritionWarningDialog({
-    Key? key,
+    super.key,
     required this.nutritionPercentages,
     required this.onProceed,
-  }) : super(key: key);
+  });
 
   Widget _buildNutrientWarning(String nutrient, double percentage) {
     final isHighRisk = percentage >= 100;
@@ -170,7 +170,7 @@ class NutritionWarningDialog extends StatelessWidget {
                     ...nutritionPercentages.entries.map((e) => Padding(
                       padding: const EdgeInsets.only(bottom: 8),
                       child: _buildNutrientWarning(e.key, e.value),
-                    )).toList(),
+                    )),
                     SizedBox(height: 16),
                     Text(
                       'Are you sure you want to proceed?',
