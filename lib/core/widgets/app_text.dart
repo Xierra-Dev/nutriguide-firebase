@@ -13,19 +13,19 @@ class AppText extends StatelessWidget {
 
   const AppText(
     this.text, {
-    super.key,
+    Key? key,
     required this.fontSize,
     this.color,
     this.fontWeight,
     this.textAlign,
     this.maxLines,
     this.overflow,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return MediaQuery(
-      data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
+      data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
       child: Text(
         text,
         style: TextStyle(

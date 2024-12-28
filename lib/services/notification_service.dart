@@ -142,7 +142,7 @@ class NotificationService {
         importance: Importance.high,
         priority: Priority.high,
         styleInformation: BigTextStyleInformation(
-          'It\'s time to prepare $recipeName for your ${mealType.toLowerCase()}! 🍳\n\n'
+          'It\'s time to prepare ${recipeName} for your ${mealType.toLowerCase()}! 🍳\n\n'
           'Get ready to cook this delicious meal. Remember to check your ingredients and follow the recipe steps carefully.',
           htmlFormatBigText: true,
           contentTitle: '🔔 Meal Reminder',
@@ -169,7 +169,7 @@ class NotificationService {
       await _localNotifications.zonedSchedule(
         recipeId.hashCode,
         '🔔 Time to Cook!',
-        'Prepare $recipeName for $mealType',
+        'Prepare ${recipeName} for ${mealType}',
         scheduledDate,
         NotificationDetails(android: androidDetails),
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
@@ -182,7 +182,7 @@ class NotificationService {
       final firestoreService = FirestoreService();
       await firestoreService.addNotification(
         title: '🔔 Meal Reminder',
-        message: 'Time to prepare $recipeName for $mealType',
+        message: 'Time to prepare ${recipeName} for ${mealType}',
         type: 'meal_reminder',
         relatedId: recipeId,
       );

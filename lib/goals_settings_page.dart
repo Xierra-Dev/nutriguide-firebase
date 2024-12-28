@@ -203,7 +203,7 @@ class _GoalsSettingsPageState extends State<GoalsSettingsPage> {
   @override
   Widget build(BuildContext context) {
     return MediaQuery(
-      data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
+      data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
       child: WillPopScope(
         onWillPop: _onWillPop,
         child: Scaffold(
@@ -320,18 +320,18 @@ class _GoalsSettingsPageState extends State<GoalsSettingsPage> {
                         children: [
                           ElevatedButton(
                             style: ButtonStyle(
-                              backgroundColor: WidgetStateProperty.resolveWith<Color>((states) {
-                                if (states.contains(WidgetState.disabled)) {
+                              backgroundColor: MaterialStateProperty.resolveWith<Color>((states) {
+                                if (states.contains(MaterialState.disabled)) {
                                   return AppColors.surface;
                                 }
                                 return AppColors.primary;
                               }),
-                              shape: WidgetStateProperty.all(
+                              shape: MaterialStateProperty.all(
                                 RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(Dimensions.radiusL),
                                 ),
                               ),
-                              padding: WidgetStateProperty.all(
+                              padding: MaterialStateProperty.all(
                                 EdgeInsets.symmetric(vertical: Dimensions.paddingM),
                               ),
                             ),

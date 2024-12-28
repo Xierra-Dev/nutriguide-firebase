@@ -462,7 +462,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _buildNutritionItem('Cal', nutritionGoals.calories.toStringAsFixed(0), Colors.blue),
+                    _buildNutritionItem('Cal', '${nutritionGoals.calories.toStringAsFixed(0)}', Colors.blue),
                     _buildNutritionItem('Carbs', '${nutritionGoals.carbs.toStringAsFixed(0)}g', Colors.orange),
                     _buildNutritionItem('Fiber', '${nutritionGoals.fiber.toStringAsFixed(0)}g', Colors.green),
                     _buildNutritionItem('Protein', '${nutritionGoals.protein.toStringAsFixed(0)}g', Colors.pink),

@@ -7,9 +7,9 @@ class NutritionTracker extends StatefulWidget {
   final NutritionGoals nutritionGoals;
 
   const NutritionTracker({
-    super.key,
+    Key? key,
     required this.nutritionGoals,
-  });
+  }) : super(key: key);
 
   @override
   _NutritionTrackerState createState() => _NutritionTrackerState();
@@ -170,7 +170,7 @@ class _NutritionTrackerState extends State<NutritionTracker> {
     }
 
     return MediaQuery(
-      data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
+      data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
       child: LayoutBuilder(
         builder: (context, constraints) {
           // Determine whether the layout is compact or wide

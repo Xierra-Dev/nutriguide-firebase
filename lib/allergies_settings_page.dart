@@ -219,7 +219,7 @@ class _AllergiesSettingsPageState extends State<AllergiesSettingsPage> {
     return WillPopScope(
       onWillPop: _onWillPop,
       child: MediaQuery(
-        data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1)),
+        data: MediaQuery.of(context).copyWith(textScaleFactor: 1),
         child: Scaffold(
           backgroundColor: AppColors.background,
           appBar: AppBar(

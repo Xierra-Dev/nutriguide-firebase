@@ -15,10 +15,10 @@ class EmailVerificationPage extends StatefulWidget {
   final User? user;
 
   const EmailVerificationPage({
-    super.key,
+    Key? key,
     required this.email,
     this.user
-  });
+  }) : super(key: key);
 
   @override
   State<EmailVerificationPage> createState() => _EmailVerificationPageState();
@@ -334,7 +334,7 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
   @override
   Widget build(BuildContext context) {
     return MediaQuery(
-      data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)), // Lock text scale factor
+      data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0), // Lock text scale factor
       child: Scaffold(
         backgroundColor: Colors.black,
         appBar: AppBar(

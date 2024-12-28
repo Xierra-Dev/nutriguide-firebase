@@ -175,7 +175,7 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
       ),
       builder: (BuildContext context) {
         return MediaQuery(
-          data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
+          data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
           child: StatefulBuilder(
             builder: (BuildContext context, StateSetter mealSetState) {
               return Padding(
@@ -531,7 +531,7 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
     // Force text scale factor to 1.0 to prevent system font size affecting the UI
     final mediaQueryData = MediaQuery.of(context);
     final standardScaleFactor = MediaQuery(
-      data: mediaQueryData.copyWith(textScaler: TextScaler.linear(1.0)),
+      data: mediaQueryData.copyWith(textScaleFactor: 1.0),
       child: Container(),
     );
 
@@ -539,7 +539,7 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
     double threshold = appBarHeight * 0.75;
 
     return MediaQuery(
-      data: mediaQueryData.copyWith(textScaler: TextScaler.linear(1.0)),
+      data: mediaQueryData.copyWith(textScaleFactor: 1.0),
       child: Scaffold(
         backgroundColor: Colors.black,
         body: NotificationListener<ScrollNotification>(
@@ -661,7 +661,7 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
           ),
         ),
         bottomNavigationBar: MediaQuery(
-          data: mediaQueryData.copyWith(textScaler: TextScaler.linear(1.0)),
+          data: mediaQueryData.copyWith(textScaleFactor: 1.0),
           child: Container(
             padding: const EdgeInsets.only(
               top: 18,
@@ -742,7 +742,7 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
 
   Widget _buildInfoSection() {
     return MediaQuery(
-      data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
+      data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
@@ -798,7 +798,7 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
 
   Widget _buildIngredientsList() {
     return MediaQuery(
-      data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
+      data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
       child: Column(
         children: [
           const Text(
@@ -840,7 +840,7 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
 
   Widget _buildInstructions() {
     return MediaQuery(
-      data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
+      data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
       child: Column(
         children: [
           const Text(
@@ -888,7 +888,7 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
 
   Widget _buildHealthScore() {
     return MediaQuery(
-      data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
+      data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -921,7 +921,7 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
 
   Widget _buildNutritionInfo(NutritionInfo nutritionInfo) {
     return MediaQuery(
-      data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
+      data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
       child: Column(
         children: [
           const Text(
@@ -948,7 +948,7 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
 
   Widget _buildNutritionRow(String label, String value) {
     return MediaQuery(
-      data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
+      data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
       child: Padding(
         padding: const EdgeInsets.only(bottom: 8.0),
         child: Row(

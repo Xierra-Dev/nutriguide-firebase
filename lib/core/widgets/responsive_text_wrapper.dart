@@ -5,9 +5,9 @@ class ResponsiveTextWrapper extends StatelessWidget {
   final Widget child;
   
   const ResponsiveTextWrapper({
-    super.key,
+    Key? key,
     required this.child,
-  });
+  }) : super(key: key);
   
   @override
   Widget build(BuildContext context) {

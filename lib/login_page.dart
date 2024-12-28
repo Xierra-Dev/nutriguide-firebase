@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'home_page.dart';
 import 'register_page.dart';
 import 'services/auth_service.dart';
+import 'landing_page.dart';
 import 'personalization_page.dart';
 import 'core/constants/colors.dart';
 import 'core/constants/dimensions.dart';
@@ -287,7 +289,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
   @override
   Widget build(BuildContext context) {
     return MediaQuery(
-      data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
+      data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
       child: Scaffold(
         body: Container(
           height: MediaQuery.of(context).size.height,

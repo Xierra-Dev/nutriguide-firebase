@@ -44,7 +44,7 @@ class _CustomActivityLevelPickerState extends State<CustomActivityLevelPicker> {
 
     return MediaQuery(
       // Prevent system font scaling
-      data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
+      data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
       child: Scaffold(
         backgroundColor: Colors.black,
         body: SafeArea(

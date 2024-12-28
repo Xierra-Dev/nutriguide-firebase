@@ -91,7 +91,7 @@ class _SettingsPageState extends State<SettingsPage> {
     final size = MediaQuery.of(context).size;
 
     return MediaQuery(
-      data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
+      data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
       child: Scaffold(
         backgroundColor: AppColors.background,
         body: Container(
