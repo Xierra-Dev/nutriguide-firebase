@@ -63,7 +63,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '849097551029',
     projectId: 'impal-a78d2',
     storageBucket: 'impal-a78d2.firebasestorage.app',
-    iosBundleId: 'com.example.nutriguide',
+    iosBundleId: 'com.nutriguide',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
@@ -72,7 +72,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '849097551029',
     projectId: 'impal-a78d2',
     storageBucket: 'impal-a78d2.firebasestorage.app',
-    iosBundleId: 'com.example.nutriguide',
+    iosBundleId: 'com.nutriguide',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(

@@ -43,10 +43,6 @@ class NutritionWarningDialog extends StatelessWidget {
       }
     }
 
-    String getUnit() {
-      return nutrient == 'calories' ? 'kcal' : 'g';
-    }
-
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
       decoration: BoxDecoration(
@@ -113,7 +109,9 @@ class NutritionWarningDialog extends StatelessWidget {
             color: Colors.grey[900],
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: hasExceeded ? Colors.red.withOpacity(0.5) : Colors.orange.withOpacity(0.5),
+              color: hasExceeded
+                  ? Colors.red.withOpacity(0.5)
+                  : Colors.orange.withOpacity(0.5),
             ),
           ),
           child: Column(
@@ -123,7 +121,8 @@ class NutritionWarningDialog extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: (hasExceeded ? Colors.red : Colors.orange).withOpacity(0.1),
+                  color: (hasExceeded ? Colors.red : Colors.orange)
+                      .withOpacity(0.1),
                   borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(16),
                     topRight: Radius.circular(16),
@@ -139,7 +138,9 @@ class NutritionWarningDialog extends StatelessWidget {
                     SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        hasExceeded ? 'Nutrition Limit Exceeded' : 'Nutrition Warning',
+                        hasExceeded
+                            ? 'Nutrition Limit Exceeded'
+                            : 'Nutrition Warning',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 18,
@@ -167,10 +168,12 @@ class NutritionWarningDialog extends StatelessWidget {
                       ),
                     ),
                     SizedBox(height: 16),
-                    ...nutritionPercentages.entries.map((e) => Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: _buildNutrientWarning(e.key, e.value),
-                    )).toList(),
+                    ...nutritionPercentages.entries
+                        .map((e) => Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: _buildNutrientWarning(e.key, e.value),
+                            ))
+                        .toList(),
                     SizedBox(height: 16),
                     Text(
                       'Are you sure you want to proceed?',
@@ -204,8 +207,10 @@ class NutritionWarningDialog extends StatelessWidget {
                         Navigator.of(context).pop(true);
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: hasExceeded ? Colors.red : Colors.orange,
-                        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        backgroundColor:
+                            hasExceeded ? Colors.red : Colors.orange,
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
