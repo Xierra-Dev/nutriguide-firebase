@@ -231,7 +231,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                 icon: Icon(Icons.arrow_back, color: AppColors.text),
                 onPressed: () => Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => const HomePage()),
+                  SlideRightRoute(page: const HomePage()),
                 ),
               ),
               actions: [
@@ -239,14 +239,14 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                   icon: Icon(Icons.settings, color: AppColors.text),
                   onPressed: () => Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(builder: (context) => const SettingsPage()),
+                    SlideLeftRoute(page: const SettingsPage()),
                   ),
                 ),
               ],
               flexibleSpace: FlexibleSpaceBar(
                 background: Column(
                   children: [
-                    SizedBox(height: 100), // Untuk kompensasi AppBar
+                    SizedBox(height: 100), // For AppBar compensation
                     Container(
                       width: 100,
                       height: 100,
@@ -265,24 +265,41 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                       color: AppColors.text,
                       fontWeight: FontWeight.bold,
                     ),
-                    if (userData?['username'] != null)
+
+                    // Modified code for better positioning of username/bio
+                    if (userData?['username'] != null && userData!['username'].isNotEmpty) ...[
                       Padding(
-                        padding: EdgeInsets.symmetric(vertical: Dimensions.paddingS),
+                        padding: EdgeInsets.only(top: Dimensions.paddingS),
                         child: AppText(
                           userData!['username'],
                           fontSize: FontSizes.body,
                           color: AppColors.textSecondary,
+                          fontWeight: FontWeight.bold,
+                          fontStyle: FontStyle.italic,
                         ),
                       ),
-                    if (userData?['bio'] != null)
+                      if (userData?['bio'] != null && userData!['bio'].isNotEmpty)
+                        Padding(
+                          padding: EdgeInsets.only(top: Dimensions.paddingS),
+                          child: AppText(
+                            '"${userData!['bio']}"',
+                            fontSize: FontSizes.body,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                    ]
+                    // If username doesn't exist but bio does, move bio up to username position
+                    else if (userData?['bio'] != null && userData!['bio'].isNotEmpty) ...[
                       Padding(
-                        padding: EdgeInsets.symmetric(vertical: Dimensions.paddingS),
+                        padding: EdgeInsets.only(top: Dimensions.paddingS),
                         child: AppText(
-                          userData!['bio'],
+                          '"${userData!['bio']}"',
                           fontSize: FontSizes.body,
                           color: AppColors.textSecondary,
                         ),
                       ),
+                    ],
+
                     SizedBox(height: Dimensions.paddingM),
                     ElevatedButton(
                       onPressed: () => Navigator.push(
@@ -413,20 +430,20 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
       },
       child: userData?['profilePictureUrl'] != null
           ? Image.network(
-              userData!['profilePictureUrl'],
-              fit: BoxFit.cover,
-              loadingBuilder: (context, child, loadingProgress) {
-                if (loadingProgress == null) return child;
-                return Center(
-                  child: CircularProgressIndicator(
-                    color: AppColors.primary,
-                  ),
-                );
-              },
-              errorBuilder: (context, error, stackTrace) {
-                return Icon(Icons.person, size: Dimensions.iconXL, color: AppColors.text);
-              },
-            )
+        userData!['profilePictureUrl'],
+        fit: BoxFit.cover,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Center(
+            child: CircularProgressIndicator(
+              color: AppColors.primary,
+            ),
+          );
+        },
+        errorBuilder: (context, error, stackTrace) {
+          return Icon(Icons.person, size: Dimensions.iconXL, color: AppColors.text);
+        },
+      )
           : Icon(Icons.person, size: Dimensions.iconXL, color: AppColors.text),
     );
   }

@@ -30,6 +30,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
   String? _currentProfilePictureUrl;
   bool _isLoading = false;
   bool _hasChanges = false;
+  bool _profilePictureDeleted = false; // New flag to track if profile picture was deleted
 
   @override
   void initState() {
@@ -50,7 +51,8 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
               _lastNameController.text != (_currentUserData?['lastName'] ?? '') ||
               _usernameController.text != (_currentUserData?['username'] ?? '') ||
               _bioController.text != (_currentUserData?['bio'] ?? '') ||
-              _imageFile != null;
+              _imageFile != null ||
+              _profilePictureDeleted;
     });
   }
 
@@ -80,18 +82,117 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
     }
   }
 
+  void _showProfilePictureOptions() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF1E1E1E),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (BuildContext context) {
+        return MediaQuery.withClampedTextScaling(
+          minScaleFactor: 1.0,
+          maxScaleFactor: 1.0,
+          child: Container(
+            padding: EdgeInsets.all(Dimensions.paddingL),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  height: 5,
+                  width: 40,
+                  margin: EdgeInsets.only(bottom: Dimensions.paddingM),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[600],
+                    borderRadius: BorderRadius.circular(Dimensions.radiusS),
+                  ),
+                ),
+                // Delete option centered
+                InkWell(
+                  onTap: () {
+                    Navigator.pop(context);
+                    _deleteProfilePicture();
+                  },
+                  child: Container(
+                    padding: EdgeInsets.symmetric(
+                      vertical: Dimensions.paddingM,
+                      horizontal: Dimensions.paddingL,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.delete, color: Colors.red[800], size: 24,),
+                        SizedBox(width: Dimensions.paddingM),
+                        Text(
+                          'Delete Photo Profile',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w500,
+                            fontSize: 14.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(height: Dimensions.paddingS),
+                // Change image option centered
+                InkWell(
+                  onTap: () {
+                    Navigator.pop(context);
+                    _pickImage();
+                  },
+                  child: Container(
+                    padding: EdgeInsets.symmetric(
+                      vertical: Dimensions.paddingM,
+                      horizontal: Dimensions.paddingL,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.photo_library, color: Colors.grey),
+                        SizedBox(width: Dimensions.paddingM),
+                        Text(
+                          'Change Image Photo Profile',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w500,
+                            fontSize: 14.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _deleteProfilePicture() async {
+    setState(() {
+      _imageFile = null;
+      _profilePictureDeleted = true; // Set flag to true
+      _hasChanges = true;
+    });
+  }
+
   Future<void> _pickImage() async {
     final ImagePicker picker = ImagePicker();
     try {
       final XFile? image = await picker.pickImage(
-          source: ImageSource.gallery,
-          maxWidth: 800,
-          maxHeight: 800,
-          imageQuality: 85
+        source: ImageSource.gallery,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 100,
       );
       if (image != null) {
         setState(() {
           _imageFile = File(image.path);
+          _profilePictureDeleted = false; // Reset delete flag when picking a new image
           _hasChanges = true;
         });
       }
@@ -109,24 +210,14 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
   Future<void> _saveProfile() async {
     if (!_formKey.currentState!.validate()) return;
 
-    // Additional specific validations
-    if (_usernameController.text.length < 3) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Username must be at least 3 characters long'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
     setState(() {
       _isLoading = true;
     });
 
     try {
-      // Check username uniqueness only if username is changed
-      if (_usernameController.text != _currentUserData?['username']) {
+      // Check username uniqueness only if username is not empty and changed
+      if (_usernameController.text.isNotEmpty &&
+          _usernameController.text != _currentUserData?['username']) {
         bool isUsernameAvailable = await _authService.checkUsernameUniqueness(
             _usernameController.text
         );
@@ -148,21 +239,34 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
       // Sanitize and format names
       String firstName = _firstNameController.text.trim();
       String lastName = _lastNameController.text.trim();
-      String username = _usernameController.text.trim().toLowerCase();
+      // Username can be empty now
+      String username = _usernameController.text.trim();
 
-      // Update profile data in Firestore
-      await _firestoreService.updateUserProfile({
+      // Prepare update data
+      Map<String, dynamic> updateData = {
         'firstName': firstName,
         'lastName': lastName,
-        'username': username,
+        'username': username, // Can be empty string now
         'bio': _bioController.text.trim(),
         'displayName': '$firstName ${lastName ?? ''}',
-      });
+      };
+
+      // If profile picture was deleted, explicitly set it to null in the update data
+      if (_profilePictureDeleted) {
+        updateData['profilePictureUrl'] = null;
+        // Delete the image from storage if it exists
+        if (_currentProfilePictureUrl != null) {
+          await _firestoreService.deleteProfilePicture();
+        }
+      }
 
       // If there's a new profile picture, upload it
       if (_imageFile != null) {
         await _firestoreService.uploadProfilePicture(_imageFile!);
       }
+
+      // Update profile data in Firestore
+      await _firestoreService.updateUserProfile(updateData);
 
       // Update display name in Firebase Auth
       await _authService.updateDisplayName(
@@ -343,35 +447,37 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                         child: ClipOval(
                           child: _imageFile != null
                               ? Image.file(_imageFile!, fit: BoxFit.cover)
-                              : _currentProfilePictureUrl != null
-                                  ? Image.network(
-                                      _currentProfilePictureUrl!,
-                                      fit: BoxFit.cover,
-                                      loadingBuilder: (context, child, loadingProgress) {
-                                        if (loadingProgress == null) return child;
-                                        return Center(
-                                          child: CircularProgressIndicator(
-                                            color: AppColors.primary,
-                                          ),
-                                        );
-                                      },
-                                      errorBuilder: (context, error, stackTrace) {
-                                        return Icon(
-                                          Icons.person,
-                                          size: Dimensions.iconXL,
-                                          color: AppColors.text,
-                                        );
-                                      },
-                                    )
-                                  : Icon(
-                                      Icons.person,
-                                      size: Dimensions.iconXL,
-                                      color: AppColors.text,
-                                    ),
+                              : (_currentProfilePictureUrl != null && !_profilePictureDeleted)
+                              ? Image.network(
+                            _currentProfilePictureUrl!,
+                            fit: BoxFit.cover,
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return Center(
+                                child: CircularProgressIndicator(
+                                  color: AppColors.primary,
+                                ),
+                              );
+                            },
+                            errorBuilder: (context, error, stackTrace) {
+                              return Icon(
+                                Icons.person,
+                                size: Dimensions.iconXL,
+                                color: AppColors.text,
+                              );
+                            },
+                          )
+                              : Icon(
+                            Icons.person,
+                            size: Dimensions.iconXL,
+                            color: AppColors.text,
+                          ),
                         ),
                       ),
                       GestureDetector(
-                        onTap: _pickImage,
+                        onTap: (_imageFile != null || (_currentProfilePictureUrl != null && !_profilePictureDeleted))
+                            ? _showProfilePictureOptions
+                            : _pickImage,
                         child: Container(
                           padding: EdgeInsets.all(Dimensions.paddingS),
                           decoration: BoxDecoration(
@@ -404,6 +510,17 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                     controller: _usernameController,
                     label: 'Username',
                     maxLength: 15,
+                    customValidator: (value) {
+                      // Allow empty username (will pass validation)
+                      if (value == null || value.isEmpty) {
+                        return null;
+                      }
+                      // But if username has content, enforce length requirement
+                      if (value.length < 3) {
+                        return 'Username must be at least 3 characters long';
+                      }
+                      return null;
+                    },
                   ),
                   SizedBox(height: Dimensions.paddingM),
                   _buildTextField(
@@ -416,7 +533,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: _isLoading ? null : _saveProfile,
+                      onPressed: (_isLoading || !_hasChanges) ? null : _saveProfile,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: _hasChanges ? AppColors.primary : AppColors.surface,
                         padding: EdgeInsets.symmetric(vertical: Dimensions.paddingM),
@@ -427,11 +544,11 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                       child: _isLoading
                           ? CircularProgressIndicator(color: AppColors.text)
                           : AppText(
-                              'SAVE',
-                              fontSize: FontSizes.body,
-                              color: _hasChanges ? AppColors.text : AppColors.textSecondary,
-                              fontWeight: FontWeight.bold,
-                            ),
+                        'SAVE',
+                        fontSize: FontSizes.body,
+                        color: _hasChanges ? AppColors.text : AppColors.textSecondary,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ],
@@ -448,6 +565,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
     required String label,
     int maxLines = 1,
     int? maxLength,
+    String? Function(String?)? customValidator,
   }) {
     return TextFormField(
       controller: controller,
@@ -476,15 +594,22 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
         counterStyle: TextStyle(color: AppColors.textSecondary),
         errorStyle: TextStyle(color: AppColors.error),
       ),
-      validator: (value) {
-        // Keep existing validation logic
+      validator: customValidator ?? (value) {
         return null;
+      },
+      onChanged: (value) {
+        _checkChanges();
       },
     );
   }
 
   @override
   void dispose() {
+    _firstNameController.removeListener(_checkChanges);
+    _lastNameController.removeListener(_checkChanges);
+    _usernameController.removeListener(_checkChanges);
+    _bioController.removeListener(_checkChanges);
+
     _firstNameController.dispose();
     _lastNameController.dispose();
     _usernameController.dispose();

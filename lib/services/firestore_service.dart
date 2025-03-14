@@ -557,20 +557,20 @@ class FirestoreService {
     try {
       String? userId = _auth.currentUser?.uid;
       if (userId == null) throw Exception('User not authenticated');
-      
+
       final snapshot = await _firestore
           .collection('users')
           .doc(userId)
           .collection('planned_recipes')
           .orderBy('plannedDate')
           .get();
-      
+
       Map<String, List<PlannedMeal>> meals = {};
-      
+
       for (var doc in snapshot.docs) {
         final data = doc.data();
         print('Raw data from Firestore: $data'); // Debug print
-        
+
         final recipe = Recipe(
           id: data['id'] ?? '',
           title: data['title'] ?? '',
@@ -588,20 +588,20 @@ class FirestoreService {
 
         final date = (data['plannedDate'] as Timestamp).toDate();
         final dateKey = DateFormat('yyyy-MM-dd').format(date);
-        
+
         final plannedMeal = PlannedMeal(
           recipe: recipe,
           mealType: data['mealType'] ?? '',
           dateKey: dateKey,
           date: date,
         );
-        
+
         if (!meals.containsKey(dateKey)) {
           meals[dateKey] = [];
         }
         meals[dateKey]!.add(plannedMeal);
       }
-      
+
       return meals;
     } catch (e) {
       print('Error in getPlannedMeals: $e');
@@ -808,7 +808,7 @@ class FirestoreService {
         return snapshot.docs.map((doc) {
           final data = doc.data();
           print('Recipe data from Firestore: $data'); // Debug print
-          
+
           return Recipe(
             id: data['id'],
             title: data['title'],
@@ -883,16 +883,16 @@ class FirestoreService {
     try {
       String? userId = _auth.currentUser?.uid;
       Map<String, bool> status = {};
-      
+
       if (userId != null) {
         final snapshot = await _firestore
             .collection('users')
             .doc(userId)
             .collection('made_recipes')
             .get();
-            
+
         final madeIds = snapshot.docs.map((doc) => doc.id).toSet();
-        
+
         for (var id in recipeIds) {
           status[id] = madeIds.contains(id);
         }
@@ -910,7 +910,7 @@ class FirestoreService {
       if (userId != null) {
         final today = DateTime.now();
         final startOfDay = DateTime(today.year, today.month, today.day);
-        
+
         final snapshot = await _firestore
             .collection('users')
             .doc(userId)
@@ -991,7 +991,7 @@ class FirestoreService {
         final data = doc.data();
         final madeAt = (data['madeAt'] as Timestamp).toDate();
         final dayIndex = madeAt.difference(startOfWeek).inDays;
-        
+
         if (dayIndex >= 0 && dayIndex < 7) {
           final nutrition = data['nutrition'] as Map<String, dynamic>;
           weeklyNutrition['calories']![dayIndex] += (nutrition['calories'] ?? 0).toDouble();
@@ -1129,15 +1129,15 @@ class FirestoreService {
           print('Found nutrition data: $nutrition'); // Debug print
 
           // Safely add values with null checks and type conversion
-          totals['calories'] = (totals['calories'] ?? 0) + 
+          totals['calories'] = (totals['calories'] ?? 0) +
               (nutrition['calories']?.toDouble() ?? 0);
-          totals['carbs'] = (totals['carbs'] ?? 0) + 
+          totals['carbs'] = (totals['carbs'] ?? 0) +
               (nutrition['carbs']?.toDouble() ?? 0);
-          totals['fiber'] = (totals['fiber'] ?? 0) + 
+          totals['fiber'] = (totals['fiber'] ?? 0) +
               (nutrition['fiber']?.toDouble() ?? 0);
-          totals['protein'] = (totals['protein'] ?? 0) + 
+          totals['protein'] = (totals['protein'] ?? 0) +
               (nutrition['protein']?.toDouble() ?? 0);
-          totals['fat'] = (totals['fat'] ?? 0) + 
+          totals['fat'] = (totals['fat'] ?? 0) +
               (nutrition['fat']?.toDouble() ?? 0);
         }
       }
@@ -1159,15 +1159,15 @@ class FirestoreService {
 
   Future<Map<String, double>> checkNutritionWarnings(Recipe recipe) async {
     try {
-      print('Starting nutrition warning check...'); 
-      
+      print('Starting nutrition warning check...');
+
       // Get current nutrition totals
       final currentTotals = await getTodayNutrition();
-      print('Current totals: $currentTotals'); 
-      
+      print('Current totals: $currentTotals');
+
       // Get user's nutrition goals
       final goals = await getNutritionGoals();
-      print('User goals: ${goals.toMap()}'); 
+      print('User goals: ${goals.toMap()}');
 
       // Calculate current percentages
       final currentPercentages = {
@@ -1218,7 +1218,7 @@ class FirestoreService {
           .collection('users')
           .doc(userId)
           .get();
-      
+
       print('User document exists: ${userDoc.exists}');
       if (userDoc.exists) {
         print('User data: ${userDoc.data()}');
@@ -1240,7 +1240,7 @@ class FirestoreService {
       print('Error in debugNutritionData: $e');
     }
   }
-  
+
   Future<void> saveChatMessage(dash.ChatMessage message, bool isUser) async {
     try {
       String? userId = _auth.currentUser?.uid;
@@ -1281,7 +1281,7 @@ class FirestoreService {
       return snapshot.docs.map((doc) {
         final data = doc.data();
         List<dash.ChatMedia>? medias;
-        
+
         if (data['medias'] != null) {
           medias = (data['medias'] as List).map((mediaData) => dash.ChatMedia(
             url: mediaData['url'],
@@ -1358,7 +1358,7 @@ class FirestoreService {
       if (user == null) throw 'User not logged in';
 
       final batch = FirebaseFirestore.instance.batch();
-      
+
       final notifications = await FirebaseFirestore.instance
           .collection('users')
           .doc(user.uid)
@@ -1419,9 +1419,9 @@ class FirestoreService {
           .collection('recipes')
           .doc(recipeId)
           .get();
-      
+
       if (!doc.exists) return null;
-      
+
       return Recipe.fromMap(doc.data()!);
     } catch (e) {
       print('Error getting recipe by id: $e');
@@ -1445,4 +1445,27 @@ class FirestoreService {
     }
   }
 
+  Future<void> deleteProfilePicture() async {
+    try {
+      String? userId = _auth.currentUser?.uid;
+      if (userId == null) {
+        throw Exception('No authenticated user found');
+      }
+
+      // Pertama, ambil URL gambar profil saat ini
+      DocumentSnapshot userDoc = await _firestore.collection('users').doc(userId).get();
+
+      if (userDoc.exists && userDoc.data() != null) {
+        // Update dokumen user di Firestore dengan menghapus URL foto profil
+        await _firestore.collection('users').doc(userId).update({
+          'profilePictureUrl': "", // Atau gunakan FieldValue.delete()
+        });
+
+        print('Profile picture reference removed from user document');
+      }
+    } catch (e) {
+      print('Error deleting profile picture: $e');
+      throw Exception('Failed to delete profile picture: $e');
+    }
+  }
 }

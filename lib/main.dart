@@ -137,6 +137,7 @@ class MealPlannerApp extends StatelessWidget {
             );
           },
           title: 'NutriGuide',
+          debugShowCheckedModeBanner: false,
           theme: ThemeData(
             visualDensity: VisualDensity.adaptivePlatformDensity,
             fontFamily: 'Roboto',

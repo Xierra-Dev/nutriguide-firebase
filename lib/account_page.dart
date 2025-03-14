@@ -479,7 +479,7 @@ class _AccountPageState extends State<AccountPage> {
                         'Change Password',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontSize: 24,
+                          fontSize: 23,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                           letterSpacing: 0.5,
@@ -542,7 +542,7 @@ class _AccountPageState extends State<AccountPage> {
                               child: Text(
                                 'Change Password',
                                 style: TextStyle(
-                                  fontSize: 14,
+                                  fontSize: 12,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),

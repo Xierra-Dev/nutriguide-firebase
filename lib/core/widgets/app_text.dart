@@ -10,17 +10,19 @@ class AppText extends StatelessWidget {
   final TextAlign? textAlign;
   final int? maxLines;
   final TextOverflow? overflow;
+  final FontStyle? fontStyle; // Add this parameter
 
   const AppText(
-    this.text, {
-    super.key,
-    required this.fontSize,
-    this.color,
-    this.fontWeight,
-    this.textAlign,
-    this.maxLines,
-    this.overflow,
-  });
+      this.text, {
+        super.key,
+        required this.fontSize,
+        this.color,
+        this.fontWeight,
+        this.textAlign,
+        this.maxLines,
+        this.overflow,
+        this.fontStyle, // Add this parameter
+      });
 
   @override
   Widget build(BuildContext context) {
@@ -32,6 +34,7 @@ class AppText extends StatelessWidget {
           fontSize: ResponsiveHelper.getAdaptiveTextSize(context, fontSize),
           color: color,
           fontWeight: fontWeight,
+          fontStyle: fontStyle, // Add this parameter
         ),
         textAlign: textAlign,
         maxLines: maxLines,
