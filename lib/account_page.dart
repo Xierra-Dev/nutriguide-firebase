@@ -440,7 +440,7 @@ class _AccountPageState extends State<AccountPage> {
       barrierColor: Colors.black.withOpacity(0.5),
       builder:
           (context) => MediaQuery(
-            data: mediaQuery.copyWith(textScaleFactor: textScaleFactor),
+            data: mediaQuery.copyWith(textScaler: TextScaler.linear(textScaleFactor)),
             child: Dialog(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(24.0),
@@ -651,7 +651,7 @@ class _AccountPageState extends State<AccountPage> {
           (context) => MediaQuery(
             data: MediaQuery.of(
               context,
-            ).copyWith(textScaleFactor: 1.0), // Override text scale factor
+            ).copyWith(textScaler: TextScaler.linear(1.0)), // Override text scale factor
             child: Dialog(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(24.0),
@@ -801,7 +801,7 @@ class _AccountPageState extends State<AccountPage> {
           (context) => MediaQuery(
             data: MediaQuery.of(
               context,
-            ).copyWith(textScaleFactor: 1.0), // Override text scale factor
+            ).copyWith(textScaler: TextScaler.linear(1.0)), // Override text scale factor
             child: Dialog(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(24.0),

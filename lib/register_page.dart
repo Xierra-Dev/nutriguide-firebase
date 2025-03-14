@@ -2,8 +2,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'login_page.dart';
 import 'services/auth_service.dart';
-import 'landing_page.dart';
-import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'email_verification_page.dart';
 import 'core/constants/colors.dart';
 import 'core/constants/font_sizes.dart';
@@ -308,7 +306,7 @@ class _RegisterPageState extends State<RegisterPage> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     return MediaQuery(
-      data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
+      data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
       child: Scaffold(
         body: Container(
           height: MediaQuery.of(context).size.height,

@@ -131,7 +131,7 @@ class MealPlannerApp extends StatelessWidget {
             // Ini akan memaksa aplikasi menggunakan skala teks yang kita tentukan
             return MediaQuery(
               data: MediaQuery.of(context).copyWith(
-                textScaleFactor: 1.0, // Force text scale factor to 1.0
+                textScaler: TextScaler.linear(1.0), // Force text scale factor to 1.0
               ),
               child: child!,
             );

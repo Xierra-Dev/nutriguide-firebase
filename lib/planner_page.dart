@@ -159,7 +159,7 @@ class _PlannerPageState extends State<PlannerPage> {
             barrierDismissible: false,
             builder: (context) => Theme(
               data: Theme.of(context).copyWith(
-                dialogBackgroundColor: AppColors.surface,
+                dialogTheme: DialogThemeData(backgroundColor: AppColors.surface),
               ),
               child: NutritionWarningDialog(
                 nutritionPercentages: nutritionWarnings,

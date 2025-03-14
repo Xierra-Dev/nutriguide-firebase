@@ -318,14 +318,14 @@ class _HealthDataPageState extends State<HealthDataPage> {
                       if (!isLoading)
                         ElevatedButton(
                           style: ButtonStyle(
-                            backgroundColor: MaterialStateProperty.resolveWith<Color>((states) {
-                              if (states.contains(MaterialState.disabled)) {
+                            backgroundColor: WidgetStateProperty.resolveWith<Color>((states) {
+                              if (states.contains(WidgetState.disabled)) {
                                 return AppColors.surface;
                               }
                               return AppColors.primary;
                             }),
-                            minimumSize: MaterialStateProperty.all(Size(double.infinity, 56)),
-                            shape: MaterialStateProperty.all(
+                            minimumSize: WidgetStateProperty.all(Size(double.infinity, 56)),
+                            shape: WidgetStateProperty.all(
                               RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(Dimensions.radiusL),
                               ),
