@@ -528,7 +528,7 @@ class _SearchPageState extends State<SearchPage> {
   Future<void> _toggleSave(Recipe recipe) async {
     try {
       final isSaved = savedStatus[recipe.id] ?? false;
-      
+
       if (isSaved) {
         await _firestoreService.unsaveRecipe(recipe.id);
         if (mounted) {
@@ -689,7 +689,7 @@ class _SearchPageState extends State<SearchPage> {
 
   void _searchRecipes(String query) {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
-    
+
     if (query.isEmpty) {
       setState(() {
         searchResults = [];
@@ -709,7 +709,7 @@ class _SearchPageState extends State<SearchPage> {
 
       try {
         final results = await _mealDBService.searchRecipes(query);
-        
+
         if (mounted) {
           setState(() {
             searchResults = results;
@@ -825,18 +825,14 @@ class _SearchPageState extends State<SearchPage> {
                   style: TextStyle(
                     color: AppColors.text,
                     fontSize: ResponsiveHelper.getAdaptiveTextSize(
-                      context,
-                      FontSizes.body
-                    ),
+                        context, FontSizes.body),
                   ),
                   decoration: InputDecoration(
                     hintText: 'Search...',
                     hintStyle: TextStyle(
                       color: AppColors.text.withOpacity(0.5),
                       fontSize: ResponsiveHelper.getAdaptiveTextSize(
-                        context,
-                        FontSizes.body
-                      ),
+                          context, FontSizes.body),
                     ),
                     prefixIcon: Icon(
                       Icons.search,
@@ -884,35 +880,43 @@ class _SearchPageState extends State<SearchPage> {
                       height: 120,
                       child: ListView.builder(
                         scrollDirection: Axis.horizontal,
-                        padding: EdgeInsets.symmetric(horizontal: Dimensions.paddingM),
+                        padding: EdgeInsets.symmetric(
+                            horizontal: Dimensions.paddingM),
                         itemCount: popularIngredients.length,
                         itemBuilder: (context, index) {
                           final ingredient = popularIngredients[index];
                           return StatefulBuilder(
                             builder: (context, setState) {
                               return GestureDetector(
-                                onTapDown: (_) => setState(() => _currentScale = 0.95),
+                                onTapDown: (_) =>
+                                    setState(() => _currentScale = 0.95),
                                 onTapUp: (_) {
                                   setState(() => _currentScale = 1.0);
-                                  _searchRecipesByIngredient(ingredient['name']!);
+                                  _searchRecipesByIngredient(
+                                      ingredient['name']!);
                                 },
-                                onTapCancel: () => setState(() => _currentScale = 1.0),
+                                onTapCancel: () =>
+                                    setState(() => _currentScale = 1.0),
                                 child: AnimatedScale(
                                   scale: _currentScale,
                                   duration: const Duration(milliseconds: 150),
                                   child: Container(
                                     width: 100,
-                                    margin: EdgeInsets.only(right: Dimensions.paddingS),
+                                    margin: EdgeInsets.only(
+                                        right: Dimensions.paddingS),
                                     decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(Dimensions.radiusM),
+                                      borderRadius: BorderRadius.circular(
+                                          Dimensions.radiusM),
                                       image: DecorationImage(
-                                        image: NetworkImage(ingredient['image']!),
+                                        image:
+                                            NetworkImage(ingredient['image']!),
                                         fit: BoxFit.cover,
                                       ),
                                     ),
                                     child: Container(
                                       decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(Dimensions.radiusM),
+                                        borderRadius: BorderRadius.circular(
+                                            Dimensions.radiusM),
                                         gradient: LinearGradient(
                                           begin: Alignment.topCenter,
                                           end: Alignment.bottomCenter,
@@ -923,7 +927,8 @@ class _SearchPageState extends State<SearchPage> {
                                         ),
                                       ),
                                       alignment: Alignment.bottomCenter,
-                                      padding: EdgeInsets.all(Dimensions.paddingS),
+                                      padding:
+                                          EdgeInsets.all(Dimensions.paddingS),
                                       child: AppText(
                                         ingredient['name']!.toUpperCase(),
                                         fontSize: FontSizes.caption,
@@ -993,7 +998,8 @@ class _SearchPageState extends State<SearchPage> {
           ],
           Expanded(
             child: isLoading
-                ? Center(child: CircularProgressIndicator(color: AppColors.primary))
+                ? Center(
+                    child: CircularProgressIndicator(color: AppColors.primary))
                 : _isSearching
                     ? _buildSearchResults()
                     : _buildRecipeGrid(recipes),
@@ -1022,9 +1028,7 @@ class _SearchPageState extends State<SearchPage> {
         // Move the back button and title row closer to the top
         Padding(
           padding: EdgeInsets.symmetric(
-            horizontal: Dimensions.paddingM,
-            vertical: Dimensions.paddingS
-          ),
+              horizontal: Dimensions.paddingM, vertical: Dimensions.paddingS),
           child: Row(
             children: [
               IconButton(
@@ -1065,18 +1069,14 @@ class _SearchPageState extends State<SearchPage> {
               style: TextStyle(
                 color: AppColors.text,
                 fontSize: ResponsiveHelper.getAdaptiveTextSize(
-                  context,
-                  FontSizes.body
-                ),
+                    context, FontSizes.body),
               ),
               decoration: InputDecoration(
                 hintText: 'Search Recipes...',
                 hintStyle: TextStyle(
                   color: AppColors.text.withOpacity(0.5),
                   fontSize: ResponsiveHelper.getAdaptiveTextSize(
-                    context,
-                    FontSizes.body
-                  ),
+                      context, FontSizes.body),
                 ),
                 prefixIcon: Icon(
                   Icons.search,
@@ -1144,17 +1144,16 @@ class _SearchPageState extends State<SearchPage> {
           if (_isYouMightAlsoLikeSectionExpanded)
             SizedBox(
               height: ResponsiveHelper.screenHeight(context) * 0.21,
-              child: _buildRecipeGrid(
-                recipes.take(10).toList(),
-                scrollDirection: Axis.horizontal
-              ),
+              child: _buildRecipeGrid(recipes.take(10).toList(),
+                  scrollDirection: Axis.horizontal),
             ),
         ],
       ],
     );
   }
 
-  Widget _buildRecipeGrid(List<Recipe> recipeList, {Axis scrollDirection = Axis.vertical}) {
+  Widget _buildRecipeGrid(List<Recipe> recipeList,
+      {Axis scrollDirection = Axis.vertical}) {
     return GridView.builder(
       controller: _scrollController,
       scrollDirection: scrollDirection,
@@ -1206,7 +1205,8 @@ class _SearchPageState extends State<SearchPage> {
                         ),
                         decoration: BoxDecoration(
                           color: Colors.black.withOpacity(0.5),
-                          borderRadius: BorderRadius.circular(Dimensions.radiusS),
+                          borderRadius:
+                              BorderRadius.circular(Dimensions.radiusS),
                         ),
                         child: AppText(
                           recipe.area ?? 'International',
@@ -1238,7 +1238,8 @@ class _SearchPageState extends State<SearchPage> {
                           color: AppColors.surface,
                           elevation: 4,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(Dimensions.radiusM),
+                            borderRadius:
+                                BorderRadius.circular(Dimensions.radiusM),
                           ),
                           offset: const Offset(0, 45),
                           itemBuilder: (BuildContext context) => [
