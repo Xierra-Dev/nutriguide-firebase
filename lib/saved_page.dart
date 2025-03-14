@@ -181,7 +181,7 @@ class _SavedPageState extends State<SavedPage> {
       builder: (BuildContext context) {
         return Theme(
           data: Theme.of(context).copyWith(
-            dialogTheme: DialogThemeData(backgroundColor: AppColors.surface),
+            dialogBackgroundColor: AppColors.surface,
           ),
           child: AlertDialog(
             title: AppText(
