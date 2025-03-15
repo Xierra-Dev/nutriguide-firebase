@@ -52,7 +52,7 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
       return Colors.green;
     }
   }
-  
+
   void _onScroll() {
     // You can adjust this value (100) to control when the title appears
     if (_scrollController.offset > 100 && !showTitle) {
@@ -105,7 +105,9 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  isSaved ? 'Recipe saved: ${recipe.title}' : 'Recipe: "${recipe.title}" removed from saved',
+                  isSaved
+                      ? 'Recipe saved: ${recipe.title}'
+                      : 'Recipe: "${recipe.title}" removed from saved',
                 ),
               ),
             ],
@@ -164,7 +166,8 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
     }
   }
 
-  void _showMealSelectionDialog(BuildContext context, StateSetter setDialogState, Recipe recipe) {
+  void _showMealSelectionDialog(
+      BuildContext context, StateSetter setDialogState, Recipe recipe) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.grey[900],
@@ -175,14 +178,13 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
       ),
       builder: (BuildContext context) {
         return MediaQuery(
-          data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
+          data: MediaQuery.of(context)
+              .copyWith(textScaler: TextScaler.linear(1.0)),
           child: StatefulBuilder(
             builder: (BuildContext context, StateSetter mealSetState) {
               return Padding(
-                padding: const EdgeInsets.symmetric(
-                    vertical: 40,
-                    horizontal: 20
-                ),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -198,11 +200,18 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
                     const SizedBox(height: 18),
                     ListView(
                       shrinkWrap: true,
-                      children: ['Breakfast', 'Lunch', 'Dinner', 'Supper', 'Snacks'].map((String mealType) {
+                      children: [
+                        'Breakfast',
+                        'Lunch',
+                        'Dinner',
+                        'Supper',
+                        'Snacks'
+                      ].map((String mealType) {
                         return ListTile(
                           title: Text(
                             mealType,
-                            style: const TextStyle(color: Colors.white, fontSize: 16),
+                            style: const TextStyle(
+                                color: Colors.white, fontSize: 16),
                           ),
                           onTap: () {
                             setDialogState(() {
@@ -258,14 +267,13 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
       ),
       builder: (BuildContext context) {
         return MediaQuery(
-          data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
+          data: MediaQuery.of(context)
+              .copyWith(textScaler: TextScaler.linear(1.0)),
           child: StatefulBuilder(
             builder: (BuildContext context, StateSetter setDialogState) {
               return Padding(
-                padding: const EdgeInsets.symmetric(
-                    vertical: 20,
-                    horizontal: 20
-                ),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -287,8 +295,8 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
                           onPressed: () {
                             // Pindah ke minggu sebelumnya
                             setDialogState(() {
-                              _selectedDate =
-                                  _selectedDate.subtract(const Duration(days: 7));
+                              _selectedDate = _selectedDate
+                                  .subtract(const Duration(days: 7));
                             });
                           },
                           icon: const Icon(
@@ -300,7 +308,7 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
                         Text(
                           // Menampilkan rentang tanggal minggu
                           '${DateFormat('MMM dd').format(_selectedDate)} - '
-                              '${DateFormat('MMM dd').format(_selectedDate.add(const Duration(days: 6)))}',
+                          '${DateFormat('MMM dd').format(_selectedDate.add(const Duration(days: 6)))}',
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -329,10 +337,12 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
                         child: InkWell(
                           onTap: () {
                             // Open meal selection dialog
-                            _showMealSelectionDialog(context, setDialogState, recipe);
+                            _showMealSelectionDialog(
+                                context, setDialogState, recipe);
                           },
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 8),
                             decoration: BoxDecoration(
                               color: Colors.grey[850],
                               borderRadius: BorderRadius.circular(8),
@@ -341,7 +351,9 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
-                                  _selectedMeal.isEmpty ? 'Select Meal' : _selectedMeal,
+                                  _selectedMeal.isEmpty
+                                      ? 'Select Meal'
+                                      : _selectedMeal,
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 16,
@@ -366,7 +378,7 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
                         for (int i = 0; i < 7; i++)
                           ChoiceChip(
                             label: Text(
-                              DateFormat('EEE').format(
+                              DateFormat('EEE, dd').format(
                                 _selectedDate.add(Duration(
                                     days: i - _selectedDate.weekday % 7)),
                               ), // Menampilkan hari dimulai dari Sunday
@@ -381,7 +393,7 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
                             backgroundColor: Colors.grey[800],
                             labelStyle: TextStyle(
                               color:
-                              _daysSelected[i] ? Colors.white : Colors.grey,
+                                  _daysSelected[i] ? Colors.white : Colors.grey,
                             ),
                           ),
                       ],
@@ -403,9 +415,12 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
                         ElevatedButton(
                           // Inside dialog's ElevatedButton onPressed
                           onPressed: () {
-                            if (_selectedMeal.isEmpty || !_daysSelected.contains(true)) {
+                            if (_selectedMeal.isEmpty ||
+                                !_daysSelected.contains(true)) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Please select at least one day and a meal type!')),
+                                const SnackBar(
+                                    content: Text(
+                                        'Please select at least one day and a meal type!')),
                               );
                               return;
                             }
@@ -414,12 +429,14 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
                           },
                           style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.deepOrange,
-                              foregroundColor: Colors.white
+                              foregroundColor: Colors.white),
+                          child: const Text(
+                            'Done',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                          child: const Text('Done', style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                          ) ,),
                         ),
                       ],
                     ),
@@ -437,7 +454,8 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
   void _saveSelectedPlan(Recipe recipe) async {
     try {
       List<DateTime> selectedDates = [];
-      List<DateTime> successfullyPlannedDates = []; // Menyimpan tanggal yang berhasil disimpan
+      List<DateTime> successfullyPlannedDates =
+          []; // Menyimpan tanggal yang berhasil disimpan
 
       for (int i = 0; i < _daysSelected.length; i++) {
         if (_daysSelected[i]) {
@@ -469,7 +487,8 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
           date,
         );
 
-        successfullyPlannedDates.add(date); // Tambahkan tanggal yang berhasil direncanakan
+        successfullyPlannedDates
+            .add(date); // Tambahkan tanggal yang berhasil direncanakan
       }
 
       if (mounted) {
@@ -485,7 +504,8 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
                 children: [
                   Icon(Icons.add_task_rounded, color: Colors.white),
                   SizedBox(width: 8),
-                  Text('Recipe planned for ${successfullyPlannedDates.length} day(s)'),
+                  Text(
+                      'Recipe planned for ${successfullyPlannedDates.length} day(s)'),
                 ],
               ),
               backgroundColor: Colors.green,
@@ -498,7 +518,10 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
                 children: [
                   Icon(Icons.info, color: Colors.white),
                   SizedBox(width: 8),
-                  Text('No new plans were added. All selected plans already exist.', style: TextStyle(fontSize: 13.25),),
+                  Text(
+                    'No new plans were added. All selected plans already exist.',
+                    style: TextStyle(fontSize: 13.25),
+                  ),
                 ],
               ),
               backgroundColor: Colors.blue,
@@ -561,8 +584,8 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
                   title: Text(
                     _isScrolledToThreshold
                         ? (widget.recipe.title.length > 15
-                        ? '${widget.recipe.title.substring(0, 15)}...'
-                        : widget.recipe.title)
+                            ? '${widget.recipe.title.substring(0, 15)}...'
+                            : widget.recipe.title)
                         : widget.recipe.title,
                     style: const TextStyle(
                       color: Colors.white,
@@ -617,7 +640,9 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
                             color: Colors.white,
                             size: 20,
                           ),
-                          onPressed: isLoadingPlan ? null : () => _togglePlan(widget.recipe),
+                          onPressed: isLoadingPlan
+                              ? null
+                              : () => _togglePlan(widget.recipe),
                         ),
                       ),
                       Container(
@@ -628,7 +653,9 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
                             color: isSaved ? Colors.deepOrange : Colors.white,
                             size: 22.5,
                           ),
-                          onPressed: isLoadingSave ? null : () => _toggleSave(widget.recipe),
+                          onPressed: isLoadingSave
+                              ? null
+                              : () => _toggleSave(widget.recipe),
                         ),
                       ),
                     ],
@@ -681,9 +708,11 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
               children: [
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: isLoadingSave ? null : () => _toggleSave(widget.recipe),
+                    onPressed:
+                        isLoadingSave ? null : () => _toggleSave(widget.recipe),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: isSaved ? Colors.deepOrange : Colors.white,
+                      backgroundColor:
+                          isSaved ? Colors.deepOrange : Colors.white,
                       foregroundColor: isSaved ? Colors.white : Colors.black,
                       padding: const EdgeInsets.symmetric(vertical: 13),
                       shape: RoundedRectangleBorder(
@@ -692,17 +721,19 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
                     ),
                     child: isLoadingSave
                         ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.deepOrange),
-                      ),
-                    )
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.deepOrange),
+                            ),
+                          )
                         : Text(
-                      isSaved ? 'Saved' : 'Save',
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-                    ),
+                            isSaved ? 'Saved' : 'Save',
+                            style: const TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.w700),
+                          ),
                   ),
                 ),
                 const SizedBox(width: 18),
@@ -719,17 +750,19 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
                     ),
                     child: isLoadingPlan
                         ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.deepOrange),
-                      ),
-                    )
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.deepOrange),
+                            ),
+                          )
                         : const Text(
-                      'Plan',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-                    ),
+                            'Plan',
+                            style: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.w700),
+                          ),
                   ),
                 ),
               ],
@@ -783,11 +816,13 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
             children: [
               Text(
                 label,
-                style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 12),
+                style: TextStyle(
+                    color: Colors.white.withOpacity(0.7), fontSize: 12),
               ),
               Text(
                 value,
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                    color: Colors.white, fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -820,7 +855,8 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
                 padding: const EdgeInsets.only(bottom: 8.0),
                 child: Row(
                   children: [
-                    const Icon(Icons.fiber_manual_record, color: Colors.deepOrange, size: 8),
+                    const Icon(Icons.fiber_manual_record,
+                        color: Colors.deepOrange, size: 8),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
@@ -904,7 +940,8 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
           LinearProgressIndicator(
             value: widget.recipe.healthScore / 10,
             backgroundColor: Colors.grey[800],
-            valueColor: AlwaysStoppedAnimation<Color>(_getHealthScoreColor(widget.recipe.healthScore)),
+            valueColor: AlwaysStoppedAnimation<Color>(
+                _getHealthScoreColor(widget.recipe.healthScore)),
           ),
           const SizedBox(height: 8),
           Align(
@@ -934,13 +971,19 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
           ),
           const SizedBox(height: 16),
           _buildNutritionRow('Calories', '${nutritionInfo.calories} kcal'),
-          _buildNutritionRow('Total Fat', '${nutritionInfo.totalFat.toStringAsFixed(1)}g'),
-          _buildNutritionRow('Saturated Fat', '${nutritionInfo.saturatedFat.toStringAsFixed(1)}g'),
-          _buildNutritionRow('Carbs', '${nutritionInfo.carbs.toStringAsFixed(1)}g'),
-          _buildNutritionRow('Sugars', '${nutritionInfo.sugars.toStringAsFixed(1)}g'),
-          _buildNutritionRow('Protein', '${nutritionInfo.protein.toStringAsFixed(1)}g'),
+          _buildNutritionRow(
+              'Total Fat', '${nutritionInfo.totalFat.toStringAsFixed(1)}g'),
+          _buildNutritionRow('Saturated Fat',
+              '${nutritionInfo.saturatedFat.toStringAsFixed(1)}g'),
+          _buildNutritionRow(
+              'Carbs', '${nutritionInfo.carbs.toStringAsFixed(1)}g'),
+          _buildNutritionRow(
+              'Sugars', '${nutritionInfo.sugars.toStringAsFixed(1)}g'),
+          _buildNutritionRow(
+              'Protein', '${nutritionInfo.protein.toStringAsFixed(1)}g'),
           _buildNutritionRow('Sodium', '${nutritionInfo.sodium}mg'),
-          _buildNutritionRow('Fiber', '${nutritionInfo.fiber.toStringAsFixed(1)}g'),
+          _buildNutritionRow(
+              'Fiber', '${nutritionInfo.fiber.toStringAsFixed(1)}g'),
         ],
       ),
     );
@@ -960,7 +1003,8 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
             ),
             Text(
               value,
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                  color: Colors.white, fontWeight: FontWeight.bold),
             ),
           ],
         ),

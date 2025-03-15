@@ -56,7 +56,7 @@ class _NutritionTrackerState extends State<NutritionTracker> {
       'fat' => widget.nutritionGoals.fat,
       _ => 0.0,
     };
-    
+
     final progress = (current / goal).clamp(0.0, 1.0);
     final unit = nutrient == 'calories' ? 'kcal' : 'g';
     final isExceeded = current > goal;
@@ -90,7 +90,8 @@ class _NutritionTrackerState extends State<NutritionTracker> {
                   style: TextStyle(
                     color: isExceeded ? Colors.red : Colors.grey[400],
                     fontSize: 14,
-                    fontWeight: isExceeded ? FontWeight.bold : FontWeight.normal,
+                    fontWeight:
+                        isExceeded ? FontWeight.bold : FontWeight.normal,
                   ),
                 ),
               ],
@@ -162,7 +163,8 @@ class _NutritionTrackerState extends State<NutritionTracker> {
   Widget build(BuildContext context) {
     bool hasExceededLimits = false;
     if (!isLoading) {
-      hasExceededLimits = (todayNutrition['calories'] ?? 0) > widget.nutritionGoals.calories ||
+      hasExceededLimits = (todayNutrition['calories'] ?? 0) >
+              widget.nutritionGoals.calories ||
           (todayNutrition['carbs'] ?? 0) > widget.nutritionGoals.carbs ||
           (todayNutrition['fiber'] ?? 0) > widget.nutritionGoals.fiber ||
           (todayNutrition['protein'] ?? 0) > widget.nutritionGoals.protein ||
@@ -218,7 +220,8 @@ class _NutritionTrackerState extends State<NutritionTracker> {
                           Padding(
                             padding: const EdgeInsets.only(right: 8.0),
                             child: Container(
-                              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(
                                 color: Colors.red.withOpacity(0.2),
                                 borderRadius: BorderRadius.circular(12),
@@ -226,7 +229,8 @@ class _NutritionTrackerState extends State<NutritionTracker> {
                               ),
                               child: Row(
                                 children: [
-                                  Icon(Icons.warning_rounded, color: Colors.red, size: 16),
+                                  Icon(Icons.warning_rounded,
+                                      color: Colors.red, size: 16),
                                   SizedBox(width: 4),
                                   Text(
                                     'Limit Exceeded',
@@ -249,7 +253,7 @@ class _NutritionTrackerState extends State<NutritionTracker> {
                   ],
                 ),
                 Text(
-                  DateFormat('EEEE, MMMM d').format(DateTime.now()),
+                  DateFormat('EEEE, MMMM dd').format(DateTime.now()),
                   style: TextStyle(
                     color: Colors.grey[400],
                     fontSize: isCompact ? 12 : 14,
@@ -265,7 +269,8 @@ class _NutritionTrackerState extends State<NutritionTracker> {
                 else
                   Column(
                     children: [
-                      _buildNutrientProgress('Calories', 'calories', Colors.blue),
+                      _buildNutrientProgress(
+                          'Calories', 'calories', Colors.blue),
                       const SizedBox(height: 16),
                       _buildNutrientProgress('Carbs', 'carbs', Colors.orange),
                       const SizedBox(height: 16),

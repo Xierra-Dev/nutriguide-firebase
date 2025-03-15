@@ -440,7 +440,7 @@ class _AllRecipesPageState extends State<AllRecipesPage> {
                         for (int i = 0; i < 7; i++)
                           ChoiceChip(
                             label: Text(
-                              DateFormat('EEE').format(
+                              DateFormat('EEE, dd').format(
                                 _selectedDate.add(Duration(
                                     days: i - _selectedDate.weekday % 7)),
                               ), // Menampilkan hari dimulai dari Sunday

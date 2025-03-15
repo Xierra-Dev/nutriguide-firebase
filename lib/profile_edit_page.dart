@@ -497,13 +497,13 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                   _buildTextField(
                     controller: _firstNameController,
                     label: 'First Name',
-                    maxLength: 10,
+                    maxLength: 20,
                   ),
                   SizedBox(height: Dimensions.paddingM),
                   _buildTextField(
                     controller: _lastNameController,
                     label: 'Last Name',
-                    maxLength: 10,
+                    maxLength: 20,
                   ),
                   SizedBox(height: Dimensions.paddingM),
                   _buildTextField(

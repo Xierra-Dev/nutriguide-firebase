@@ -265,8 +265,8 @@ class _PlannerPageState extends State<PlannerPage> {
                     onPressed: () => _changeWeek(-1),
                   ),
                   AppText(
-                    '${DateFormat('MMM d').format(currentSunday)} - '
-                    '${DateFormat('MMM d').format(currentSunday.add(Duration(days: 6)))}',
+                    '${DateFormat('MMM dd').format(currentSunday)} - '
+                    '${DateFormat('MMM dd').format(currentSunday.add(Duration(days: 6)))}',
                     fontSize: FontSizes.body,
                     color: AppColors.text,
                     fontWeight: FontWeight.bold,
@@ -304,7 +304,7 @@ class _PlannerPageState extends State<PlannerPage> {
         );
         final dateKey = DateFormat('yyyy-MM-dd').format(day);
         final dayName = DateFormat('EEEE').format(day);
-        final dateStr = DateFormat('d MMM').format(day);
+        final dateStr = DateFormat('dd MMM').format(day);
 
         final meals = weeklyMeals[dateKey] ?? [];
 
@@ -447,8 +447,8 @@ class _PlannerPageState extends State<PlannerPage> {
             ),
           ),
           Positioned(
-            top: -3,
-            right: Dimensions.paddingL,
+            top: 3,
+            right: Dimensions.paddingM,
             child: IconButton(
               iconSize: Dimensions.iconXL,
               icon: Icon(
@@ -477,7 +477,7 @@ class _PlannerPageState extends State<PlannerPage> {
               children: [
                 Icon(Icons.delete, color: Colors.red),
                 SizedBox(width: 10),
-                Text('Recipe: "${meal.recipe.title}" removed from $dayName'),
+                Text('Recipe: "${meal.recipe.title}" unplanned'),
               ],
             ),
             backgroundColor: Colors.green,
@@ -544,7 +544,7 @@ class _PlannerPageState extends State<PlannerPage> {
               children: [
                 Icon(Icons.delete, color: Colors.red),
                 SizedBox(width: 10),
-                Text('All meals for $dayName have been deleted'),
+                Text('All meals have been deleted'),
               ],
             ),
             backgroundColor: Colors.green,
@@ -734,7 +734,7 @@ class _PlannerPageState extends State<PlannerPage> {
                             backgroundColor: Colors.transparent, // Membuat latar dialog transparan
                             child: Container(
                               width: MediaQuery.of(context).size.width * 0.9,
-                              height: MediaQuery.of(context).size.height * 0.25,
+                              height: MediaQuery.of(context).size.height * 0.3,
                               padding: EdgeInsets.all(24),
                               decoration: BoxDecoration(
                                 color: const Color(0xFF1E1E1E), // Warna latar belakang gelap
@@ -753,11 +753,11 @@ class _PlannerPageState extends State<PlannerPage> {
                                   ),
                                   const SizedBox(height: 21.5),
                                   const Text(
-                                    'Are you sure you want to delete all meals\nfor this day?',
+                                    'Are you sure you want to delete all meals for this day?\nThis action can\'t be undone',
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
                                       color: Colors.white70,
-                                      fontSize: 15,
+                                      fontSize: 14.5,
                                     ),
                                   ),
                                   const SizedBox(height: 37),

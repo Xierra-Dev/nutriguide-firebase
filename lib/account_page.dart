@@ -648,30 +648,6 @@ class _AccountPageState extends State<AccountPage> {
                         children: [
                           Expanded(
                             child: ElevatedButton(
-                              onPressed: changePassword,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.deepOrange[800],
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 16,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(50),
-                                ),
-                                elevation: 0,
-                              ),
-                              child: Text(
-                                'Change Password',
-                                style: TextStyle(
-                                  fontSize: 12.5,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ),
-                          SizedBox(width: screenWidth * 0.04),
-                          Expanded(
-                            child: ElevatedButton(
                               onPressed: () => Navigator.of(context).pop(),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.grey[800],
@@ -693,6 +669,31 @@ class _AccountPageState extends State<AccountPage> {
                               ),
                             ),
                           ),
+                          SizedBox(width: screenWidth * 0.05),
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: changePassword,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.deepOrange[800],
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 16,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(50),
+                                ),
+                                elevation: 0,
+                              ),
+                              child: Text(
+                                'Change',
+                                style: TextStyle(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: screenWidth * 0.04),
                         ],
                       ),
                     ],

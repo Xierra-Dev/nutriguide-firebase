@@ -328,7 +328,7 @@ class _SearchPageState extends State<SearchPage> {
                       for (int i = 0; i < 7; i++)
                         ChoiceChip(
                           label: Text(
-                            DateFormat('EEE').format(
+                            DateFormat('EEE, dd').format(
                               _selectedDate.add(Duration(
                                   days: i - _selectedDate.weekday % 7)),
                             ), // Menampilkan hari dimulai dari Sunday
@@ -812,9 +812,7 @@ class _SearchPageState extends State<SearchPage> {
                     savedStatus[recipe.id] == true ? 'Saved' : 'Save Recipe',
                     style: TextStyle(
                       fontSize: ResponsiveHelper.getAdaptiveTextSize(
-                          context,
-                          FontSizes.body
-                      ),
+                          context, FontSizes.body),
                       color: savedStatus[recipe.id] == true
                           ? AppColors.primary
                           : AppColors.text,
@@ -843,9 +841,7 @@ class _SearchPageState extends State<SearchPage> {
                     'Plan Meal',
                     style: TextStyle(
                       fontSize: ResponsiveHelper.getAdaptiveTextSize(
-                          context,
-                          FontSizes.body
-                      ),
+                          context, FontSizes.body),
                       color: AppColors.text,
                       fontWeight: FontWeight.w500,
                     ),
@@ -914,9 +910,7 @@ class _SearchPageState extends State<SearchPage> {
                     savedStatus[recipe.id] == true ? 'Saved' : 'Save Recipe',
                     style: TextStyle(
                       fontSize: ResponsiveHelper.getAdaptiveTextSize(
-                          context,
-                          FontSizes.body
-                      ),
+                          context, FontSizes.body),
                       color: savedStatus[recipe.id] == true
                           ? AppColors.primary
                           : AppColors.text,
@@ -945,9 +939,7 @@ class _SearchPageState extends State<SearchPage> {
                     'Plan Meal',
                     style: TextStyle(
                       fontSize: ResponsiveHelper.getAdaptiveTextSize(
-                          context,
-                          FontSizes.body
-                      ),
+                          context, FontSizes.body),
                       color: AppColors.text,
                       fontWeight: FontWeight.w500,
                     ),
@@ -1009,19 +1001,18 @@ class _SearchPageState extends State<SearchPage> {
                         context, FontSizes.body),
                   ),
                   decoration: InputDecoration(
-                    hintText: "Search...",
-                    hintStyle: TextStyle(
-                      color: AppColors.text.withOpacity(0.5),
-                      fontSize: 16,
-                    ),
-                    prefixIcon: Icon(
-                      Icons.search,
-                      color: AppColors.text,
-                      size: Dimensions.iconM,
-                    ),
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.only(top: 12)
-                  ),
+                      hintText: "Search...",
+                      hintStyle: TextStyle(
+                        color: AppColors.text.withOpacity(0.5),
+                        fontSize: 16,
+                      ),
+                      prefixIcon: Icon(
+                        Icons.search,
+                        color: AppColors.text,
+                        size: Dimensions.iconM,
+                      ),
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.only(top: 12)),
                   onSubmitted: (value) {
                     if (value.isNotEmpty) {
                       _searchRecipes(value);
@@ -1079,8 +1070,7 @@ class _SearchPageState extends State<SearchPage> {
                                   duration: const Duration(milliseconds: 150),
                                   child: Container(
                                     width: 100,
-                                    margin: EdgeInsets.only(
-                                        right: 6),
+                                    margin: EdgeInsets.only(right: 6),
                                     decoration: BoxDecoration(
                                       borderRadius: BorderRadius.circular(
                                           Dimensions.radiusM),
@@ -1345,7 +1335,7 @@ class _SearchPageState extends State<SearchPage> {
                         onPressed: () {
                           setState(() {
                             _isYouMightAlsoLikeSectionExpanded =
-                            !_isYouMightAlsoLikeSectionExpanded;
+                                !_isYouMightAlsoLikeSectionExpanded;
                           });
                         },
                       ),
@@ -1548,7 +1538,7 @@ class _SearchPageState extends State<SearchPage> {
                         decoration: BoxDecoration(
                           color: Colors.black.withOpacity(0.5),
                           borderRadius:
-                          BorderRadius.circular(Dimensions.radiusS),
+                              BorderRadius.circular(Dimensions.radiusS),
                         ),
                         child: AppText(
                           recipe.area ?? 'International',
