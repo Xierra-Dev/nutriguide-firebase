@@ -15,6 +15,46 @@ class PreferencePage extends StatefulWidget {
   _PreferencePageState createState() => _PreferencePageState();
 }
 
+class SlideRightRoute extends PageRouteBuilder {
+  final Widget page;
+  SlideRightRoute({required this.page})
+      : super(
+    pageBuilder: (context, animation, secondaryAnimation) => page,
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      return SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(-1.0, 0.0),
+          end: Offset.zero,
+        ).animate(CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutQuad,
+        )),
+        child: child,
+      );
+    },
+  );
+}
+
+class SlideLeftRoute extends PageRouteBuilder {
+  final Widget page;
+  SlideLeftRoute({required this.page})
+      : super(
+    pageBuilder: (context, animation, secondaryAnimation) => page,
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      return SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(1.0, 0.0),
+          end: Offset.zero,
+        ).animate(CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutQuad,
+        )),
+        child: child,
+      );
+    },
+  );
+}
+
 class _PreferencePageState extends State<PreferencePage> {
   @override
   Widget build(BuildContext context) {
@@ -35,7 +75,7 @@ class _PreferencePageState extends State<PreferencePage> {
                     ),
                     onPressed: () {
                       Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(builder: (context) => const SettingsPage()),
+                        SlideRightRoute(page: const SettingsPage()),
                       );
                     },
                   ),
@@ -60,7 +100,7 @@ class _PreferencePageState extends State<PreferencePage> {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const HealthDataPage()),
+                        SlideLeftRoute(page: const HealthDataPage()),
                       );
                     },
                   ),
@@ -72,7 +112,7 @@ class _PreferencePageState extends State<PreferencePage> {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const GoalsSettingsPage()),
+                        SlideLeftRoute(page: const GoalsSettingsPage()),
                       );
                     },
                   ),
@@ -84,7 +124,7 @@ class _PreferencePageState extends State<PreferencePage> {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const AllergiesSettingsPage()),
+                        SlideLeftRoute(page: const AllergiesSettingsPage()),
                       );
                     },
                   ),
@@ -94,37 +134,6 @@ class _PreferencePageState extends State<PreferencePage> {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildPreferenceListTile({
-    required BuildContext context,
-    required String leadingText,
-    required VoidCallback onTap,
-  }) {
-    return ListTile(
-      contentPadding: EdgeInsets.symmetric(
-        vertical: Dimensions.paddingS,
-        horizontal: Dimensions.paddingM,
-      ),
-      title: AppText(
-        leadingText,
-        fontSize: FontSizes.body,
-        color: AppColors.text,
-      ),
-      trailing: Icon(
-        Icons.arrow_forward_ios,
-        color: AppColors.text,
-        size: Dimensions.iconS,
-      ),
-      onTap: onTap,
-    );
-  }
-
-  Widget _buildDivider() {
-    return Divider(
-      color: AppColors.border,
-      thickness: 0.5,
     );
   }
 
