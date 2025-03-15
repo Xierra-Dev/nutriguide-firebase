@@ -331,6 +331,8 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                   indicatorColor: AppColors.primary,
                   labelColor: AppColors.primary,
                   unselectedLabelColor: AppColors.text,
+                  indicatorSize: TabBarIndicatorSize.label,
+                  indicatorPadding: EdgeInsets.symmetric(horizontal: -25),
                   tabs: const [
                     Tab(text: 'Insights'),
                     Tab(text: 'Activity'),
