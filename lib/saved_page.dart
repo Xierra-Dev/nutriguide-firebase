@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'core/helpers/responsive_helper.dart';
 import 'models/recipe.dart';
 import 'services/firestore_service.dart';
 import 'recipe_detail_page.dart';
@@ -171,167 +172,6 @@ class _SavedPageState extends State<SavedPage> {
     }
   }
 
-  Future<void> _showPlanMealDialog(Recipe recipe) async {
-    final DateTime now = DateTime.now();
-    DateTime selectedDate = now;
-    String selectedMealType = 'Lunch';
-
-    final result = await showDialog<Map<String, dynamic>>(
-      context: context,
-      builder: (BuildContext context) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            dialogBackgroundColor: AppColors.surface,
-          ),
-          child: AlertDialog(
-            title: AppText(
-              'Plan Meal',
-              fontSize: FontSizes.heading3,
-              color: AppColors.text,
-              fontWeight: FontWeight.bold,
-            ),
-            content: StatefulBuilder(
-              builder: (BuildContext context, StateSetter setState) {
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    ListTile(
-                      title: AppText(
-                        'Date',
-                        fontSize: FontSizes.body,
-                        color: AppColors.text,
-                      ),
-                      subtitle: AppText(
-                        DateFormat('MMM d, y').format(selectedDate),
-                        fontSize: FontSizes.caption,
-                        color: AppColors.primary,
-                      ),
-                      trailing: Icon(
-                        Icons.calendar_today,
-                        color: AppColors.primary,
-                        size: Dimensions.iconM,
-                      ),
-                      onTap: () async {
-                        final DateTime? picked = await showDatePicker(
-                          context: context,
-                          initialDate: selectedDate,
-                          firstDate: now,
-                          lastDate: now.add(const Duration(days: 365)),
-                          builder: (context, child) {
-                            return Theme(
-                              data: Theme.of(context).copyWith(
-                                colorScheme: ColorScheme.dark(
-                                  primary: AppColors.primary,
-                                  surface: AppColors.surface,
-                                ),
-                              ),
-                              child: child!,
-                            );
-                          },
-                        );
-                        if (picked != null) {
-                          setState(() => selectedDate = picked);
-                        }
-                      },
-                    ),
-                    ListTile(
-                      title: AppText(
-                        'Meal Type',
-                        fontSize: FontSizes.body,
-                        color: AppColors.text,
-                      ),
-                      subtitle: DropdownButton<String>(
-                        value: selectedMealType,
-                        dropdownColor: AppColors.surface,
-                        underline: Container(
-                          height: 1,
-                          color: AppColors.primary,
-                        ),
-                        onChanged: (String? newValue) {
-                          if (newValue != null) {
-                            setState(() => selectedMealType = newValue);
-                          }
-                        },
-                        items: ['Breakfast', 'Lunch', 'Dinner']
-                            .map<DropdownMenuItem<String>>((String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: AppText(
-                              value,
-                              fontSize: FontSizes.body,
-                              color: AppColors.text,
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: AppText(
-                  'Cancel',
-                  fontSize: FontSizes.body,
-                  color: AppColors.textSecondary,
-                ),
-              ),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context, {
-                  'date': selectedDate,
-                  'mealType': selectedMealType,
-                }),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(Dimensions.radiusM),
-                  ),
-                ),
-                child: AppText(
-                  'Plan',
-                  fontSize: FontSizes.body,
-                  color: AppColors.text,
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-
-    if (result != null) {
-      try {
-        await _firestoreService.planMeal(
-          recipe,
-          result['date'] as DateTime,
-          result['mealType'] as String,
-        );
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Row(
-                children: [
-                  Icon(Icons.check_circle, color: AppColors.text, size: Dimensions.iconM),
-                  SizedBox(width: Dimensions.paddingS),
-                  AppText(
-                    'Meal planned successfully',
-                    fontSize: FontSizes.body,
-                    color: AppColors.text,
-                  ),
-                ],
-              ),
-              backgroundColor: AppColors.success,
-            ),
-          );
-        }
-      } catch (e) {
-        _showErrorSnackBar('Failed to plan meal');
-      }
-    }
-  }
-
   void _showErrorSnackBar(String message) {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -352,54 +192,6 @@ class _SavedPageState extends State<SavedPage> {
       );
     }
   }
-
-  Future<void> _removeSaveRecipe(Recipe recipe) async {
-    try {
-      // Remove the recipe from saved recipes
-      await _firestoreService.removeFromSavedRecipes(recipe);
-
-      // Update state langsung tanpa loading
-      setState(() {
-        savedRecipes.removeWhere((r) => r.id == recipe.id);
-      });
-
-      // Show success message with Icon.delete
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                Icon(Icons.bookmark_remove_rounded, color: Colors.red),
-                SizedBox(width: 8),
-                Expanded(child: Text('Recipe: "${recipe.title}" removed from saved')),
-              ],
-            ),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
-    } catch (e) {
-      print('Error toggling save status: $e');
-      // Show error message with Icon.error
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                Icon(Icons.error, color: Colors.white),
-                SizedBox(width: 8),
-                Expanded(
-                  child: Text('Failed to remove ${recipe.title} from saved recipes.\nError: ${e.toString()}'),
-                ),
-              ],
-            ),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-  }
-
 
   @override
   Widget build(BuildContext context) {
@@ -465,7 +257,7 @@ class _SavedPageState extends State<SavedPage> {
           children: [
             AppText(
               sortBy,
-              fontSize: FontSizes.body,
+              fontSize: FontSizes.bodySmall,
               color: AppColors.text,
             ),
             Icon(
@@ -526,12 +318,12 @@ class _SavedPageState extends State<SavedPage> {
 
   Widget _buildRecipeGrid() {
     return GridView.builder(
-      padding: EdgeInsets.all(Dimensions.paddingM),
+      padding: EdgeInsets.all(Dimensions.paddingS),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
         childAspectRatio: 0.75,
-        crossAxisSpacing: Dimensions.paddingM,
-        mainAxisSpacing: Dimensions.paddingM,
+        crossAxisSpacing: Dimensions.paddingS,
+        mainAxisSpacing: Dimensions.paddingS,
       ),
       itemCount: savedRecipes.length,
       itemBuilder: (context, index) {
@@ -565,7 +357,10 @@ class _SavedPageState extends State<SavedPage> {
             ],
           ),
         ),
-        padding: EdgeInsets.all(Dimensions.paddingM),
+        padding: EdgeInsets.symmetric(
+          vertical: ResponsiveHelper.screenHeight(context) * 0.0155,
+          horizontal: ResponsiveHelper.screenWidth(context) * 0.025,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -593,15 +388,15 @@ class _SavedPageState extends State<SavedPage> {
             borderRadius: BorderRadius.circular(Dimensions.radiusS),
           ),
           child: AppText(
-            recipe.area ?? 'Unknown',
-            fontSize: FontSizes.caption,
+            recipe.area ?? 'International',
+            fontSize: FontSizes.bodySmall,
             color: AppColors.textSecondary,
           ),
         ),
         // Delete button
         Container(
-          width: Dimensions.iconXL,
-          height: Dimensions.iconXL,
+          width: Dimensions.iconL,
+          height: Dimensions.iconL,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: Colors.black.withOpacity(0.5),
@@ -612,20 +407,6 @@ class _SavedPageState extends State<SavedPage> {
             icon: Icon(Icons.delete_outline, color: AppColors.text),
             onPressed: () => _removeSavedRecipe(recipe),
           ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMenuItem(IconData icon, String text, Color color) {
-    return Row(
-      children: [
-        Icon(icon, size: Dimensions.iconM, color: color),
-        SizedBox(width: Dimensions.paddingS),
-        AppText(
-          text,
-          fontSize: FontSizes.body,
-          color: color,
         ),
       ],
     );
@@ -657,7 +438,18 @@ class _SavedPageState extends State<SavedPage> {
               fontSize: FontSizes.caption,
               color: AppColors.textSecondary,
             ),
-            SizedBox(width: Dimensions.paddingM),
+            SizedBox(width: 47.5),
+            Icon(
+              Icons.favorite,
+              color: _getHealthScoreColor(recipe.healthScore),
+              size: Dimensions.iconS,
+            ),
+            SizedBox(width: Dimensions.paddingXS),
+            AppText(
+              recipe.healthScore.toStringAsFixed(1),
+              fontSize: FontSizes.caption,
+              color: _getHealthScoreColor(recipe.healthScore),
+            ),
           ],
         ),
       ],

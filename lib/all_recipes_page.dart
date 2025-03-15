@@ -3,6 +3,10 @@ import 'models/recipe.dart';
 import 'recipe_detail_page.dart';
 import 'services/firestore_service.dart';
 import 'package:intl/intl.dart';
+import 'core/constants/colors.dart';
+import 'core/constants/dimensions.dart';
+import 'core/constants/font_sizes.dart';
+import 'core/helpers/responsive_helper.dart';
 
 class AllRecipesPage extends StatefulWidget {
   final String title;
@@ -113,10 +117,10 @@ class _AllRecipesPageState extends State<AllRecipesPage> {
   bool isLoading = false;
   Map<String, bool> savedStatus = {};
   Map<String, bool> plannedStatus = {};
-
   DateTime _selectedDate = DateTime.now();
   String _selectedMeal = 'Dinner';
   List<bool> _daysSelected = List.generate(7, (index) => false);
+  List<Recipe> recentlyViewedRecipes = [];
 
   @override
   void initState() {
@@ -126,6 +130,7 @@ class _AllRecipesPageState extends State<AllRecipesPage> {
       _checkIfSaved(recipe);
       _checkIfPlanned(recipe);
     }
+    _loadRecentlyViewedRecipes();
   }
 
   Color _getHealthScoreColor(double healthScore) {
@@ -599,7 +604,30 @@ class _AllRecipesPageState extends State<AllRecipesPage> {
     }
   }
 
-  @override
+  Future<void> _loadRecentlyViewedRecipes() async {
+    try {
+      final recipes = await _firestoreService.getRecentlyViewedRecipes();
+      if (mounted) {
+        setState(() {
+          recentlyViewedRecipes = recipes;
+        });
+      }
+    } catch (e) {
+      print('Error loading recently viewed recipes: $e');
+    }
+  }
+
+  void _viewRecipe(Recipe recipe) async {
+    await _firestoreService.addToRecentlyViewed(recipe);
+    if (mounted) {
+      await Navigator.push(
+        context,
+        SlideUpRoute(page: RecipeDetailPage(recipe: recipe)),
+      );
+      await _loadRecentlyViewedRecipes();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return MediaQuery(
@@ -629,7 +657,7 @@ class _AllRecipesPageState extends State<AllRecipesPage> {
           ),
         ),
         body: GridView.builder(
-          padding: const EdgeInsets.all(15),
+          padding: const EdgeInsets.all(Dimensions.paddingS),
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
             childAspectRatio: 1.0,
@@ -640,14 +668,7 @@ class _AllRecipesPageState extends State<AllRecipesPage> {
           itemBuilder: (context, index) {
             final recipe = widget.recipes[index];
             return GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  SlideUpRoute(
-                    page: RecipeDetailPage(recipe: recipe),
-                  ),
-                );
-              },
+              onTap: () => _viewRecipe(recipe),
               child: Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
@@ -664,7 +685,10 @@ class _AllRecipesPageState extends State<AllRecipesPage> {
                 child: Stack(
                   children: [
                     Padding(
-                      padding: const EdgeInsets.all(7.0),
+                      padding: EdgeInsets.symmetric(
+                        vertical: ResponsiveHelper.screenHeight(context) * 0.012,
+                        horizontal: ResponsiveHelper.screenWidth(context) * 0.03,
+                      ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [

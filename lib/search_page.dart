@@ -757,27 +757,208 @@ class _SearchPageState extends State<SearchPage> {
     }
   }
 
-  void _openRecipeDetail(Recipe recipe) async {
-    try {
-      // Tambahkan ke recently viewed
-      await _firestoreService.addToRecentlyViewed(recipe);
-      if (mounted) {
-        // Check if widget is still mounted
-        await Navigator.push(
-          context,
-          SlideUpRoute(
-            page: RecipeDetailPage(recipe: recipe),
+  Widget _buildMoreButton(Recipe recipe) {
+    return Container(
+      width: 28,
+      height: 28,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.black.withOpacity(0.5),
+      ),
+      child: PopupMenuButton<String>(
+        padding: EdgeInsets.zero,
+        iconSize: Dimensions.iconM,
+        icon: Icon(
+          Icons.more_vert,
+          color: AppColors.text,
+        ),
+        onSelected: (String value) {
+          if (value == 'Save Recipe') {
+            _toggleSave(recipe);
+          } else if (value == 'Plan Meal') {
+            _togglePlan(recipe);
+          }
+        },
+        color: AppColors.surface,
+        elevation: 4,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(Dimensions.radiusM),
+        ),
+        offset: const Offset(0, 45),
+        constraints: BoxConstraints(
+          minWidth: ResponsiveHelper.screenWidth(context) * 0.41,
+          maxWidth: ResponsiveHelper.screenWidth(context) * 0.41,
+        ),
+        itemBuilder: (BuildContext context) => [
+          PopupMenuItem<String>(
+            height: 60,
+            value: 'Save Recipe',
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: Dimensions.paddingS),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Icon(
+                    savedStatus[recipe.id] == true
+                        ? Icons.bookmark
+                        : Icons.bookmark_border_rounded,
+                    size: Dimensions.iconM,
+                    color: savedStatus[recipe.id] == true
+                        ? AppColors.primary
+                        : AppColors.text,
+                  ),
+                  SizedBox(width: Dimensions.paddingS),
+                  Text(
+                    savedStatus[recipe.id] == true ? 'Saved' : 'Save Recipe',
+                    style: TextStyle(
+                      fontSize: ResponsiveHelper.getAdaptiveTextSize(
+                          context,
+                          FontSizes.body
+                      ),
+                      color: savedStatus[recipe.id] == true
+                          ? AppColors.primary
+                          : AppColors.text,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
-        );
-      }
-    } catch (e) {
-      print('Error opening recipe detail: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Error opening recipe')),
-        );
-      }
-    }
+          PopupMenuItem<String>(
+            height: 60,
+            value: 'Plan Meal',
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: Dimensions.paddingS),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.calendar_today_rounded,
+                    size: Dimensions.iconM,
+                    color: AppColors.text,
+                  ),
+                  SizedBox(width: Dimensions.paddingS),
+                  Text(
+                    'Plan Meal',
+                    style: TextStyle(
+                      fontSize: ResponsiveHelper.getAdaptiveTextSize(
+                          context,
+                          FontSizes.body
+                      ),
+                      color: AppColors.text,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMoreButtonExpanded(Recipe recipe) {
+    return Container(
+      width: 25,
+      height: 25,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.black.withOpacity(0.5),
+      ),
+      child: PopupMenuButton<String>(
+        padding: EdgeInsets.zero,
+        iconSize: 19,
+        icon: Icon(
+          Icons.more_vert,
+          color: AppColors.text,
+        ),
+        onSelected: (String value) {
+          if (value == 'Save Recipe') {
+            _toggleSave(recipe);
+          } else if (value == 'Plan Meal') {
+            _togglePlan(recipe);
+          }
+        },
+        color: AppColors.surface,
+        elevation: 4,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(Dimensions.radiusM),
+        ),
+        offset: const Offset(0, 45),
+        constraints: BoxConstraints(
+          minWidth: ResponsiveHelper.screenWidth(context) * 0.41,
+          maxWidth: ResponsiveHelper.screenWidth(context) * 0.41,
+        ),
+        itemBuilder: (BuildContext context) => [
+          PopupMenuItem<String>(
+            height: 60,
+            value: 'Save Recipe',
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: Dimensions.paddingS),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Icon(
+                    savedStatus[recipe.id] == true
+                        ? Icons.bookmark
+                        : Icons.bookmark_border_rounded,
+                    size: Dimensions.iconM,
+                    color: savedStatus[recipe.id] == true
+                        ? AppColors.primary
+                        : AppColors.text,
+                  ),
+                  SizedBox(width: Dimensions.paddingS),
+                  Text(
+                    savedStatus[recipe.id] == true ? 'Saved' : 'Save Recipe',
+                    style: TextStyle(
+                      fontSize: ResponsiveHelper.getAdaptiveTextSize(
+                          context,
+                          FontSizes.body
+                      ),
+                      color: savedStatus[recipe.id] == true
+                          ? AppColors.primary
+                          : AppColors.text,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          PopupMenuItem<String>(
+            height: 60,
+            value: 'Plan Meal',
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: Dimensions.paddingS),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.calendar_today_rounded,
+                    size: Dimensions.iconM,
+                    color: AppColors.text,
+                  ),
+                  SizedBox(width: Dimensions.paddingS),
+                  Text(
+                    'Plan Meal',
+                    style: TextStyle(
+                      fontSize: ResponsiveHelper.getAdaptiveTextSize(
+                          context,
+                          FontSizes.body
+                      ),
+                      color: AppColors.text,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _sortRecipes() {
@@ -814,7 +995,7 @@ class _SearchPageState extends State<SearchPage> {
           ),
           if (!_isSearching) ...[
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: Dimensions.paddingM),
+              padding: EdgeInsets.symmetric(horizontal: 12),
               child: Container(
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.1),
@@ -828,11 +1009,10 @@ class _SearchPageState extends State<SearchPage> {
                         context, FontSizes.body),
                   ),
                   decoration: InputDecoration(
-                    hintText: 'Search...',
+                    hintText: "Search...",
                     hintStyle: TextStyle(
                       color: AppColors.text.withOpacity(0.5),
-                      fontSize: ResponsiveHelper.getAdaptiveTextSize(
-                          context, FontSizes.body),
+                      fontSize: 16,
                     ),
                     prefixIcon: Icon(
                       Icons.search,
@@ -840,10 +1020,7 @@ class _SearchPageState extends State<SearchPage> {
                       size: Dimensions.iconM,
                     ),
                     border: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: Dimensions.paddingM,
-                      vertical: Dimensions.paddingS,
-                    ),
+                    contentPadding: EdgeInsets.only(top: 12)
                   ),
                   onSubmitted: (value) {
                     if (value.isNotEmpty) {
@@ -903,7 +1080,7 @@ class _SearchPageState extends State<SearchPage> {
                                   child: Container(
                                     width: 100,
                                     margin: EdgeInsets.only(
-                                        right: Dimensions.paddingS),
+                                        right: 6),
                                     decoration: BoxDecoration(
                                       borderRadius: BorderRadius.circular(
                                           Dimensions.radiusM),
@@ -949,7 +1126,12 @@ class _SearchPageState extends State<SearchPage> {
               ),
             ),
             Padding(
-              padding: EdgeInsets.all(Dimensions.paddingM),
+              padding: EdgeInsets.only(
+                top: Dimensions.paddingM,
+                bottom: Dimensions.paddingS,
+                left: Dimensions.paddingM,
+                right: Dimensions.paddingM,
+              ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -1025,10 +1207,9 @@ class _SearchPageState extends State<SearchPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Move the back button and title row closer to the top
+        // Header dan search bar (tidak berubah)
         Padding(
-          padding: EdgeInsets.symmetric(
-              horizontal: Dimensions.paddingM, vertical: Dimensions.paddingS),
+          padding: EdgeInsets.symmetric(horizontal: Dimensions.paddingS),
           child: Row(
             children: [
               IconButton(
@@ -1056,9 +1237,10 @@ class _SearchPageState extends State<SearchPage> {
             ],
           ),
         ),
-        // Reduce padding and spacing around the search bar
+
+        // Search bar (tidak berubah)
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: Dimensions.paddingM),
+          padding: EdgeInsets.symmetric(horizontal: 12),
           child: Container(
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.1),
@@ -1086,7 +1268,7 @@ class _SearchPageState extends State<SearchPage> {
                 border: InputBorder.none,
                 contentPadding: EdgeInsets.symmetric(
                   horizontal: Dimensions.paddingM,
-                  vertical: Dimensions.paddingS,
+                  vertical: Dimensions.paddingM,
                 ),
               ),
               onSubmitted: (value) {
@@ -1097,57 +1279,91 @@ class _SearchPageState extends State<SearchPage> {
             ),
           ),
         ),
-        // Remove or reduce the SizedBox height
+
         SizedBox(height: Dimensions.paddingS),
-        // Expand the search results to take up more space
+
+        // Disini menggunakan Expanded untuk mengontrol tata letak
         Expanded(
-          child: _buildRecipeGrid(searchResults),
-        ),
-        // Conditionally render the "You might also like" section
-        if (searchResults.isNotEmpty) ...[
-          Padding(
-            padding: EdgeInsets.only(
-              top: Dimensions.paddingM,
-              bottom: 0,
-              left: Dimensions.paddingM,
-              right: Dimensions.paddingM,
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                AppText(
-                  'You might also like',
-                  fontSize: FontSizes.heading3,
-                  color: AppColors.text,
-                  fontWeight: FontWeight.bold,
-                ),
-                // Add an IconButton to toggle the section
-                IconButton(
-                  icon: Icon(
-                    _isYouMightAlsoLikeSectionExpanded
-                        ? Icons.arrow_drop_up
-                        : Icons.arrow_drop_down,
-                    color: AppColors.text,
-                    size: Dimensions.iconL,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Gunakan if-else untuk content utama
+              if (searchResults.isEmpty && !isLoading)
+                Expanded(
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.search_off,
+                          color: AppColors.text,
+                          size: Dimensions.iconL,
+                        ),
+                        SizedBox(height: Dimensions.paddingM),
+                        AppText(
+                          "No Results Found",
+                          fontSize: FontSizes.heading3,
+                          color: AppColors.text,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        SizedBox(height: Dimensions.paddingS),
+                        AppText(
+                          "Try searching with different keywords",
+                          fontSize: FontSizes.body,
+                          color: AppColors.text.withOpacity(0.7),
+                        ),
+                      ],
+                    ),
                   ),
-                  onPressed: () {
-                    setState(() {
-                      _isYouMightAlsoLikeSectionExpanded =
-                          !_isYouMightAlsoLikeSectionExpanded;
-                    });
-                  },
+                )
+              else ...[
+                // Hasil pencarian
+                Expanded(child: _buildRecipeGrid(searchResults)),
+                // You might also like section
+                Padding(
+                  padding: EdgeInsets.only(
+                    top: Dimensions.paddingXS,
+                    left: Dimensions.paddingM,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      AppText(
+                        'You might also like',
+                        fontSize: FontSizes.heading3,
+                        color: AppColors.text,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      IconButton(
+                        icon: Icon(
+                          _isYouMightAlsoLikeSectionExpanded
+                              ? Icons.arrow_drop_down
+                              : Icons.arrow_drop_up,
+                          color: AppColors.text,
+                          size: Dimensions.iconL,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _isYouMightAlsoLikeSectionExpanded =
+                            !_isYouMightAlsoLikeSectionExpanded;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
                 ),
+
+                // Collapsed section
+                if (_isYouMightAlsoLikeSectionExpanded)
+                  SizedBox(
+                    height: ResponsiveHelper.screenHeight(context) * 0.245,
+                    child: _buildRecipeGridExpanded(recipes.take(10).toList(),
+                        scrollDirection: Axis.horizontal),
+                  ),
               ],
-            ),
+            ],
           ),
-          // Only show the grid when section is expanded
-          if (_isYouMightAlsoLikeSectionExpanded)
-            SizedBox(
-              height: ResponsiveHelper.screenHeight(context) * 0.21,
-              child: _buildRecipeGrid(recipes.take(10).toList(),
-                  scrollDirection: Axis.horizontal),
-            ),
-        ],
+        ),
       ],
     );
   }
@@ -1158,6 +1374,129 @@ class _SearchPageState extends State<SearchPage> {
       controller: _scrollController,
       scrollDirection: scrollDirection,
       padding: EdgeInsets.all(Dimensions.paddingM),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: scrollDirection == Axis.vertical ? 2 : 1,
+        childAspectRatio: scrollDirection == Axis.vertical ? 0.8 : 1.2,
+        crossAxisSpacing: Dimensions.paddingS,
+        mainAxisSpacing: Dimensions.paddingS,
+      ),
+      itemCount: recipeList.length,
+      itemBuilder: (context, index) {
+        final recipe = recipeList[index];
+        return GestureDetector(
+          onTap: () => _viewRecipe(recipe),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(Dimensions.radiusM),
+              image: DecorationImage(
+                image: NetworkImage(recipe.image),
+                fit: BoxFit.cover,
+              ),
+            ),
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(Dimensions.radiusM),
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.transparent,
+                    Colors.black.withOpacity(0.7),
+                  ],
+                ),
+              ),
+              padding: EdgeInsets.symmetric(
+                vertical: ResponsiveHelper.screenHeight(context) * 0.01375,
+                horizontal: ResponsiveHelper.screenWidth(context) * 0.0275,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Top Row with Area Tag and Bookmark
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: Dimensions.paddingS,
+                          vertical: Dimensions.paddingXS,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.5),
+                          borderRadius:
+                              BorderRadius.circular(Dimensions.radiusS),
+                        ),
+                        child: AppText(
+                          recipe.area ?? 'International',
+                          fontSize: FontSizes.small,
+                          color: AppColors.text,
+                        ),
+                      ),
+                      _buildMoreButton(recipe)
+                    ],
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      AppText(
+                        recipe.title,
+                        fontSize: FontSizes.body,
+                        color: AppColors.text,
+                        fontWeight: FontWeight.bold,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      SizedBox(height: Dimensions.paddingXS),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.timer_rounded,
+                            color: AppColors.text,
+                            size: Dimensions.iconS,
+                          ),
+                          SizedBox(width: Dimensions.paddingXS),
+                          AppText(
+                            '${recipe.preparationTime} min',
+                            fontSize: FontSizes.caption,
+                            color: AppColors.text,
+                          ),
+                          SizedBox(width: 40),
+                          Icon(
+                            Icons.favorite,
+                            color: _getHealthScoreColor(recipe.healthScore),
+                            size: Dimensions.iconS,
+                          ),
+                          SizedBox(width: Dimensions.paddingXS),
+                          AppText(
+                            recipe.healthScore.toStringAsFixed(1),
+                            fontSize: FontSizes.caption,
+                            color: _getHealthScoreColor(recipe.healthScore),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildRecipeGridExpanded(List<Recipe> recipeList,
+      {Axis scrollDirection = Axis.vertical}) {
+    return GridView.builder(
+      controller: _scrollController,
+      scrollDirection: scrollDirection,
+      padding: EdgeInsets.only(
+        bottom: Dimensions.paddingM,
+        top: Dimensions.paddingXS,
+        left: Dimensions.paddingS,
+        right: Dimensions.paddingS,
+      ),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: scrollDirection == Axis.vertical ? 2 : 1,
         childAspectRatio: scrollDirection == Axis.vertical ? 0.8 : 1.2,
@@ -1189,7 +1528,10 @@ class _SearchPageState extends State<SearchPage> {
                   ],
                 ),
               ),
-              padding: EdgeInsets.all(Dimensions.paddingM),
+              padding: EdgeInsets.symmetric(
+                vertical: ResponsiveHelper.screenHeight(context) * 0.015,
+                horizontal: ResponsiveHelper.screenWidth(context) * 0.03,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1200,98 +1542,21 @@ class _SearchPageState extends State<SearchPage> {
                     children: [
                       Container(
                         padding: EdgeInsets.symmetric(
-                          horizontal: Dimensions.paddingS,
-                          vertical: Dimensions.paddingXS,
+                          horizontal: 6,
+                          vertical: 3,
                         ),
                         decoration: BoxDecoration(
                           color: Colors.black.withOpacity(0.5),
                           borderRadius:
-                              BorderRadius.circular(Dimensions.radiusS),
+                          BorderRadius.circular(Dimensions.radiusS),
                         ),
                         child: AppText(
                           recipe.area ?? 'International',
-                          fontSize: FontSizes.caption,
+                          fontSize: FontSizes.small,
                           color: AppColors.text,
                         ),
                       ),
-                      Container(
-                        width: Dimensions.iconXL,
-                        height: Dimensions.iconXL,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.black.withOpacity(0.5),
-                        ),
-                        child: PopupMenuButton<String>(
-                          padding: EdgeInsets.zero,
-                          iconSize: Dimensions.iconM,
-                          icon: Icon(
-                            Icons.more_vert,
-                            color: AppColors.text,
-                          ),
-                          onSelected: (String value) {
-                            if (value == 'Save Recipe') {
-                              _toggleSave(recipe);
-                            } else if (value == 'Plan Meal') {
-                              _togglePlan(recipe);
-                            }
-                          },
-                          color: AppColors.surface,
-                          elevation: 4,
-                          shape: RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.circular(Dimensions.radiusM),
-                          ),
-                          offset: const Offset(0, 45),
-                          itemBuilder: (BuildContext context) => [
-                            PopupMenuItem<String>(
-                              height: 60,
-                              value: 'Save Recipe',
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    savedStatus[recipe.id] == true
-                                        ? Icons.bookmark
-                                        : Icons.bookmark_border_rounded,
-                                    size: Dimensions.iconM,
-                                    color: savedStatus[recipe.id] == true
-                                        ? AppColors.primary
-                                        : AppColors.text,
-                                  ),
-                                  SizedBox(width: Dimensions.paddingS),
-                                  AppText(
-                                    savedStatus[recipe.id] == true
-                                        ? 'Saved'
-                                        : 'Save Recipe',
-                                    fontSize: FontSizes.body,
-                                    color: savedStatus[recipe.id] == true
-                                        ? AppColors.primary
-                                        : AppColors.text,
-                                  ),
-                                ],
-                              ),
-                            ),
-                            PopupMenuItem<String>(
-                              height: 60,
-                              value: 'Plan Meal',
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.calendar_today_rounded,
-                                    size: Dimensions.iconM,
-                                    color: AppColors.text,
-                                  ),
-                                  SizedBox(width: Dimensions.paddingS),
-                                  AppText(
-                                    'Plan Meal',
-                                    fontSize: FontSizes.body,
-                                    color: AppColors.text,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                      _buildMoreButtonExpanded(recipe)
                     ],
                   ),
                   Column(
@@ -1299,7 +1564,7 @@ class _SearchPageState extends State<SearchPage> {
                     children: [
                       AppText(
                         recipe.title,
-                        fontSize: FontSizes.body,
+                        fontSize: FontSizes.caption,
                         color: AppColors.text,
                         fontWeight: FontWeight.bold,
                         maxLines: 2,
@@ -1311,24 +1576,24 @@ class _SearchPageState extends State<SearchPage> {
                           Icon(
                             Icons.timer_rounded,
                             color: AppColors.text,
-                            size: Dimensions.iconS,
+                            size: 14,
                           ),
                           SizedBox(width: Dimensions.paddingXS),
                           AppText(
                             '${recipe.preparationTime} min',
-                            fontSize: FontSizes.caption,
+                            fontSize: FontSizes.small,
                             color: AppColors.text,
                           ),
                           SizedBox(width: Dimensions.paddingS),
                           Icon(
                             Icons.favorite,
                             color: _getHealthScoreColor(recipe.healthScore),
-                            size: Dimensions.iconS,
+                            size: 14,
                           ),
                           SizedBox(width: Dimensions.paddingXS),
                           AppText(
                             recipe.healthScore.toStringAsFixed(1),
-                            fontSize: FontSizes.caption,
+                            fontSize: FontSizes.small,
                             color: _getHealthScoreColor(recipe.healthScore),
                           ),
                         ],

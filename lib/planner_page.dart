@@ -231,7 +231,6 @@ class _PlannerPageState extends State<PlannerPage> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -311,8 +310,8 @@ class _PlannerPageState extends State<PlannerPage> {
 
         return Container(
           margin: EdgeInsets.symmetric(
-            vertical: Dimensions.paddingM, 
-            horizontal: Dimensions.paddingL
+            vertical: Dimensions.paddingS,
+            horizontal: Dimensions.paddingM,
           ),
           decoration: BoxDecoration(
             color: AppColors.surface,
@@ -330,10 +329,10 @@ class _PlannerPageState extends State<PlannerPage> {
                       color: AppColors.text,
                       fontWeight: FontWeight.bold,
                     ),
-                    SizedBox(width: Dimensions.paddingM),
+                    SizedBox(width: Dimensions.paddingS),
                     AppText(
                       dateStr,
-                      fontSize: FontSizes.body,
+                      fontSize: FontSizes.bodySmall,
                       color: AppColors.textSecondary,
                     ),
                   ],
@@ -387,7 +386,7 @@ class _PlannerPageState extends State<PlannerPage> {
         children: [
           Container(
             width: ResponsiveHelper.screenWidth(context) * 0.6,
-            margin: EdgeInsets.only(right: Dimensions.paddingL, bottom: Dimensions.paddingL),
+            margin: EdgeInsets.only(right: Dimensions.paddingM, bottom: Dimensions.paddingS, top: Dimensions.paddingXS),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(Dimensions.radiusM),
               image: DecorationImage(

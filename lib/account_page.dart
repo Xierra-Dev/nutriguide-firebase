@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:nutriguide/landing_page.dart';
+import 'package:nutriguide/services/firestore_service.dart';
 import 'settings_page.dart';
 import 'services/auth_service.dart';
 import 'core/constants/colors.dart';
@@ -86,6 +87,7 @@ class _AccountPageState extends State<AccountPage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   String? email;
   String displayPassword = '********';
+  final FirestoreService _firestoreService = FirestoreService();
   final TextEditingController _newEmailController = TextEditingController();
   final TextEditingController _currentPasswordController =
       TextEditingController();
@@ -94,6 +96,7 @@ class _AccountPageState extends State<AccountPage> {
       TextEditingController();
   bool _isPasswordVisible = false;
   bool _isLoading = true;
+  Map<String, dynamic>? userData;
 
   @override
   void initState() {
@@ -103,14 +106,33 @@ class _AccountPageState extends State<AccountPage> {
 
   Future<void> _fetchUserData() async {
     final authService = AuthService();
+    setState(() {
+      _isLoading = true;
+    });
 
     try {
+      // Get user email from AuthService
       email = authService.getCurrentUserEmail();
-      setState(() {
-        _isLoading = false;
-      });
+
+      // Load user personalization data from Firestore
+      final data = await _firestoreService.getUserPersonalization();
+      print('Loaded userData: $data'); // Debug print
+
+      if (data != null) {
+        print('Profile Picture URL: ${data['profilePictureUrl']}'); // Debug print
+        setState(() {
+          userData = data;
+          _isLoading = false;
+        });
+      } else {
+        print('No user data found');
+        setState(() {
+          userData = {};
+          _isLoading = false;
+        });
+      }
     } catch (e) {
-      print('Error fetching user data: $e');
+      print('Error loading user data: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Failed to load user data: $e', textScaleFactor: 1.0),
@@ -118,9 +140,107 @@ class _AccountPageState extends State<AccountPage> {
         ),
       );
       setState(() {
+        userData = {};
         _isLoading = false;
       });
     }
+  }
+
+  Widget _buildProfileImage() {
+    return GestureDetector(
+      onTap: () {
+        if (userData?['profilePictureUrl'] != null) {
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return Dialog(
+                backgroundColor: Colors.transparent,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Stack(
+                      alignment: Alignment.topRight,
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(Dimensions.radiusM),
+                          child: Image.network(
+                            userData!['profilePictureUrl'],
+                            fit: BoxFit.cover,
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return Container(
+                                width: MediaQuery.of(context).size.width * 0.8,
+                                height: MediaQuery.of(context).size.width * 0.8,
+                                decoration: BoxDecoration(
+                                  color: AppColors.surface,
+                                  borderRadius: BorderRadius.circular(Dimensions.radiusM),
+                                ),
+                                child: Center(
+                                  child: CircularProgressIndicator(
+                                    color: AppColors.primary,
+                                  ),
+                                ),
+                              );
+                            },
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                width: MediaQuery.of(context).size.width * 0.8,
+                                height: MediaQuery.of(context).size.width * 0.8,
+                                decoration: BoxDecoration(
+                                  color: AppColors.surface,
+                                  borderRadius: BorderRadius.circular(Dimensions.radiusM),
+                                ),
+                                child: Icon(
+                                  Icons.error_outline,
+                                  size: Dimensions.iconXL,
+                                  color: AppColors.error,
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        IconButton(
+                          icon: Container(
+                            padding: EdgeInsets.all(Dimensions.paddingXS),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.5),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.close,
+                              color: AppColors.surface,
+                              size: Dimensions.iconM,
+                            ),
+                          ),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
+        }
+      },
+      child: userData?['profilePictureUrl'] != null
+          ? Image.network(
+        userData!['profilePictureUrl'],
+        fit: BoxFit.cover,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Center(
+            child: CircularProgressIndicator(
+              color: AppColors.primary,
+            ),
+          );
+        },
+        errorBuilder: (context, error, stackTrace) {
+          return Icon(Icons.person, size: Dimensions.iconXL, color: AppColors.primary);
+        },
+      )
+          : Icon(Icons.person, size: 36, color: AppColors.primary),
+    );
   }
 
   @override
@@ -178,7 +298,6 @@ class _AccountPageState extends State<AccountPage> {
                 ],
               ),
             ),
-
             // Enhanced Content
             Expanded(
               child: ListView(
@@ -200,13 +319,15 @@ class _AccountPageState extends State<AccountPage> {
                     ),
                     child: Column(
                       children: [
-                        CircleAvatar(
-                          radius: 40,
-                          backgroundColor: AppColors.primary.withOpacity(0.1),
-                          child: Icon(
-                            Icons.person,
-                            size: Dimensions.iconXL,
-                            color: AppColors.primary,
+                        Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: AppColors.primary.withOpacity(0.25),
+                          ),
+                          child: ClipOval(
+                            child: _buildProfileImage(),
                           ),
                         ),
                         SizedBox(height: Dimensions.spacingM),
@@ -448,7 +569,7 @@ class _AccountPageState extends State<AccountPage> {
               backgroundColor: const Color(0xFF2C2C2C),
               child: IntrinsicWidth(
                 child: Container(
-                  width: screenWidth * 0.925,
+                  width: screenWidth * 0.95,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 24,
                     vertical: 20,
@@ -542,7 +663,7 @@ class _AccountPageState extends State<AccountPage> {
                               child: Text(
                                 'Change Password',
                                 style: TextStyle(
-                                  fontSize: 12,
+                                  fontSize: 12.5,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
