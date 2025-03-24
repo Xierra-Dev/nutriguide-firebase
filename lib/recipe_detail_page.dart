@@ -598,9 +598,12 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
                   background: Stack(
                     fit: StackFit.expand,
                     children: [
-                      Image.network(
-                        widget.recipe.image,
-                        fit: BoxFit.cover,
+                      Hero(
+                        tag: 'recipe-${widget.recipe.id}',
+                        child: Image.network(
+                          widget.recipe.image,
+                          fit: BoxFit.cover,
+                        ),
                       ),
                       Positioned.fill(
                         child: DecoratedBox(

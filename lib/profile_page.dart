@@ -12,6 +12,7 @@ import 'core/constants/colors.dart';
 import 'core/constants/dimensions.dart';
 import 'core/constants/font_sizes.dart';
 import 'core/widgets/app_text.dart';
+import 'search_page.dart';
 
 
 class ProfilePage extends StatefulWidget {
@@ -659,18 +660,19 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(
-                              builder: (context) => RecipeDetailPage(recipe: recipe),
-                            ),
+                            RecipePageRoute(recipe: recipe),
                           );
                         },
                         child: Stack(
                           children: [
-                            Image.network(
-                              recipe.image,
-                              width: double.infinity,
-                              height: 200,
-                              fit: BoxFit.cover,
+                            Hero(
+                              tag: 'recipe-${recipe.id}',
+                              child: Image.network(
+                                recipe.image,
+                                width: double.infinity,
+                                height: 200,
+                                fit: BoxFit.cover,
+                              ),
                             ),
                             Positioned(
                               top: Dimensions.paddingM,

@@ -10,6 +10,8 @@ import 'core/constants/dimensions.dart';
 import 'core/constants/font_sizes.dart';
 import 'core/helpers/responsive_helper.dart';
 import 'core/widgets/app_text.dart';
+import 'widgets/skeleton_loading.dart';
+import 'search_page.dart';
 
 class PlannerPage extends StatefulWidget {
   const PlannerPage({super.key});
@@ -49,11 +51,14 @@ class SlideUpRoute extends PageRouteBuilder {
   );
 }
 
-class _PlannerPageState extends State<PlannerPage> {
+class _PlannerPageState extends State<PlannerPage> with SingleTickerProviderStateMixin {
   final FirestoreService _firestoreService = FirestoreService();
   Map<String, List<PlannedMeal>> weeklyMeals = {};
   bool isLoading = true;
   Map<String, bool> madeStatus = {};
+  
+  AnimationController? _animationController;
+  Animation<double> _fadeAnimation = const AlwaysStoppedAnimation(1.0);
 
   // Track the current week
   DateTime currentSunday = DateTime.now().subtract(Duration(days: DateTime.now().weekday % 7));
@@ -61,8 +66,32 @@ class _PlannerPageState extends State<PlannerPage> {
   @override
   void initState() {
     super.initState();
+    _setupAnimation();
     _loadPlannedMeals().then((_) => _loadMadeStatus());
     _firestoreService.debugNutritionData();
+  }
+
+  void _setupAnimation() {
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+    
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _animationController!,
+      curve: Curves.easeInOut,
+    ));
+    
+    _animationController!.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController?.dispose();
+    super.dispose();
   }
 
   @override
@@ -233,64 +262,139 @@ class _PlannerPageState extends State<PlannerPage> {
 
   @override
   Widget build(BuildContext context) {
+    final endOfWeek = currentSunday.add(const Duration(days: 6));
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: Column(
           children: [
-            Padding(
-              padding: EdgeInsets.fromLTRB(0, Dimensions.paddingM, 0, Dimensions.paddingS),
-              child: AppText(
-                'Planned Recipes',
-                fontSize: FontSizes.heading2,
-                color: AppColors.primary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            // Week Selector
-            Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: Dimensions.paddingL, 
-                vertical: Dimensions.paddingM
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  IconButton(
-                    icon: Icon(
-                      Icons.arrow_left_rounded,
-                      size: Dimensions.iconXL,
-                      color: AppColors.text,
-                    ),
-                    onPressed: () => _changeWeek(-1),
-                  ),
-                  AppText(
-                    '${DateFormat('MMM dd').format(currentSunday)} - '
-                    '${DateFormat('MMM dd').format(currentSunday.add(Duration(days: 6)))}',
-                    fontSize: FontSizes.body,
-                    color: AppColors.text,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  IconButton(
-                    icon: Icon(
-                      Icons.arrow_right_rounded,
-                      size: Dimensions.iconXL,
-                      color: AppColors.text,
-                    ),
-                    onPressed: () => _changeWeek(1),
-                  ),
-                ],
-              ),
-            ),
+            _buildHeader(),
+            _buildDatePicker(context),
             Expanded(
-              child: isLoading
-                  ? Center(child: CircularProgressIndicator(color: AppColors.primary))
-                  : _buildWeekMeals(currentSunday),
+              child: isLoading 
+                ? const PlannerSkeleton()
+                : FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: _buildMealSchedule(),
+                  ),
             ),
           ],
         ),
       ),
     );
+  }
+
+  Widget _buildHeader() {
+    return Container(
+      padding: EdgeInsets.all(Dimensions.paddingM),
+      decoration: BoxDecoration(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(Dimensions.radiusL),
+          bottomRight: Radius.circular(Dimensions.radiusL),
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AppText(
+                'Meal Planner',
+                fontSize: FontSizes.heading2,
+                color: AppColors.text,
+                fontWeight: FontWeight.bold,
+              ),
+              SizedBox(height: Dimensions.paddingXS),
+              AppText(
+                'Plan your meals for the week',
+                fontSize: FontSizes.body,
+                color: AppColors.textSecondary,
+              ),
+            ],
+          ),
+          Container(
+            padding: EdgeInsets.all(Dimensions.paddingS),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(Dimensions.radiusL),
+            ),
+            child: Icon(
+              Icons.calendar_today,
+              color: AppColors.primary,
+              size: Dimensions.iconM,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDatePicker(BuildContext context) {
+    final endOfWeek = currentSunday.add(const Duration(days: 6));
+    return Container(
+      margin: EdgeInsets.symmetric(
+        horizontal: Dimensions.paddingL,
+        vertical: Dimensions.paddingM,
+      ),
+      padding: EdgeInsets.symmetric(
+        horizontal: Dimensions.paddingM,
+        vertical: Dimensions.paddingS,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(Dimensions.radiusL),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          IconButton(
+            onPressed: () => _changeWeek(-1),
+            icon: Icon(
+              Icons.arrow_back_ios_rounded,
+              color: AppColors.text,
+              size: Dimensions.iconM,
+            ),
+          ),
+          Column(
+            children: [
+              AppText(
+                '${DateFormat('MMM').format(currentSunday)} - ${DateFormat('MMM').format(endOfWeek)}',
+                fontSize: FontSizes.heading3,
+                color: AppColors.text,
+                fontWeight: FontWeight.bold,
+              ),
+              SizedBox(height: Dimensions.paddingXS),
+              AppText(
+                '${DateFormat('dd').format(currentSunday)} - ${DateFormat('dd').format(endOfWeek)}',
+                fontSize: FontSizes.body,
+                color: AppColors.textSecondary,
+              ),
+            ],
+          ),
+          IconButton(
+            onPressed: () => _changeWeek(1),
+            icon: Icon(
+              Icons.arrow_forward_ios_rounded,
+              color: AppColors.text,
+              size: Dimensions.iconM,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMealSchedule() {
+    return _buildWeekMeals(currentSunday);
   }
 
   Widget _buildWeekMeals(DateTime sunday) {
@@ -380,23 +484,42 @@ class _PlannerPageState extends State<PlannerPage> {
   }
 
   Widget _buildMealCard(PlannedMeal meal, String mealKey) {
-    return GestureDetector(
-      onTap: () => _viewRecipe(meal.recipe),
-      child: Stack(
-        children: [
-          Container(
-            width: ResponsiveHelper.screenWidth(context) * 0.6,
-            margin: EdgeInsets.only(right: Dimensions.paddingM, bottom: Dimensions.paddingS, top: Dimensions.paddingXS),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(Dimensions.radiusM),
-              image: DecorationImage(
-                image: NetworkImage(meal.recipe.image),
-                fit: BoxFit.cover,
-              ),
+    return Hero(
+      tag: 'recipe-${meal.recipe.id}',
+      child: Container(
+        width: ResponsiveHelper.screenWidth(context) * 0.6,
+        margin: EdgeInsets.only(
+          right: Dimensions.paddingM,
+          bottom: Dimensions.paddingS,
+          top: Dimensions.paddingXS,
+        ),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(Dimensions.radiusL),
+          image: DecorationImage(
+            image: NetworkImage(meal.recipe.image),
+            fit: BoxFit.cover,
+            colorFilter: ColorFilter.mode(
+              Colors.black.withOpacity(0.3),
+              BlendMode.darken,
             ),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () => _viewRecipe(meal.recipe),
+            borderRadius: BorderRadius.circular(Dimensions.radiusL),
             child: Container(
+              padding: EdgeInsets.all(Dimensions.paddingM),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(Dimensions.radiusM),
+                borderRadius: BorderRadius.circular(Dimensions.radiusL),
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
@@ -406,11 +529,27 @@ class _PlannerPageState extends State<PlannerPage> {
                   ],
                 ),
               ),
-              padding: EdgeInsets.all(Dimensions.paddingM),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: Dimensions.paddingS,
+                      vertical: Dimensions.paddingXS,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      borderRadius: BorderRadius.circular(Dimensions.radiusS),
+                    ),
+                    child: AppText(
+                      meal.mealType,
+                      fontSize: FontSizes.caption,
+                      color: AppColors.text,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: Dimensions.paddingS),
                   AppText(
                     meal.recipe.title,
                     fontSize: FontSizes.body,
@@ -421,24 +560,32 @@ class _PlannerPageState extends State<PlannerPage> {
                   ),
                   SizedBox(height: Dimensions.paddingXS),
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Icon(
-                        Icons.timer,
-                        color: AppColors.primary,
-                        size: Dimensions.iconS,
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.timer,
+                            color: AppColors.primary,
+                            size: Dimensions.iconS,
+                          ),
+                          SizedBox(width: Dimensions.paddingXS),
+                          AppText(
+                            '${meal.recipe.preparationTime} min',
+                            fontSize: FontSizes.caption,
+                            color: AppColors.textSecondary,
+                          ),
+                        ],
                       ),
-                      SizedBox(width: Dimensions.paddingXS),
-                      AppText(
-                        '${meal.recipe.preparationTime} min',
-                        fontSize: FontSizes.caption,
-                        color: AppColors.textSecondary,
-                      ),
-                      SizedBox(width: Dimensions.paddingL),
-                      AppText(
-                        meal.mealType,
-                        fontSize: FontSizes.caption,
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.bold,
+                      IconButton(
+                        iconSize: Dimensions.iconXL,
+                        icon: Icon(
+                          Icons.check_circle,
+                          color: madeStatus[mealKey] ?? false
+                              ? AppColors.success
+                              : AppColors.text.withOpacity(0.6),
+                        ),
+                        onPressed: () => _toggleMade(meal),
                       ),
                     ],
                   ),
@@ -446,21 +593,7 @@ class _PlannerPageState extends State<PlannerPage> {
               ),
             ),
           ),
-          Positioned(
-            top: 3,
-            right: Dimensions.paddingM,
-            child: IconButton(
-              iconSize: Dimensions.iconXL,
-              icon: Icon(
-                Icons.check_circle,
-                color: madeStatus[mealKey] ?? false
-                    ? AppColors.success
-                    : AppColors.text.withOpacity(0.6),
-              ),
-              onPressed: () => _toggleMade(meal),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -635,22 +768,21 @@ class _PlannerPageState extends State<PlannerPage> {
                         onTap: () {
                           Navigator.push(
                             context,
-                            SlideUpRoute(
-                              page: RecipeDetailPage(
-                                recipe: meal.recipe,
-                              ),
-                            ),
+                            RecipePageRoute(recipe: meal.recipe),
                           );
                         },
                         child: ListTile(
                           contentPadding: const EdgeInsets.all(12),
-                          leading: ClipRRect(
-                            borderRadius: BorderRadius.circular(50),
-                            child: Image.network(
-                              meal.recipe.image,
-                              width: 60,
-                              height: 60,
-                              fit: BoxFit.cover,
+                          leading: Hero(
+                            tag: 'recipe-${meal.recipe.id}',
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(50),
+                              child: Image.network(
+                                meal.recipe.image,
+                                width: 60,
+                                height: 60,
+                                fit: BoxFit.cover,
+                              ),
                             ),
                           ),
                           title: Row(

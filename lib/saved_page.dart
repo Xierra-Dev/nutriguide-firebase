@@ -8,6 +8,8 @@ import 'core/constants/dimensions.dart';
 import 'core/constants/font_sizes.dart';
 import 'core/widgets/app_text.dart';
 import 'package:intl/intl.dart';
+import 'widgets/skeleton_loading.dart';
+import 'search_page.dart';
 
 class SavedPage extends StatefulWidget {
   const SavedPage({super.key});
@@ -47,17 +49,44 @@ class SlideUpRoute extends PageRouteBuilder {
   );
 }
 
-class _SavedPageState extends State<SavedPage> {
+class _SavedPageState extends State<SavedPage> with SingleTickerProviderStateMixin {
   final FirestoreService _firestoreService = FirestoreService();
   List<Recipe> savedRecipes = [];
   bool isLoading = true;
   String? errorMessage;
   String sortBy = 'Date Added';
+  
+  AnimationController? _animationController;
+  Animation<double> _fadeAnimation = const AlwaysStoppedAnimation(1.0);
 
   @override
   void initState() {
     super.initState();
+    _setupAnimation();
     _loadSavedRecipes();
+  }
+
+  void _setupAnimation() {
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+    
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _animationController!,
+      curve: Curves.easeInOut,
+    ));
+    
+    _animationController!.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController?.dispose();
+    super.dispose();
   }
 
   Color _getHealthScoreColor(double score) {
@@ -75,7 +104,7 @@ class _SavedPageState extends State<SavedPage> {
     if (mounted) {
       await Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => RecipeDetailPage(recipe: recipe)),
+        RecipePageRoute(recipe: recipe),
       );
       _loadSavedRecipes(); // Reload in case of changes
     }
@@ -199,15 +228,15 @@ class _SavedPageState extends State<SavedPage> {
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildHeader(),
             Expanded(
               child: isLoading
-                  ? Center(child: CircularProgressIndicator(color: AppColors.primary))
-                  : savedRecipes.isEmpty
-                      ? _buildEmptyState()
-                      : _buildRecipeGrid(),
+                ? const SavedSkeleton()
+                : FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: _buildBody(),
+                  ),
             ),
           ],
         ),
@@ -216,16 +245,85 @@ class _SavedPageState extends State<SavedPage> {
   }
 
   Widget _buildHeader() {
-    return Padding(
+    return Container(
       padding: EdgeInsets.all(Dimensions.paddingM),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  AppText(
+                    'Saved Recipes',
+                    fontSize: FontSizes.heading2,
+                    color: AppColors.text,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  SizedBox(height: Dimensions.paddingXS),
+                  AppText(
+                    'Your favorite recipes collection',
+                    fontSize: FontSizes.body,
+                    color: AppColors.textSecondary,
+                  ),
+                ],
+              ),
+              Container(
+                padding: EdgeInsets.all(Dimensions.paddingS),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(Dimensions.radiusL),
+                ),
+                child: Icon(
+                  Icons.bookmark,
+                  color: AppColors.primary,
+                  size: Dimensions.iconM,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: Dimensions.paddingM),
+          _buildSortBar(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSortBar() {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: Dimensions.paddingM,
+        vertical: Dimensions.paddingS,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(Dimensions.radiusL),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          AppText(
-            'Saved Recipes',
-            fontSize: FontSizes.heading2,
-            color: AppColors.primary,
-            fontWeight: FontWeight.bold,
+          Row(
+            children: [
+              Icon(
+                Icons.sort,
+                color: AppColors.primary,
+                size: Dimensions.iconM,
+              ),
+              SizedBox(width: Dimensions.paddingS),
+              AppText(
+                'Sort by:',
+                fontSize: FontSizes.body,
+                color: AppColors.textSecondary,
+              ),
+            ],
           ),
           _buildSortButton(),
         ],
@@ -248,21 +346,26 @@ class _SavedPageState extends State<SavedPage> {
       ),
       offset: const Offset(0, 40),
       child: Container(
-        padding: EdgeInsets.all(Dimensions.paddingS),
+        padding: EdgeInsets.symmetric(
+          horizontal: Dimensions.paddingM,
+          vertical: Dimensions.paddingS,
+        ),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: AppColors.primary.withOpacity(0.1),
           borderRadius: BorderRadius.circular(Dimensions.radiusM),
         ),
         child: Row(
           children: [
             AppText(
               sortBy,
-              fontSize: FontSizes.bodySmall,
+              fontSize: FontSizes.body,
               color: AppColors.text,
+              fontWeight: FontWeight.w500,
             ),
+            SizedBox(width: Dimensions.paddingXS),
             Icon(
               Icons.arrow_drop_down,
-              color: AppColors.text,
+              color: AppColors.primary,
               size: Dimensions.iconM,
             ),
           ],
@@ -337,37 +440,40 @@ class _SavedPageState extends State<SavedPage> {
   }
 
   Widget _buildRecipeCard(Recipe recipe) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(Dimensions.radiusM),
-        image: DecorationImage(
-          image: NetworkImage(recipe.image),
-          fit: BoxFit.cover,
-        ),
-      ),
+    return Hero(
+      tag: 'recipe-${recipe.id}',
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(Dimensions.radiusM),
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Colors.transparent,
-              Colors.black.withOpacity(0.7),
-            ],
+          image: DecorationImage(
+            image: NetworkImage(recipe.image),
+            fit: BoxFit.cover,
           ),
         ),
-        padding: EdgeInsets.symmetric(
-          vertical: ResponsiveHelper.screenHeight(context) * 0.0155,
-          horizontal: ResponsiveHelper.screenWidth(context) * 0.025,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            _buildRecipeActions(recipe),
-            _buildRecipeInfo(recipe),
-          ],
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(Dimensions.radiusM),
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Colors.transparent,
+                Colors.black.withOpacity(0.7),
+              ],
+            ),
+          ),
+          padding: EdgeInsets.symmetric(
+            vertical: ResponsiveHelper.screenHeight(context) * 0.0155,
+            horizontal: ResponsiveHelper.screenWidth(context) * 0.025,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildRecipeActions(recipe),
+              _buildRecipeInfo(recipe),
+            ],
+          ),
         ),
       ),
     );
@@ -456,5 +562,9 @@ class _SavedPageState extends State<SavedPage> {
     );
   }
 
-  
+  Widget _buildBody() {
+    return savedRecipes.isEmpty
+        ? _buildEmptyState()
+        : _buildRecipeGrid();
+  }
 }

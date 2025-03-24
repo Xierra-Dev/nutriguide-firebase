@@ -16,6 +16,7 @@ import 'core/constants/colors.dart';
 import 'core/constants/dimensions.dart';
 import 'core/constants/font_sizes.dart';
 import 'core/helpers/responsive_helper.dart';
+import 'widgets/skeleton_loading.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -810,7 +811,7 @@ class _HomePageState extends State<HomePage> {
     if (mounted) {
       await Navigator.push(
         context,
-        SlideUpRoute(page: RecipeDetailPage(recipe: recipe)),
+        RecipePageRoute(recipe: recipe),
       );
       await _loadRecentlyViewedRecipes();
     }
@@ -933,22 +934,7 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: AppColors.background,
         appBar: _buildAppBar(),
         body: _buildBody(),
-        floatingActionButton: _currentIndex != 1 
-          ? FloatingActionButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  SlideUpRoute(page: const AssistantPage()),
-                );
-              },
-              backgroundColor: AppColors.primary,
-              child: Icon(
-                Icons.chat_bubble_rounded,
-                color: AppColors.surface,
-                size: Dimensions.iconM,
-              ),
-            ) 
-          : null,
+        floatingActionButton: null,
         floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
         bottomNavigationBar: _buildBottomNavigationBar(),
       ),
@@ -1028,26 +1014,33 @@ class _HomePageState extends State<HomePage> {
           key: _refreshIndicatorKey,
           onRefresh: _handleRefresh,
           color: AppColors.primary,
-          child: const SearchPage(),
+          child: isLoading 
+            ? const SearchSkeleton() 
+            : const SearchPage(),
         );
       case 2:
         return RefreshIndicator(
           key: _refreshIndicatorKey,
           onRefresh: _handleRefresh,
           color: AppColors.primary,
-          child: const PlannerPage(),
+          child: isLoading 
+            ? const PlannerSkeleton() 
+            : const PlannerPage(),
         );
       case 3:
         return RefreshIndicator(
           key: _refreshIndicatorKey,
           onRefresh: _handleRefresh,
           color: AppColors.primary,
-          child: const SavedPage(),
+          child: isLoading 
+            ? const SavedSkeleton() 
+            : const SavedPage(),
         );
       default:
         return _buildHomeContent();
     }
   }
+
   Widget _buildMoreButton(Recipe recipe) {
     return Container(
       width: Dimensions.iconL,
@@ -1312,94 +1305,97 @@ class _HomePageState extends State<HomePage> {
               final recipe = recipes[index];
               return GestureDetector(
                 onTap: () => _viewRecipe(recipe),
-                child: Container(
-                  width: ResponsiveHelper.screenWidth(context) * 0.525,
-                  margin: EdgeInsets.only(
-                    left: Dimensions.paddingS,
-                    bottom: Dimensions.paddingS,
-                  ),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(Dimensions.radiusM),
-                    image: DecorationImage(
-                      image: NetworkImage(recipe.image),
-                      fit: BoxFit.cover,
+                child: Hero(
+                  tag: 'recipe-${recipe.id}',
+                  child: Container(
+                    width: ResponsiveHelper.screenWidth(context) * 0.525,
+                    margin: EdgeInsets.only(
+                      left: Dimensions.paddingS,
+                      bottom: Dimensions.paddingS,
                     ),
-                  ),
-                  child: Stack(
-                    children: [
-                      // Gradient overlay
-                      Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(Dimensions.radiusM),
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Colors.transparent,
-                              Colors.black.withOpacity(0.7),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(Dimensions.radiusM),
+                      image: DecorationImage(
+                        image: NetworkImage(recipe.image),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    child: Stack(
+                      children: [
+                        // Gradient overlay
+                        Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(Dimensions.radiusM),
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Colors.transparent,
+                                Colors.black.withOpacity(0.7),
+                              ],
+                            ),
+                          ),
+                        ),
+                        // Content
+                        Padding(
+                          padding: EdgeInsets.symmetric(
+                            vertical: ResponsiveHelper.screenHeight(context) * 0.0145,
+                            horizontal: ResponsiveHelper.screenWidth(context) * 0.025,
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Top row with area tag and more button
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Container(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: Dimensions.paddingS,
+                                        vertical: Dimensions.paddingXS
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.black.withOpacity(0.5),
+                                        borderRadius: BorderRadius.circular(Dimensions.radiusS),
+                                      ),
+                                      child: Text(
+                                        recipe.area ?? 'International',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: MediaQuery.of(context).size.width * 0.0325,
+                                        ),
+                                      ),
+                                    ),
+                                    _buildMoreButton(recipe),
+                                  ],
+                                ),
+                              // Bottom info
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    recipe.title,
+                                    style: TextStyle(
+                                      color: AppColors.text,
+                                      fontSize: ResponsiveHelper.getAdaptiveTextSize(
+                                        context,
+                                        FontSizes.body
+                                      ),
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  SizedBox(height: Dimensions.paddingXS),
+                                  _buildRecipeInfo(recipe),
+                                ],
+                              ),
                             ],
                           ),
                         ),
-                      ),
-                      // Content
-                      Padding(
-                        padding: EdgeInsets.symmetric(
-                          vertical: ResponsiveHelper.screenHeight(context) * 0.0145,
-                          horizontal: ResponsiveHelper.screenWidth(context) * 0.025,
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Top row with area tag and more button
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Container(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: Dimensions.paddingS,
-                                      vertical: Dimensions.paddingXS
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.black.withOpacity(0.5),
-                                      borderRadius: BorderRadius.circular(Dimensions.radiusS),
-                                    ),
-                                    child: Text(
-                                      recipe.area ?? 'International',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: MediaQuery.of(context).size.width * 0.0325,
-                                      ),
-                                    ),
-                                  ),
-                                  _buildMoreButton(recipe),
-                                ],
-                              ),
-                            // Bottom info
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  recipe.title,
-                                  style: TextStyle(
-                                    color: AppColors.text,
-                                    fontSize: ResponsiveHelper.getAdaptiveTextSize(
-                                      context,
-                                      FontSizes.body
-                                    ),
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                SizedBox(height: Dimensions.paddingXS),
-                                _buildRecipeInfo(recipe),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               );
@@ -1452,9 +1448,7 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildHomeContent() {
     if (_isFirstTimeLoading && isLoading) {
-      return Center(
-        child: CircularProgressIndicator(color: AppColors.primary),
-      );
+      return _buildHomeLoadingContent();
     } else if (errorMessage != null) {
       return Center(
         child: Column(
@@ -1527,6 +1521,110 @@ class _HomePageState extends State<HomePage> {
         _buildRecipeSection('Popular', popularRecipes),
         SizedBox(height: Dimensions.paddingL),
         _buildRecipeFeed(),
+      ],
+    );
+  }
+
+  Widget _buildHomeLoadingContent() {
+    return ListView(
+      children: [
+        // Skeleton for Recently Viewed (show only if needed)
+        if (_isFirstTimeLoading) ...[
+          _buildSkeletonSection('Recently Viewed'),
+        ],
+        
+        // Skeleton for Recommended
+        _buildSkeletonSection('Recommended'),
+        
+        // Skeleton for Popular
+        _buildSkeletonSection('Popular'),
+        
+        SizedBox(height: Dimensions.paddingL),
+        
+        // Skeleton for Recipe Feed
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: Text(
+                'Recipe Feed',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: ResponsiveHelper.getAdaptiveTextSize(
+                    context,
+                    FontSizes.heading3
+                  ),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: 3,
+              itemBuilder: (context, index) {
+                return RecipeFeedSkeleton();
+              },
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSkeletonSection(String title) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: Dimensions.paddingM,
+            vertical: ResponsiveHelper.screenHeight(context) * 0.0015,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  color: AppColors.text,
+                  fontSize: ResponsiveHelper.getAdaptiveTextSize(
+                    context,
+                    FontSizes.heading3
+                  ),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              TextButton(
+                onPressed: null,
+                child: Text(
+                  'See All',
+                  style: TextStyle(
+                    color: AppColors.primary,
+                    fontSize: ResponsiveHelper.getAdaptiveTextSize(
+                      context,
+                      FontSizes.body
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(
+          height: ResponsiveHelper.screenHeight(context) * 0.3,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: 3,
+            itemBuilder: (context, index) {
+              return RecipeCardSkeleton(
+                width: ResponsiveHelper.screenWidth(context) * 0.525,
+                height: ResponsiveHelper.screenHeight(context) * 0.3
+              );
+            },
+          ),
+        ),
       ],
     );
   }
@@ -1673,71 +1771,207 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildBottomNavigationBar() {
-    return BottomNavigationBar(
-      currentIndex: _currentIndex,
-      onTap: _handleNavigationTap,
-      backgroundColor: AppColors.surface,
-      selectedItemColor: AppColors.primary,
-      unselectedItemColor: AppColors.textSecondary,
-      type: BottomNavigationBarType.fixed,
-      items: [
-        BottomNavigationBarItem(
-          icon: Icon(
-            Icons.home_outlined,
-            size: Dimensions.iconM,
-          ),
-          activeIcon: Icon(
-            Icons.home_rounded,
-            size: Dimensions.iconM,
-          ),
-          label: 'Home',
+    return Padding(
+      padding: EdgeInsets.all(Dimensions.paddingM),
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(Dimensions.radiusXL),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2),
+              blurRadius: 15,
+              offset: const Offset(0, 5),
+            ),
+          ],
         ),
-        BottomNavigationBarItem(
-          icon: Icon(
-            Icons.search_outlined,
-            size: Dimensions.iconM,
+        child: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: Dimensions.paddingM, 
+                  vertical: Dimensions.paddingXS
+                ),
+                height: 65,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Flexible(
+                      child: _buildNavItem(0, Icons.home_outlined, Icons.home_rounded, 'Home'),
+                    ),
+                    Flexible(
+                      child: _buildNavItem(1, Icons.search_outlined, Icons.search_rounded, 'Search'),
+                    ),
+                    SizedBox(width: Dimensions.paddingXS),
+                    _buildCenterNavItem(),
+                    SizedBox(width: Dimensions.paddingXS),
+                    Flexible(
+                      child: _buildNavItem(2, Icons.calendar_today_outlined, Icons.calendar_today_rounded, 'Planner'),
+                    ),
+                    Flexible(
+                      child: _buildNavItem(3, Icons.bookmark_border_rounded, Icons.bookmark_rounded, 'Saved'),
+                    ),
+                  ],
+                ),
+              );
+            }
           ),
-          activeIcon: Icon(
-            Icons.search_rounded,
-            size: Dimensions.iconM,
-          ),
-          label: 'Search',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(
-            Icons.calendar_today_outlined,
-            size: Dimensions.iconM,
-          ),
-          activeIcon: Icon(
-            Icons.calendar_today_rounded,
-            size: Dimensions.iconM,
-          ),
-          label: 'Planner',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(
-            Icons.bookmark_border_rounded,
-            size: Dimensions.iconM,
-          ),
-          activeIcon: Icon(
-            Icons.bookmark_rounded,
-            size: Dimensions.iconM,
-          ),
-          label: 'Saved',
-        ),
-      ],
-      selectedLabelStyle: TextStyle(
-        fontSize: ResponsiveHelper.getAdaptiveTextSize(
-          context,
-          FontSizes.caption
-        ),
-      ),
-      unselectedLabelStyle: TextStyle(
-        fontSize: ResponsiveHelper.getAdaptiveTextSize(
-          context,
-          FontSizes.caption
         ),
       ),
     );
   }
+
+  Widget _buildCenterNavItem() {
+    return TweenAnimationBuilder(
+      tween: Tween<double>(begin: 0, end: 1),
+      duration: const Duration(milliseconds: 300),
+      builder: (context, double value, child) {
+        return Transform.scale(
+          scale: 0.9 + (0.1 * value),
+          child: Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: AppColors.primary,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withOpacity(0.3),
+                  blurRadius: 8 * value,
+                  offset: Offset(0, 4 * value),
+                ),
+              ],
+            ),
+            child: IconButton(
+              icon: Icon(
+                Icons.chat_bubble_rounded,
+                color: AppColors.surface,
+                size: Dimensions.iconM,
+              ),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  SlideUpRoute(page: const AssistantPage()),
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildNavItem(int index, IconData icon, IconData activeIcon, String label) {
+    final isSelected = _currentIndex == index;
+    
+    return GestureDetector(
+      onTap: () => _handleNavigationTap(index),
+      child: TweenAnimationBuilder(
+        tween: Tween<double>(begin: 0, end: isSelected ? 1 : 0),
+        duration: const Duration(milliseconds: 200),
+        builder: (context, double value, child) {
+          return Container(
+            padding: EdgeInsets.symmetric(horizontal: Dimensions.paddingXS),
+            width: 60,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Transform.scale(
+                  scale: 1 + (0.2 * value),
+                  child: Container(
+                    padding: EdgeInsets.all(value * Dimensions.paddingXS),
+                    decoration: BoxDecoration(
+                      color: Color.lerp(
+                        Colors.transparent,
+                        AppColors.primary.withOpacity(0.1),
+                        value,
+                      ),
+                      borderRadius: BorderRadius.circular(Dimensions.radiusM),
+                    ),
+                    child: Icon(
+                      isSelected ? activeIcon : icon,
+                      color: Color.lerp(
+                        AppColors.textSecondary,
+                        AppColors.primary,
+                        value,
+                      ),
+                      size: Dimensions.iconM,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: Color.lerp(
+                      AppColors.textSecondary,
+                      AppColors.primary,
+                      value,
+                    ),
+                    fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.caption) - 1,
+                    fontWeight: FontWeight.lerp(
+                      FontWeight.normal,
+                      FontWeight.w600,
+                      value,
+                    ),
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  void _setLoading(bool loading) {
+    setState(() {
+      isLoading = loading;
+    });
+  }
+}
+
+class CurvedPainter extends CustomPainter {
+  final int selectedIndex;
+  final Color color;
+
+  CurvedPainter({required this.selectedIndex, required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    var paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+
+    var path = Path();
+    
+    final itemWidth = size.width / 4;
+    final curveHeight = 20.0;
+    
+    path.moveTo(0, 0);
+    path.lineTo(itemWidth * selectedIndex, 0);
+    
+    path.quadraticBezierTo(
+      itemWidth * selectedIndex + itemWidth / 2,
+      curveHeight,
+      itemWidth * (selectedIndex + 1),
+      0,
+    );
+    
+    path.lineTo(size.width, 0);
+    path.lineTo(size.width, size.height);
+    path.lineTo(0, size.height);
+    path.close();
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => true;
 }

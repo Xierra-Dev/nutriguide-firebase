@@ -11,6 +11,58 @@ import 'core/constants/font_sizes.dart';
 import 'core/helpers/responsive_helper.dart';
 import 'core/widgets/app_text.dart';
 import 'dart:async';
+import 'widgets/skeleton_loading.dart';
+import 'package:shimmer/shimmer.dart';
+
+// Custom page route that animates from the tapped card
+class RecipePageRoute extends PageRouteBuilder {
+  final Recipe recipe;
+  final Rect? beginRect;
+
+  RecipePageRoute({required this.recipe, this.beginRect})
+      : super(
+          pageBuilder: (context, animation, secondaryAnimation) => 
+            RecipeDetailPage(recipe: recipe),
+          transitionDuration: const Duration(milliseconds: 500),
+          reverseTransitionDuration: const Duration(milliseconds: 400),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            var curve = CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeOutQuad,
+              reverseCurve: Curves.easeInQuad,
+            );
+            
+            // Fade animation
+            var fadeAnimation = Tween<double>(
+              begin: 0.0,
+              end: 1.0,
+            ).animate(curve);
+            
+            // Scale animation - starts from smaller size
+            var scaleAnimation = Tween<double>(
+              begin: 0.85,
+              end: 1.0,
+            ).animate(curve);
+            
+            // Add a slight slide up effect
+            var slideAnimation = Tween<Offset>(
+              begin: const Offset(0.0, 0.1),
+              end: Offset.zero,
+            ).animate(curve);
+            
+            return FadeTransition(
+              opacity: fadeAnimation,
+              child: SlideTransition(
+                position: slideAnimation,
+                child: ScaleTransition(
+                  scale: scaleAnimation,
+                  child: child,
+                ),
+              ),
+            );
+          },
+        );
+}
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -62,6 +114,7 @@ class _SearchPageState extends State<SearchPage> {
   List<Recipe> searchResults = [];
   List<Map<String, String>> popularIngredients = [];
   bool isLoading = false;
+  bool isLoadingMore = false;
   String selectedIngredient = '';
   String sortBy = 'Newest';
   String? errorMessage;
@@ -73,6 +126,9 @@ class _SearchPageState extends State<SearchPage> {
   DateTime _selectedDate = DateTime.now();
   String _selectedMeal = 'Dinner';
   List<bool> _daysSelected = List.generate(7, (index) => false);
+  
+  // Menambahkan Set untuk melacak ID resep yang sudah ditampilkan
+  final Set<String> _displayedRecipeIds = {};
 
   @override
   void initState() {
@@ -101,9 +157,24 @@ class _SearchPageState extends State<SearchPage> {
   Future<void> _viewRecipe(Recipe recipe) async {
     await _firestoreService.addToRecentlyViewed(recipe);
     if (mounted) {
+      // Get the render box of the tapped card to get its position
+      final RenderBox? renderBox = context.findRenderObject() as RenderBox?;
+      final position = renderBox?.localToGlobal(Offset.zero);
+      final size = renderBox?.size;
+      
       await Navigator.push(
         context,
-        SlideUpRoute(page: RecipeDetailPage(recipe: recipe)),
+        RecipePageRoute(
+          recipe: recipe,
+          beginRect: position != null && size != null
+              ? Rect.fromLTWH(
+                  position.dx,
+                  position.dy,
+                  size.width,
+                  size.height,
+                )
+              : null,
+        ),
       );
       // Refresh saved status after returning
       _checkIfSaved(recipe);
@@ -637,19 +708,66 @@ class _SearchPageState extends State<SearchPage> {
   Future<void> _loadInitialRecipes() async {
     setState(() {
       isLoading = true;
+      isLoadingMore = false;
+      recipes = []; // Reset the recipes list
+      _displayedRecipeIds.clear(); // Clear the displayed recipes tracking
     });
+    
     try {
-      final recipes = await _mealDBService.getRandomRecipes(number: 30);
+      // Use a stream-like approach to load recipes progressively
+      int batchSize = 5;
+      int totalToLoad = 30;
+      
+      for (int i = 0; i < totalToLoad / batchSize; i++) {
+        if (i > 0) {
       setState(() {
-        this.recipes = recipes;
+            isLoadingMore = true;
+          });
+        }
+        
+        final batchRecipes = await _mealDBService.getRandomRecipes(number: batchSize);
+        
+        if (mounted) {
+          setState(() {
+            // Add new recipes to the end of the list instead of resorting
+            recipes.addAll(batchRecipes);
+            
+            // Only sort on the first batch to establish initial order
+            if (i == 0) {
         _sortRecipes();
+            }
+            
+            // Add all new recipe IDs to the displayed set
+            for (var recipe in batchRecipes) {
+              _displayedRecipeIds.add(recipe.id);
+            }
+            
+            // Mark as not loading after first batch to show content while loading more
+            if (i == 0) {
         isLoading = false;
-      });
+            }
+            
+            // If this is the last batch, mark isLoadingMore as false
+            if (i == (totalToLoad / batchSize) - 1) {
+              isLoadingMore = false;
+            }
+          });
+          
+          // Check saved status for the batch of recipes
+          for (var recipe in batchRecipes) {
+            _checkIfSaved(recipe);
+            _checkIfPlanned(recipe);
+          }
+        }
+      }
     } catch (e) {
       print('Error loading recipes: $e');
+      if (mounted) {
       setState(() {
         isLoading = false;
+          isLoadingMore = false;
       });
+      }
     }
   }
 
@@ -687,15 +805,17 @@ class _SearchPageState extends State<SearchPage> {
     }
   }
 
-  void _searchRecipes(String query) {
+  Future<void> _searchRecipes(String query) async {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
 
     if (query.isEmpty) {
       setState(() {
         searchResults = [];
         isLoading = false;
+        isLoadingMore = false;
         errorMessage = null;
         _isSearching = false;
+        _displayedRecipeIds.clear(); // Clear tracking when exiting search
       });
       return;
     }
@@ -703,23 +823,78 @@ class _SearchPageState extends State<SearchPage> {
     _debounce = Timer(const Duration(milliseconds: 500), () async {
       setState(() {
         isLoading = true;
+        isLoadingMore = false;
         errorMessage = null;
         _isSearching = true;
+        searchResults = []; // Reset search results
+        _displayedRecipeIds.clear(); // Clear tracking when starting new search
       });
 
       try {
-        final results = await _mealDBService.searchRecipes(query);
+        // Get all search results first
+        final allResults = await _mealDBService.searchRecipes(query);
 
+        if (allResults.isEmpty) {
         if (mounted) {
           setState(() {
-            searchResults = results;
             isLoading = false;
           });
+          }
+          return;
+        }
 
-          // Check saved status for each recipe
-          for (var recipe in results) {
+        // Process results in batches
+        int batchSize = 5;
+        int totalResults = allResults.length;
+        
+        for (int i = 0; i < totalResults; i += batchSize) {
+          if (i > 0) {
+            setState(() {
+              isLoadingMore = true;
+            });
+          }
+          
+          // Get a subset of recipes
+          final int endIndex = (i + batchSize < totalResults) ? i + batchSize : totalResults;
+          final resultsBatch = allResults.sublist(i, endIndex);
+          
+          if (mounted) {
+            setState(() {
+              // Add new search results at the end without resorting
+              searchResults.addAll(resultsBatch);
+              
+              // Add new recipe IDs to the displayed set
+              for (var recipe in resultsBatch) {
+                _displayedRecipeIds.add(recipe.id);
+              }
+              
+              // Only sort on the first batch to establish initial order
+              if (i == 0) {
+                // For search results, we could apply a similar sorting if needed
+                // or keep them in the order returned by the API
+              }
+              
+              // Mark as not loading after first batch
+              if (i == 0) {
+                isLoading = false;
+              }
+              
+              // If this is the last batch, mark isLoadingMore as false
+              if (endIndex == totalResults) {
+                isLoadingMore = false;
+              }
+            });
+            
+            // Check saved status for each recipe in the batch
+            for (var recipe in resultsBatch) {
             _checkIfSaved(recipe);
             _checkIfPlanned(recipe);
+            }
+            
+            // Add a small delay to simulate progressive loading
+            if (i + batchSize < totalResults) {
+              await Future.delayed(const Duration(milliseconds: 300));
+            }
           }
         }
       } catch (e) {
@@ -727,243 +902,117 @@ class _SearchPageState extends State<SearchPage> {
           setState(() {
             errorMessage = 'Failed to search recipes. Please try again.';
             isLoading = false;
+            isLoadingMore = false;
           });
         }
       }
     });
+    
+    return Future.value();
   }
 
   Future<void> _searchRecipesByIngredient(String ingredient) async {
+    // Minimize "You might also like" section immediately
     setState(() {
       isLoading = true;
+      isLoadingMore = false;
       selectedIngredient = ingredient;
+      searchResults = [];
+      _displayedRecipeIds.clear();
+      _isSearching = true;
+      _searchController.text = ingredient;
+      _isYouMightAlsoLikeSectionExpanded = false; // Minimize the section
     });
+    
     try {
-      final recipes =
-          await _mealDBService.searchRecipesByIngredient(ingredient);
+      final allRecipes = await _mealDBService.searchRecipesByIngredient(ingredient);
+      
+      if (allRecipes.isEmpty) {
       setState(() {
-        this.recipes = recipes;
         isLoading = false;
-      });
+          searchResults = [];
+        });
+        return;
+      }
+      
+      // Process in batches
+      int batchSize = 5;
+      int totalRecipes = allRecipes.length;
+      
+      for (int i = 0; i < totalRecipes; i += batchSize) {
+        if (i > 0) {
+          setState(() {
+            isLoadingMore = true;
+          });
+        }
+        
+        final int endIndex = (i + batchSize < totalRecipes) ? i + batchSize : totalRecipes;
+        final recipeBatch = allRecipes.sublist(i, endIndex);
+        
+        if (mounted) {
+      setState(() {
+            searchResults.addAll(recipeBatch);
+            
+            for (var recipe in recipeBatch) {
+              _displayedRecipeIds.add(recipe.id);
+            }
+            
+            if (i == 0) {
+        isLoading = false;
+            }
+            
+            if (endIndex == totalRecipes) {
+              isLoadingMore = false;
+            }
+          });
+          
+          for (var recipe in recipeBatch) {
+            _checkIfSaved(recipe);
+            _checkIfPlanned(recipe);
+          }
+          
+          if (i + batchSize < totalRecipes) {
+            await Future.delayed(const Duration(milliseconds: 300));
+          }
+        }
+      }
 
-      for (var recipe in recipes) {
-        _checkIfSaved(recipe);
+      // Add a delay of 5 seconds before showing the "You might also like" section again
+      if (mounted) {
+        Future.delayed(const Duration(seconds: 5), () {
+          if (mounted) {
+            setState(() {
+              _isYouMightAlsoLikeSectionExpanded = true;
+            });
+          }
+        });
       }
     } catch (e) {
       print('Error searching recipes by ingredient: $e');
-      setState(() {
-        isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+          isLoadingMore = false;
+          searchResults = [];
+          errorMessage = 'Failed to search recipes. Please try again.';
+        });
+      }
     }
-  }
-
-  Widget _buildMoreButton(Recipe recipe) {
-    return Container(
-      width: 28,
-      height: 28,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: Colors.black.withOpacity(0.5),
-      ),
-      child: PopupMenuButton<String>(
-        padding: EdgeInsets.zero,
-        iconSize: Dimensions.iconM,
-        icon: Icon(
-          Icons.more_vert,
-          color: AppColors.text,
-        ),
-        onSelected: (String value) {
-          if (value == 'Save Recipe') {
-            _toggleSave(recipe);
-          } else if (value == 'Plan Meal') {
-            _togglePlan(recipe);
-          }
-        },
-        color: AppColors.surface,
-        elevation: 4,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(Dimensions.radiusM),
-        ),
-        offset: const Offset(0, 45),
-        constraints: BoxConstraints(
-          minWidth: ResponsiveHelper.screenWidth(context) * 0.41,
-          maxWidth: ResponsiveHelper.screenWidth(context) * 0.41,
-        ),
-        itemBuilder: (BuildContext context) => [
-          PopupMenuItem<String>(
-            height: 60,
-            value: 'Save Recipe',
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: Dimensions.paddingS),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Icon(
-                    savedStatus[recipe.id] == true
-                        ? Icons.bookmark
-                        : Icons.bookmark_border_rounded,
-                    size: Dimensions.iconM,
-                    color: savedStatus[recipe.id] == true
-                        ? AppColors.primary
-                        : AppColors.text,
-                  ),
-                  SizedBox(width: Dimensions.paddingS),
-                  Text(
-                    savedStatus[recipe.id] == true ? 'Saved' : 'Save Recipe',
-                    style: TextStyle(
-                      fontSize: ResponsiveHelper.getAdaptiveTextSize(
-                          context, FontSizes.body),
-                      color: savedStatus[recipe.id] == true
-                          ? AppColors.primary
-                          : AppColors.text,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          PopupMenuItem<String>(
-            height: 60,
-            value: 'Plan Meal',
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: Dimensions.paddingS),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Icon(
-                    Icons.calendar_today_rounded,
-                    size: Dimensions.iconM,
-                    color: AppColors.text,
-                  ),
-                  SizedBox(width: Dimensions.paddingS),
-                  Text(
-                    'Plan Meal',
-                    style: TextStyle(
-                      fontSize: ResponsiveHelper.getAdaptiveTextSize(
-                          context, FontSizes.body),
-                      color: AppColors.text,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMoreButtonExpanded(Recipe recipe) {
-    return Container(
-      width: 25,
-      height: 25,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: Colors.black.withOpacity(0.5),
-      ),
-      child: PopupMenuButton<String>(
-        padding: EdgeInsets.zero,
-        iconSize: 19,
-        icon: Icon(
-          Icons.more_vert,
-          color: AppColors.text,
-        ),
-        onSelected: (String value) {
-          if (value == 'Save Recipe') {
-            _toggleSave(recipe);
-          } else if (value == 'Plan Meal') {
-            _togglePlan(recipe);
-          }
-        },
-        color: AppColors.surface,
-        elevation: 4,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(Dimensions.radiusM),
-        ),
-        offset: const Offset(0, 45),
-        constraints: BoxConstraints(
-          minWidth: ResponsiveHelper.screenWidth(context) * 0.41,
-          maxWidth: ResponsiveHelper.screenWidth(context) * 0.41,
-        ),
-        itemBuilder: (BuildContext context) => [
-          PopupMenuItem<String>(
-            height: 60,
-            value: 'Save Recipe',
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: Dimensions.paddingS),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Icon(
-                    savedStatus[recipe.id] == true
-                        ? Icons.bookmark
-                        : Icons.bookmark_border_rounded,
-                    size: Dimensions.iconM,
-                    color: savedStatus[recipe.id] == true
-                        ? AppColors.primary
-                        : AppColors.text,
-                  ),
-                  SizedBox(width: Dimensions.paddingS),
-                  Text(
-                    savedStatus[recipe.id] == true ? 'Saved' : 'Save Recipe',
-                    style: TextStyle(
-                      fontSize: ResponsiveHelper.getAdaptiveTextSize(
-                          context, FontSizes.body),
-                      color: savedStatus[recipe.id] == true
-                          ? AppColors.primary
-                          : AppColors.text,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          PopupMenuItem<String>(
-            height: 60,
-            value: 'Plan Meal',
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: Dimensions.paddingS),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Icon(
-                    Icons.calendar_today_rounded,
-                    size: Dimensions.iconM,
-                    color: AppColors.text,
-                  ),
-                  SizedBox(width: Dimensions.paddingS),
-                  Text(
-                    'Plan Meal',
-                    style: TextStyle(
-                      fontSize: ResponsiveHelper.getAdaptiveTextSize(
-                          context, FontSizes.body),
-                      color: AppColors.text,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   void _sortRecipes() {
     setState(() {
+      final listToSort = _isSearching ? searchResults : recipes;
+      
       switch (sortBy) {
         case 'Newest':
-          recipes.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+          listToSort.sort((a, b) => b.createdAt.compareTo(a.createdAt));
           break;
         case 'Popular':
-          recipes.sort((a, b) => b.popularity.compareTo(a.popularity));
+          listToSort.sort((a, b) => b.popularity.compareTo(a.popularity));
           break;
         case 'Rating':
-          recipes.sort((a, b) => b.healthScore.compareTo(a.healthScore));
+          listToSort.sort((a, b) => b.healthScore.compareTo(a.healthScore));
           break;
       }
     });
@@ -1025,6 +1074,7 @@ class _SearchPageState extends State<SearchPage> {
                 ),
               ),
             ),
+            // Popular Ingredients section - show even when loading
             AnimatedContainer(
               duration: const Duration(milliseconds: 300),
               height: _showPopularSection ? 160 : 0,
@@ -1046,7 +1096,13 @@ class _SearchPageState extends State<SearchPage> {
                     ),
                     SizedBox(
                       height: 120,
-                      child: ListView.builder(
+                      child: popularIngredients.isEmpty 
+                      ? Center(
+                          child: CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                          ),
+                        )
+                      : ListView.builder(
                         scrollDirection: Axis.horizontal,
                         padding: EdgeInsets.symmetric(
                             horizontal: Dimensions.paddingM),
@@ -1115,6 +1171,7 @@ class _SearchPageState extends State<SearchPage> {
                 ),
               ),
             ),
+            // "Recipes you may like" header - always show
             Padding(
               padding: EdgeInsets.only(
                 top: Dimensions.paddingM,
@@ -1168,16 +1225,185 @@ class _SearchPageState extends State<SearchPage> {
               ),
             ),
           ],
+          // Recipe grid or skeleton loading with smooth transition
           Expanded(
-            child: isLoading
-                ? Center(
-                    child: CircularProgressIndicator(color: AppColors.primary))
-                : _isSearching
-                    ? _buildSearchResults()
-                    : _buildRecipeGrid(recipes),
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 500),
+              switchInCurve: Curves.easeInOut,
+              switchOutCurve: Curves.easeInOut,
+              transitionBuilder: (Widget child, Animation<double> animation) {
+                return FadeTransition(
+                  opacity: animation,
+                  child: child,
+                );
+              },
+              child: (isLoading && !_isSearching)
+                ? _buildRecipeGridSkeleton(key: ValueKey('skeleton'))
+                : (_isSearching || selectedIngredient.isNotEmpty)
+                  ? _buildSearchResults(key: ValueKey('search_results'))
+                  : _buildRecipeGrid(recipes, key: ValueKey('recipe_grid')),
+            ),
           ),
         ],
       ),
+    );
+  }
+
+  // Custom recipe grid skeleton that doesn't include headers or popular ingredients
+  Widget _buildRecipeGridSkeleton({Key? key}) {
+    final width = ResponsiveHelper.screenWidth(context);
+    return GridView.builder(
+      key: key,
+      padding: EdgeInsets.all(Dimensions.paddingM),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 0.8,
+        crossAxisSpacing: Dimensions.paddingS,
+        mainAxisSpacing: Dimensions.paddingS,
+      ),
+      itemCount: 6, // Show 6 skeleton items
+      itemBuilder: (context, index) {
+        return Shimmer.fromColors(
+          baseColor: AppColors.surface.withOpacity(0.3),
+          highlightColor: AppColors.surface.withOpacity(0.6),
+          period: Duration(milliseconds: 1500),
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppColors.surface.withOpacity(0.3),
+              borderRadius: BorderRadius.circular(Dimensions.radiusM),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Image area
+                Expanded(
+                  flex: 3,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(Dimensions.radiusM),
+                        topRight: Radius.circular(Dimensions.radiusM),
+                      ),
+                    ),
+                    // Top row with area tag and more button
+                    child: Padding(
+                      padding: EdgeInsets.all(Dimensions.paddingS),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Area tag
+                          Container(
+                            width: 70,
+                            height: 24,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(Dimensions.radiusS),
+                            ),
+                          ),
+                          // More button
+                          Container(
+                            width: 28,
+                            height: 28,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                // Text area
+                Expanded(
+                  flex: 2,
+                  child: Padding(
+                    padding: EdgeInsets.all(Dimensions.paddingS),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        // Title
+                        Container(
+                          height: 16,
+                          width: width * 0.3,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(Dimensions.radiusS),
+                          ),
+                        ),
+                        SizedBox(height: Dimensions.paddingXS),
+                        // Subtitle
+                        Container(
+                          height: 12,
+                          width: width * 0.25,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(Dimensions.radiusS),
+                          ),
+                        ),
+                        SizedBox(height: Dimensions.paddingS),
+                        // Recipe details row (time and rating)
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            // Time
+                            Row(
+                              children: [
+                                Container(
+                                  width: 14,
+                                  height: 14,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                SizedBox(width: 4),
+                                Container(
+                                  width: 30,
+                                  height: 10,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(Dimensions.radiusS),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            // Rating
+                            Row(
+                              children: [
+                                Container(
+                                  width: 14,
+                                  height: 14,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                SizedBox(width: 4),
+                                Container(
+                                  width: 20,
+                                  height: 10,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(Dimensions.radiusS),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -1193,11 +1419,12 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
-  Widget _buildSearchResults() {
+  Widget _buildSearchResults({Key? key}) {
     return Column(
+      key: key,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Header dan search bar (tidak berubah)
+        // Header dan search bar
         Padding(
           padding: EdgeInsets.symmetric(horizontal: Dimensions.paddingS),
           child: Row(
@@ -1208,13 +1435,27 @@ class _SearchPageState extends State<SearchPage> {
                   color: AppColors.text,
                   size: Dimensions.iconM,
                 ),
-                onPressed: () {
+                onPressed: () async {
                   setState(() {
                     _isSearching = false;
                     searchResults = [];
                     _searchController.clear();
                     errorMessage = null;
+                    isLoading = true;
+                    _displayedRecipeIds.clear();
                   });
+                  
+                  // Muat ulang data
+                  await _loadInitialRecipes();
+                  await _loadPopularIngredients();
+                  
+                  // Reset state untuk bagian "You might also like"
+                  if (mounted) {
+                    setState(() {
+                      _isYouMightAlsoLikeSectionExpanded = true;
+                      selectedIngredient = '';
+                    });
+                  }
                 },
               ),
               SizedBox(width: Dimensions.paddingXS),
@@ -1307,8 +1548,12 @@ class _SearchPageState extends State<SearchPage> {
                   ),
                 )
               else ...[
-                // Hasil pencarian
-                Expanded(child: _buildRecipeGrid(searchResults)),
+                // Hasil pencarian atau skeleton loading
+                Expanded(
+                  child: isLoading 
+                    ? _buildSearchResultsSkeleton()
+                    : _buildRecipeGrid(searchResults)
+                ),
                 // You might also like section
                 Padding(
                   padding: EdgeInsets.only(
@@ -1347,7 +1592,7 @@ class _SearchPageState extends State<SearchPage> {
                 if (_isYouMightAlsoLikeSectionExpanded)
                   SizedBox(
                     height: ResponsiveHelper.screenHeight(context) * 0.245,
-                    child: _buildRecipeGridExpanded(recipes.take(10).toList(),
+                    child: _buildRecipeGrid(recipes.take(10).toList(),
                         scrollDirection: Axis.horizontal),
                   ),
               ],
@@ -1358,9 +1603,167 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
-  Widget _buildRecipeGrid(List<Recipe> recipeList,
-      {Axis scrollDirection = Axis.vertical}) {
+  Widget _buildSearchResultsSkeleton() {
     return GridView.builder(
+      padding: EdgeInsets.all(Dimensions.paddingM),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 0.8,
+        crossAxisSpacing: Dimensions.paddingS,
+        mainAxisSpacing: Dimensions.paddingS,
+      ),
+      itemCount: 6, // Menampilkan 6 skeleton items
+      itemBuilder: (context, index) {
+        return Shimmer.fromColors(
+          baseColor: AppColors.surface.withOpacity(0.3),
+          highlightColor: AppColors.surface.withOpacity(0.6),
+          period: Duration(milliseconds: 1500),
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppColors.surface.withOpacity(0.3),
+              borderRadius: BorderRadius.circular(Dimensions.radiusM),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Image area
+                Expanded(
+                  flex: 3,
+            child: Container(
+              decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(Dimensions.radiusM),
+                        topRight: Radius.circular(Dimensions.radiusM),
+                      ),
+                    ),
+                    // Top row with area tag and more button
+                    child: Padding(
+                      padding: EdgeInsets.all(Dimensions.paddingS),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Area tag
+                          Container(
+                            width: 70,
+                            height: 24,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(Dimensions.radiusS),
+                            ),
+                          ),
+                          // More button
+                          Container(
+                            width: 28,
+                            height: 28,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white,
+                            ),
+                          ),
+                  ],
+                ),
+              ),
+                  ),
+                ),
+                // Text area
+                Expanded(
+                  flex: 2,
+                  child: Padding(
+                    padding: EdgeInsets.all(Dimensions.paddingS),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                        // Title
+                        Container(
+                          height: 16,
+                          width: ResponsiveHelper.screenWidth(context) * 0.3,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(Dimensions.radiusS),
+                          ),
+                        ),
+                        SizedBox(height: Dimensions.paddingXS),
+                        // Subtitle
+                        Container(
+                          height: 12,
+                          width: ResponsiveHelper.screenWidth(context) * 0.25,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(Dimensions.radiusS),
+                          ),
+                        ),
+                        SizedBox(height: Dimensions.paddingS),
+                        // Recipe details row (time and rating)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            // Time
+                            Row(
+                    children: [
+                      Container(
+                                  width: 14,
+                                  height: 14,
+                        decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                SizedBox(width: 4),
+                                Container(
+                                  width: 30,
+                                  height: 10,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(Dimensions.radiusS),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            // Rating
+                      Row(
+                        children: [
+                                Container(
+                                  width: 14,
+                                  height: 14,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                SizedBox(width: 4),
+                                Container(
+                                  width: 20,
+                                  height: 10,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(Dimensions.radiusS),
+                                  ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildRecipeGrid(List<Recipe> recipeList,
+      {Axis scrollDirection = Axis.vertical, Key? key}) {
+    return Stack(
+      key: key,
+      children: [
+        GridView.builder(
       controller: _scrollController,
       scrollDirection: scrollDirection,
       padding: EdgeInsets.all(Dimensions.paddingM),
@@ -1373,8 +1776,75 @@ class _SearchPageState extends State<SearchPage> {
       itemCount: recipeList.length,
       itemBuilder: (context, index) {
         final recipe = recipeList[index];
+            final int row = index ~/ 2;
+            final int col = index % 2;
+            final int staggerIndex = row * 2 + col;
+            final bool isNewRecipe = !_displayedRecipeIds.contains(recipe.id);
+            
+            if (!isNewRecipe) {
+              return _buildRecipeCard(recipe);
+            }
+            
+            return FutureBuilder(
+              future: Future.delayed(Duration(milliseconds: staggerIndex * 80)),
+              builder: (context, snapshot) {
+                final bool shouldAnimate = snapshot.connectionState == ConnectionState.done;
+                
+                return AnimatedOpacity(
+                  duration: Duration(milliseconds: 400),
+                  opacity: shouldAnimate ? 1.0 : 0.0,
+                  curve: Curves.easeOutQuad,
+                  child: AnimatedScale(
+                    duration: Duration(milliseconds: 400),
+                    scale: shouldAnimate ? 1.0 : 0.8,
+                    curve: Curves.easeOutQuad,
+                    child: _buildRecipeCard(recipe),
+                  ),
+                );
+              },
+            );
+          },
+        ),
+        if (isLoadingMore)
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Container(
+              padding: EdgeInsets.symmetric(vertical: Dimensions.paddingS),
+              color: AppColors.background.withOpacity(0.7),
+              child: Center(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                      ),
+                    ),
+                    SizedBox(width: Dimensions.paddingS),
+                    AppText(
+                      'Loading more recipes...',
+                      fontSize: FontSizes.caption,
+                      color: AppColors.text,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildRecipeCard(Recipe recipe) {
         return GestureDetector(
           onTap: () => _viewRecipe(recipe),
+      child: Hero(
+        tag: 'recipe-${recipe.id}',
           child: Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(Dimensions.radiusM),
@@ -1403,7 +1873,6 @@ class _SearchPageState extends State<SearchPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // Top Row with Area Tag and Bookmark
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -1414,8 +1883,7 @@ class _SearchPageState extends State<SearchPage> {
                         ),
                         decoration: BoxDecoration(
                           color: Colors.black.withOpacity(0.5),
-                          borderRadius:
-                              BorderRadius.circular(Dimensions.radiusS),
+                        borderRadius: BorderRadius.circular(Dimensions.radiusS),
                         ),
                         child: AppText(
                           recipe.area ?? 'International',
@@ -1423,7 +1891,7 @@ class _SearchPageState extends State<SearchPage> {
                           color: AppColors.text,
                         ),
                       ),
-                      _buildMoreButton(recipe)
+                    _buildMoreButton(recipe),
                     ],
                   ),
                   Column(
@@ -1468,133 +1936,68 @@ class _SearchPageState extends State<SearchPage> {
                     ],
                   ),
                 ],
+            ),
               ),
             ),
           ),
         );
-      },
-    );
   }
 
-  Widget _buildRecipeGridExpanded(List<Recipe> recipeList,
-      {Axis scrollDirection = Axis.vertical}) {
-    return GridView.builder(
-      controller: _scrollController,
-      scrollDirection: scrollDirection,
-      padding: EdgeInsets.only(
-        bottom: Dimensions.paddingM,
-        top: Dimensions.paddingXS,
-        left: Dimensions.paddingS,
-        right: Dimensions.paddingS,
+  Widget _buildMoreButton(Recipe recipe) {
+    return PopupMenuButton<String>(
+      icon: Icon(
+        Icons.more_vert,
+        color: AppColors.text,
+        size: Dimensions.iconM,
       ),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: scrollDirection == Axis.vertical ? 2 : 1,
-        childAspectRatio: scrollDirection == Axis.vertical ? 0.8 : 1.2,
-        crossAxisSpacing: Dimensions.paddingM,
-        mainAxisSpacing: Dimensions.paddingM,
+      color: AppColors.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(Dimensions.radiusS),
       ),
-      itemCount: recipeList.length,
-      itemBuilder: (context, index) {
-        final recipe = recipeList[index];
-        return GestureDetector(
-          onTap: () => _viewRecipe(recipe),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(Dimensions.radiusM),
-              image: DecorationImage(
-                image: NetworkImage(recipe.image),
-                fit: BoxFit.cover,
-              ),
-            ),
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(Dimensions.radiusM),
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.transparent,
-                    Colors.black.withOpacity(0.7),
-                  ],
-                ),
-              ),
-              padding: EdgeInsets.symmetric(
-                vertical: ResponsiveHelper.screenHeight(context) * 0.015,
-                horizontal: ResponsiveHelper.screenWidth(context) * 0.03,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      itemBuilder: (context) => [
+        PopupMenuItem<String>(
+          value: 'save',
+          child: Row(
                 children: [
-                  // Top Row with Area Tag and Bookmark
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 3,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.5),
-                          borderRadius:
-                              BorderRadius.circular(Dimensions.radiusS),
-                        ),
-                        child: AppText(
-                          recipe.area ?? 'International',
-                          fontSize: FontSizes.small,
+              Icon(
+                Icons.bookmark_border,
+                color: AppColors.text,
+                size: Dimensions.iconM,
+              ),
+              SizedBox(width: Dimensions.paddingS),
+              AppText(
+                'Save Recipe',
+                fontSize: FontSizes.body,
                           color: AppColors.text,
                         ),
-                      ),
-                      _buildMoreButtonExpanded(recipe)
-                    ],
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      AppText(
-                        recipe.title,
-                        fontSize: FontSizes.caption,
-                        color: AppColors.text,
-                        fontWeight: FontWeight.bold,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      SizedBox(height: Dimensions.paddingXS),
-                      Row(
+            ],
+          ),
+        ),
+        PopupMenuItem<String>(
+          value: 'plan',
+          child: Row(
                         children: [
                           Icon(
-                            Icons.timer_rounded,
+                Icons.calendar_today,
                             color: AppColors.text,
-                            size: 14,
+                size: Dimensions.iconM,
                           ),
-                          SizedBox(width: Dimensions.paddingXS),
+              SizedBox(width: Dimensions.paddingS),
                           AppText(
-                            '${recipe.preparationTime} min',
-                            fontSize: FontSizes.small,
+                'Plan Meal',
+                fontSize: FontSizes.body,
                             color: AppColors.text,
                           ),
-                          SizedBox(width: Dimensions.paddingS),
-                          Icon(
-                            Icons.favorite,
-                            color: _getHealthScoreColor(recipe.healthScore),
-                            size: 14,
-                          ),
-                          SizedBox(width: Dimensions.paddingXS),
-                          AppText(
-                            recipe.healthScore.toStringAsFixed(1),
-                            fontSize: FontSizes.small,
-                            color: _getHealthScoreColor(recipe.healthScore),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
+            ],
           ),
-        );
+        ),
+      ],
+      onSelected: (value) {
+        if (value == 'save') {
+          _toggleSave(recipe);
+        } else if (value == 'plan') {
+          _togglePlan(recipe);
+        }
       },
     );
   }
