@@ -836,8 +836,8 @@ class _HomePageState extends State<HomePage> {
       }
     } catch (e) {
       print('Error loading popular recipes: $e');
-      if (mounted) {
-        setState(() {
+        if (mounted) {
+          setState(() {
           _isLoadingPopular = false;
           isLoading = _isLoadingRecentlyViewed || 
                       _isLoadingRecommended || 
@@ -1422,94 +1422,94 @@ class _HomePageState extends State<HomePage> {
                 onTap: () => _viewRecipe(recipe),
                 child: Hero(
                   tag: 'recipe-${recipe.id}',
-                  child: Container(
-                    width: ResponsiveHelper.screenWidth(context) * 0.525,
-                    margin: EdgeInsets.only(
-                      left: Dimensions.paddingS,
-                      bottom: Dimensions.paddingS,
+                child: Container(
+                  width: ResponsiveHelper.screenWidth(context) * 0.525,
+                  margin: EdgeInsets.only(
+                    left: Dimensions.paddingS,
+                    bottom: Dimensions.paddingS,
+                  ),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(Dimensions.radiusM),
+                    image: DecorationImage(
+                      image: NetworkImage(recipe.image),
+                      fit: BoxFit.cover,
                     ),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(Dimensions.radiusM),
-                      image: DecorationImage(
-                        image: NetworkImage(recipe.image),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    child: Stack(
-                      children: [
-                        // Gradient overlay
-                        Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(Dimensions.radiusM),
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [
-                                Colors.transparent,
-                                Colors.black.withOpacity(0.7),
-                              ],
-                            ),
-                          ),
-                        ),
-                        // Content
-                        Padding(
-                          padding: EdgeInsets.symmetric(
-                            vertical: ResponsiveHelper.screenHeight(context) * 0.0145,
-                            horizontal: ResponsiveHelper.screenWidth(context) * 0.025,
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Top row with area tag and more button
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Container(
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: Dimensions.paddingS,
-                                        vertical: Dimensions.paddingXS
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: Colors.black.withOpacity(0.5),
-                                        borderRadius: BorderRadius.circular(Dimensions.radiusS),
-                                      ),
-                                      child: Text(
-                                        recipe.area ?? 'International',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: MediaQuery.of(context).size.width * 0.0325,
-                                        ),
-                                      ),
-                                    ),
-                                    _buildMoreButton(recipe),
-                                  ],
-                                ),
-                              // Bottom info
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    recipe.title,
-                                    style: TextStyle(
-                                      color: AppColors.text,
-                                      fontSize: ResponsiveHelper.getAdaptiveTextSize(
-                                        context,
-                                        FontSizes.body
-                                      ),
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  SizedBox(height: Dimensions.paddingXS),
-                                  _buildRecipeInfo(recipe),
-                                ],
-                              ),
+                  ),
+                  child: Stack(
+                    children: [
+                      // Gradient overlay
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(Dimensions.radiusM),
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.transparent,
+                              Colors.black.withOpacity(0.7),
                             ],
                           ),
                         ),
-                      ],
+                      ),
+                      // Content
+                      Padding(
+                        padding: EdgeInsets.symmetric(
+                          vertical: ResponsiveHelper.screenHeight(context) * 0.0145,
+                          horizontal: ResponsiveHelper.screenWidth(context) * 0.025,
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Top row with area tag and more button
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Container(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: Dimensions.paddingS,
+                                      vertical: Dimensions.paddingXS
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.black.withOpacity(0.5),
+                                      borderRadius: BorderRadius.circular(Dimensions.radiusS),
+                                    ),
+                                    child: Text(
+                                      recipe.area ?? 'International',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: MediaQuery.of(context).size.width * 0.0325,
+                                      ),
+                                    ),
+                                  ),
+                                  _buildMoreButton(recipe),
+                                ],
+                              ),
+                            // Bottom info
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  recipe.title,
+                                  style: TextStyle(
+                                    color: AppColors.text,
+                                    fontSize: ResponsiveHelper.getAdaptiveTextSize(
+                                      context,
+                                      FontSizes.body
+                                    ),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                SizedBox(height: Dimensions.paddingXS),
+                                _buildRecipeInfo(recipe),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                     ),
                   ),
                 ),
@@ -1563,7 +1563,7 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildHomeContent() {
     return ListView(
-      children: [
+          children: [
         if (_isLoadingRecentlyViewed)
           _buildSkeletonSection('Recently Viewed')
         else if (recentlyViewedRecipes.isNotEmpty)
@@ -1589,15 +1589,15 @@ class _HomePageState extends State<HomePage> {
                 padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                 child: Text(
                   'Recipe Feed',
-                  style: TextStyle(
+              style: TextStyle(
                     color: Colors.white,
-                    fontSize: ResponsiveHelper.getAdaptiveTextSize(
-                      context,
-                      FontSizes.heading3
-                    ),
-                    fontWeight: FontWeight.bold,
-                  ),
+                fontSize: ResponsiveHelper.getAdaptiveTextSize(
+                  context,
+                  FontSizes.heading3
                 ),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
               ),
               ListView.builder(
                 shrinkWrap: true,
@@ -1627,12 +1627,12 @@ class _HomePageState extends State<HomePage> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
+            Text(
                 title,
-                style: TextStyle(
+              style: TextStyle(
                   color: AppColors.text,
-                  fontSize: ResponsiveHelper.getAdaptiveTextSize(
-                    context,
+                fontSize: ResponsiveHelper.getAdaptiveTextSize(
+                  context,
                     FontSizes.heading3
                   ),
                   fontWeight: FontWeight.bold,
@@ -1640,19 +1640,19 @@ class _HomePageState extends State<HomePage> {
               ),
               TextButton(
                 onPressed: null,
-                child: Text(
+              child: Text(
                   'See All',
-                  style: TextStyle(
+                style: TextStyle(
                     color: AppColors.primary,
-                    fontSize: ResponsiveHelper.getAdaptiveTextSize(
-                      context,
-                      FontSizes.body
-                    ),
+                  fontSize: ResponsiveHelper.getAdaptiveTextSize(
+                    context,
+                    FontSizes.body
                   ),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
+        ),
         ),
         SizedBox(
           height: ResponsiveHelper.screenHeight(context) * 0.3,
@@ -1887,11 +1887,11 @@ class _HomePageState extends State<HomePage> {
               ],
             ),
             child: IconButton(
-              icon: Icon(
+          icon: Icon(
                 Icons.chat_bubble_rounded,
                 color: AppColors.surface,
-                size: Dimensions.iconM,
-              ),
+            size: Dimensions.iconM,
+          ),
               onPressed: () {
                 Navigator.push(
                   context,
@@ -1940,8 +1940,8 @@ class _HomePageState extends State<HomePage> {
                         AppColors.primary,
                         value,
                       ),
-                      size: Dimensions.iconM,
-                    ),
+            size: Dimensions.iconM,
+          ),
                   ),
                 ),
                 const SizedBox(height: 2),

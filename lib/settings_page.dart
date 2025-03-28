@@ -9,6 +9,7 @@ import 'core/constants/colors.dart';
 import 'core/constants/dimensions.dart';
 import 'core/constants/font_sizes.dart';
 import 'core/helpers/responsive_helper.dart';
+import 'profile_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -128,7 +129,10 @@ class _SettingsPageState extends State<SettingsPage> {
                             size: Dimensions.iconM,
                           ),
                           onPressed: () {
-                            Navigator.of(context).pop();
+                            Navigator.pushReplacement(
+                              context,
+                              SlideRightRoute(page: const ProfilePage()),
+                            );
                           },
                         ),
                       ),

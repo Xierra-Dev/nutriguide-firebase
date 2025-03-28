@@ -187,44 +187,28 @@ class _LandingPageState extends State<LandingPage> with SingleTickerProviderStat
     return MediaQuery.withClampedTextScaling(
       maxScaleFactor: 1.0,
       child: Scaffold(
-        body: Stack(
-          fit: StackFit.expand,
-          children: [
-            // Background Image with Enhanced Gradient Overlay
-            if (_previousImageUrl != null)
-              Container(
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: NetworkImage(_previousImageUrl!),
-                    fit: BoxFit.cover,
-                    colorFilter: ColorFilter.mode(
-                      Colors.black.withOpacity(0.3),
-                      BlendMode.darken,
-                    ),
-                  ),
-                ),
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.transparent,
-                        Colors.black.withOpacity(0.7),
-                        Colors.black.withOpacity(0.9),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-
-            if (_currentImageUrl != null && _animation != null)
-              FadeTransition(
-                opacity: _animation!,
-                child: Container(
+        backgroundColor: Colors.transparent,
+        body: AnimatedContainer(
+          duration: const Duration(milliseconds: 500),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                AppColors.surface,
+                AppColors.background,
+              ],
+            ),
+          ),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              // Background Image with Enhanced Gradient Overlay
+              if (_previousImageUrl != null)
+                Container(
                   decoration: BoxDecoration(
                     image: DecorationImage(
-                      image: NetworkImage(_currentImageUrl!),
+                      image: NetworkImage(_previousImageUrl!),
                       fit: BoxFit.cover,
                       colorFilter: ColorFilter.mode(
                         Colors.black.withOpacity(0.3),
@@ -246,207 +230,265 @@ class _LandingPageState extends State<LandingPage> with SingleTickerProviderStat
                     ),
                   ),
                 ),
-              ),
 
-            // Main Content with Enhanced Design
-            SafeArea(
-              child: Column(
-                children: [
-                  // Logo/Title Section with Enhanced Design
-                  Expanded(
-                    flex: 3,
-                    child: Center(
-                      child: AnimatedOpacity(
-                        duration: const Duration(milliseconds: 800),
-                        opacity: _isLoading ? 0.0 : 1.0,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            // Enhanced App Logo
-                            Container(
-                              padding: EdgeInsets.all(Dimensions.paddingL),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.15),
-                                shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: AppColors.primary.withOpacity(0.3),
-                                    blurRadius: 20,
-                                    spreadRadius: 5,
-                                  ),
-                                ],
-                              ),
-                              child: Image.asset(
-                                'assets/images/logo_NutriGuide.png',
-                                width: Dimensions.iconXXL,
-                                height: Dimensions.iconXXL,
-                                fit: BoxFit.contain,
-                              ),
-                            ),
-                            SizedBox(height: Dimensions.spacingL),
-                            
-                            // Enhanced App Name with Gradient
-                            _buildShimmerTitle(),
-                            SizedBox(height: Dimensions.spacingM),
-                            
-                            // Enhanced Tagline
-                            Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: Dimensions.paddingL,
-                                vertical: Dimensions.paddingS,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.black.withOpacity(0.3),
-                                borderRadius: BorderRadius.circular(Dimensions.radiusL),
-                              ),
-                              child: Text(
-                                'Your Personal Nutrition Assistant',
-                                style: TextStyle(
-                                  fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.body),
-                                  color: Colors.white.withOpacity(0.9),
-                                  letterSpacing: 0.5,
-                                  shadows: [
-                                    Shadow(
-                                      color: Colors.black.withOpacity(0.3),
-                                      offset: const Offset(1, 1),
-                                      blurRadius: 2,
-                                    ),
-                                  ],
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
+              if (_currentImageUrl != null && _animation != null)
+                FadeTransition(
+                  opacity: _animation!,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      image: DecorationImage(
+                        image: NetworkImage(_currentImageUrl!),
+                        fit: BoxFit.cover,
+                        colorFilter: ColorFilter.mode(
+                          Colors.black.withOpacity(0.3),
+                          BlendMode.darken,
+                        ),
+                      ),
+                    ),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.transparent,
+                            Colors.black.withOpacity(0.7),
+                            Colors.black.withOpacity(0.9),
                           ],
                         ),
                       ),
                     ),
                   ),
+                ),
 
-                  // Enhanced Buttons Section
-                  Expanded(
-                    flex: 2,
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: Dimensions.paddingL,
-                        vertical: Dimensions.paddingXS,
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          // Enhanced Register Button
-                          AnimatedOpacity(
-                            duration: const Duration(milliseconds: 800),
-                            opacity: _isLoading ? 0.0 : 1.0,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(Dimensions.radiusL),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: AppColors.primary.withOpacity(0.3),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 4),
+              // Main Content with Enhanced Design
+              SafeArea(
+                child: Column(
+                  children: [
+                    // Logo/Title Section with Enhanced Design
+                    Expanded(
+                      flex: 3,
+                      child: Center(
+                        child: AnimatedOpacity(
+                          duration: const Duration(milliseconds: 800),
+                          opacity: _isLoading ? 0.0 : 1.0,
+                          child: Padding(
+                            padding: EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.15),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                // Enhanced App Logo
+                                Container(
+                                  padding: EdgeInsets.all(Dimensions.paddingL),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.15),
+                                    shape: BoxShape.circle,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: AppColors.primary.withOpacity(0.3),
+                                        blurRadius: 20,
+                                        spreadRadius: 5,
+                                      ),
+                                    ],
                                   ),
-                                ],
-                              ),
-                              child: ElevatedButton(
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    SlideLeftRoute(page: const RegisterPage()),
-                                  );
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.primary,
-                                  foregroundColor: Colors.white,
-                                  padding: EdgeInsets.symmetric(vertical: Dimensions.paddingL),
-                                  shape: RoundedRectangleBorder(
+                                  child: Image.asset(
+                                    'assets/images/logo_NutriGuide.png',
+                                    width: Dimensions.iconXXL,
+                                    height: Dimensions.iconXXL,
+                                    fit: BoxFit.contain,
+                                  ),
+                                ),
+                                SizedBox(height: Dimensions.spacingL),
+                                
+                                // Enhanced App Name with Gradient
+                                _buildShimmerTitle(),
+                                SizedBox(height: Dimensions.spacingM),
+                                
+                                // Enhanced Tagline
+                                Container(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: Dimensions.paddingL,
+                                    vertical: Dimensions.paddingS,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withOpacity(0.3),
                                     borderRadius: BorderRadius.circular(Dimensions.radiusL),
                                   ),
-                                  elevation: 0,
-                                ),
-                                child: Text(
-                                  'Register',
-                                  style: TextStyle(
-                                    fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.button),
-                                    fontWeight: FontWeight.bold,
-                                    letterSpacing: 1,
+                                  child: Text(
+                                    'Your Personal Nutrition Assistant',
+                                    style: TextStyle(
+                                      fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.body),
+                                      color: Colors.white.withOpacity(0.9),
+                                      letterSpacing: 0.5,
+                                      shadows: [
+                                        Shadow(
+                                          color: Colors.black.withOpacity(0.3),
+                                          offset: const Offset(1, 1),
+                                          blurRadius: 2,
+                                        ),
+                                      ],
+                                    ),
+                                    textAlign: TextAlign.center,
                                   ),
                                 ),
-                              ),
+                              ],
                             ),
                           ),
-
-                          SizedBox(height: Dimensions.spacingL),
-
-                          // Enhanced Login Button
-                          AnimatedOpacity(
-                            duration: const Duration(milliseconds: 800),
-                            opacity: _isLoading ? 0.0 : 1.0,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(Dimensions.radiusL),
-                                border: Border.all(color: Colors.white.withOpacity(0.3)),
-                              ),
-                              child: ElevatedButton(
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    SlideLeftRoute(page: const LoginPage()),
-                                  );
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.white.withOpacity(0.1),
-                                  foregroundColor: Colors.white,
-                                  padding: EdgeInsets.symmetric(vertical: Dimensions.paddingL),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(Dimensions.radiusL),
-                                  ),
-                                  elevation: 0,
-                                ),
-                                child: Text(
-                                  'Sign In',
-                                  style: TextStyle(
-                                    fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.button),
-                                    fontWeight: FontWeight.w600,
-                                    letterSpacing: 1,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-
-                          SizedBox(height: Dimensions.spacingXL),
-
-                          // Enhanced Terms and Privacy
-                          AnimatedOpacity(
-                            duration: const Duration(milliseconds: 800),
-                            opacity: _isLoading ? 0.0 : 1.0,
-                            child: Container(
-                              padding: EdgeInsets.all(Dimensions.paddingS),
-                              decoration: BoxDecoration(
-                                color: Colors.black.withOpacity(0.3),
-                                borderRadius: BorderRadius.circular(Dimensions.radiusM),
-                              ),
-                              child: Text(
-                                'By continuing, you agree to our Terms of Service\nand Privacy Policy',
-                                style: TextStyle(
-                                  fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.bodySmall),
-                                  color: Colors.white.withOpacity(0.7),
-                                  height: 1.5,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
                     ),
-                  ),
-                ],
+
+                    // Enhanced Buttons Section
+                    Expanded(
+                      flex: 2,
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: Dimensions.paddingL,
+                          vertical: Dimensions.paddingXS,
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            // Enhanced Register Button
+                            AnimatedOpacity(
+                              duration: const Duration(milliseconds: 800),
+                              opacity: _isLoading ? 0.0 : 1.0,
+                              child: Container(
+                                height: 56,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(Dimensions.radiusL),
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      AppColors.primary,
+                                      AppColors.primary.withOpacity(0.8),
+                                    ],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppColors.primary.withOpacity(0.3),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        SlideLeftRoute(page: const RegisterPage()),
+                                      );
+                                    },
+                                    borderRadius: BorderRadius.circular(Dimensions.radiusL),
+                                    child: Container(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: Dimensions.paddingXL,
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            Icons.person_add_rounded,
+                                            color: Colors.white,
+                                            size: 24,
+                                          ),
+                                          SizedBox(width: Dimensions.paddingS),
+                                          Text(
+                                            'Register',
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                              letterSpacing: 0.5,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+
+                            SizedBox(height: Dimensions.spacingL),
+
+                            // Enhanced Login Button
+                            AnimatedOpacity(
+                              duration: const Duration(milliseconds: 800),
+                              opacity: _isLoading ? 0.0 : 1.0,
+                              child: Container(
+                                height: 56,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(Dimensions.radiusL),
+                                  border: Border.all(
+                                    color: Colors.white.withOpacity(0.3),
+                                    width: 2,
+                                  ),
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      Colors.white.withOpacity(0.1),
+                                      Colors.white.withOpacity(0.05),
+                                    ],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                ),
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        SlideLeftRoute(page: const LoginPage()),
+                                      );
+                                    },
+                                    borderRadius: BorderRadius.circular(Dimensions.radiusL),
+                                    child: Container(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: Dimensions.paddingXL,
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            Icons.login_rounded,
+                                            color: Colors.white,
+                                            size: 24,
+                                          ),
+                                          SizedBox(width: Dimensions.paddingS),
+                                          Text(
+                                            'Sign In',
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w600,
+                                              letterSpacing: 0.5,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+
+                            SizedBox(height: Dimensions.spacingXL),
+
+                            
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

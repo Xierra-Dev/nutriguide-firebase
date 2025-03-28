@@ -7,6 +7,7 @@ import 'core/constants/colors.dart';
 import 'core/constants/font_sizes.dart';
 import 'core/constants/dimensions.dart';
 import 'core/helpers/responsive_helper.dart';
+import 'landing_page.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -324,18 +325,47 @@ class _RegisterPageState extends State<RegisterPage> with SingleTickerProviderSt
             child: SingleChildScrollView(
               child: FadeTransition(
                 opacity: _fadeAnimation,
-                child: Padding(
-                  padding: EdgeInsets.all(Dimensions.paddingL),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildHeader(),
-                      SizedBox(height: Dimensions.spacingXL),
-                      _buildRegistrationForm(),
-                      SizedBox(height: Dimensions.spacingL),
-                      _buildLoginLink(),
-                    ],
-                  ),
+                child: Stack(
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.all(Dimensions.paddingL),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildHeader(),
+                          SizedBox(height: Dimensions.spacingXL),
+                          _buildRegistrationForm(),
+                          SizedBox(height: Dimensions.spacingL),
+                          _buildLoginLink(),
+                        ],
+                      ),
+                    ),
+                    // Close Button
+                    Positioned(
+                      top: 0,
+                      right: 0,
+                      child: IconButton(
+                        icon: Container(
+                          padding: EdgeInsets.all(Dimensions.paddingXS),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.close_rounded,
+                            color: Colors.white,
+                            size: Dimensions.iconL,
+                          ),
+                        ),
+                        onPressed: () {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => const LandingPage()),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),

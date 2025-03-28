@@ -7,6 +7,7 @@ import 'core/constants/colors.dart';
 import 'core/constants/dimensions.dart';
 import 'core/constants/font_sizes.dart';
 import 'core/helpers/responsive_helper.dart';
+import 'landing_page.dart';
 
 class ErrorDetails {
   final String title;
@@ -307,6 +308,30 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                 opacity: _fadeAnimation,
                 child: Column(
                   children: [
+                    // Close Button
+                    Align(
+                      alignment: Alignment.topRight,
+                      child: IconButton(
+                        icon: Container(
+                          padding: EdgeInsets.all(Dimensions.paddingXS),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.close_rounded,
+                            color: Colors.white,
+                            size: Dimensions.iconL,
+                          ),
+                        ),
+                        onPressed: () {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => const LandingPage()),
+                          );
+                        },
+                      ),
+                    ),
                     // Logo and Welcome Text
                     Container(
                       padding: EdgeInsets.all(Dimensions.paddingXL),
