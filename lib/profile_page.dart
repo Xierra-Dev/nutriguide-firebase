@@ -13,6 +13,8 @@ import 'core/constants/dimensions.dart';
 import 'core/constants/font_sizes.dart';
 import 'core/widgets/app_text.dart';
 import 'search_page.dart';
+import 'core/helpers/responsive_helper.dart';
+import 'landing_page.dart';
 
 
 class ProfilePage extends StatefulWidget {
@@ -236,6 +238,21 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                 ),
               ),
               actions: [
+                IconButton(
+                  icon: Container(
+                    padding: EdgeInsets.all(Dimensions.paddingXS),
+                    decoration: BoxDecoration(
+                      color: AppColors.error.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.logout_rounded,
+                      color: AppColors.error,
+                      size: Dimensions.iconM,
+                    ),
+                  ),
+                  onPressed: () => _showLogoutDialog(),
+                ),
                 IconButton(
                   icon: Icon(Icons.settings, color: AppColors.text),
                   onPressed: () => Navigator.pushReplacement(
@@ -734,6 +751,141 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                 );
               },
             ),
+    );
+  }
+
+  void _showLogoutDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          child: Container(
+            padding: EdgeInsets.all(Dimensions.paddingL),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(Dimensions.radiusL),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 10,
+                  offset: const Offset(0, 5),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: EdgeInsets.all(Dimensions.paddingM),
+                  decoration: BoxDecoration(
+                    color: AppColors.error.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.logout_rounded,
+                    color: AppColors.error,
+                    size: Dimensions.iconXL,
+                  ),
+                ),
+                SizedBox(height: Dimensions.spacingL),
+                Text(
+                  'Logout',
+                  style: TextStyle(
+                    color: AppColors.text,
+                    fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.heading3),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: Dimensions.spacingM),
+                Text(
+                  'Are you sure you want to logout?',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.body),
+                  ),
+                ),
+                SizedBox(height: Dimensions.spacingXL),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        style: TextButton.styleFrom(
+                          padding: EdgeInsets.symmetric(
+                            vertical: Dimensions.paddingM,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(Dimensions.radiusM),
+                            side: BorderSide(
+                              color: AppColors.error.withOpacity(0.5),
+                            ),
+                          ),
+                        ),
+                        child: Text(
+                          'Cancel',
+                          style: TextStyle(
+                            color: AppColors.error,
+                            fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.body),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: Dimensions.spacingM),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          Navigator.of(context).pop();
+                          await _authService.signOut();
+                          if (mounted) {
+                            Navigator.pushReplacement(
+                              context,
+                              SlideRightRoute(page: const LandingPage()),
+                            );
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.error,
+                          foregroundColor: Colors.white,
+                          padding: EdgeInsets.symmetric(
+                            vertical: Dimensions.paddingM,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(Dimensions.radiusM),
+                          ),
+                          elevation: 2,
+                          shadowColor: AppColors.error.withOpacity(0.5),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.logout_rounded,
+                              size: Dimensions.iconM,
+                              color: Colors.white,
+                            ),
+                            SizedBox(width: Dimensions.paddingXS),
+                            Text(
+                              'Logout',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: ResponsiveHelper.getAdaptiveTextSize(context, FontSizes.body),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

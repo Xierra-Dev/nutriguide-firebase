@@ -101,7 +101,10 @@ class _HomePageState extends State<HomePage> {
   List<Recipe> feedRecipes = [];
   bool isLoading = true;
   bool _isRefreshing = false;
-  final bool _isFirstTimeLoading = true;
+  bool _isLoadingRecentlyViewed = true;
+  bool _isLoadingRecommended = true;
+  bool _isLoadingPopular = true;
+  bool _isLoadingFeed = true;
   String? errorMessage;
   int _currentIndex = 0;
 
@@ -668,6 +671,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> _loadRecipes() async {
     try {
       if (_isRefreshing) {
+        // Load all recipes simultaneously for refresh
         final recommended = await _mealDBService.getRecommendedRecipes();
         final popular = await _mealDBService.getPopularRecipes();
         final feed = await _mealDBService.getFeedRecipes();
@@ -690,12 +694,16 @@ class _HomePageState extends State<HomePage> {
             recommendedRecipes = recommended;
             popularRecipes = popular;
             feedRecipes = feed;
+            _isLoadingRecommended = false;
+            _isLoadingPopular = false;
+            _isLoadingFeed = false;
             isLoading = false;
           });
         }
         return;
       }
 
+      // Try to load from cache first
       final cachedRecommended = await _cacheService.getCachedRecipes(
         CacheService.RECOMMENDED_CACHE_KEY
       );
@@ -706,41 +714,45 @@ class _HomePageState extends State<HomePage> {
         CacheService.FEED_CACHE_KEY
       );
 
-      if (cachedRecommended != null &&
-          cachedPopular != null &&
-          cachedFeed != null) {
+      // Load recently viewed recipes first
+      _loadRecentlyViewedRecipes();
+
+      // Load other recipes in parallel
+      if (cachedRecommended != null) {
         setState(() {
           recommendedRecipes = cachedRecommended;
-          popularRecipes = cachedPopular;
-          feedRecipes = cachedFeed;
-          isLoading = false;
+          _isLoadingRecommended = false;
         });
       } else {
-        final recommended = await _mealDBService.getRecommendedRecipes();
-        final popular = await _mealDBService.getPopularRecipes();
-        final feed = await _mealDBService.getFeedRecipes();
+        _loadRecommendedRecipes();
+      }
 
-        await _cacheService.cacheRecipes(
-          CacheService.RECOMMENDED_CACHE_KEY,
-          recommended
-        );
-        await _cacheService.cacheRecipes(
-          CacheService.POPULAR_CACHE_KEY,
-          popular
-        );
-        await _cacheService.cacheRecipes(
-          CacheService.FEED_CACHE_KEY,
-          feed
-        );
+      if (cachedPopular != null) {
+        setState(() {
+          popularRecipes = cachedPopular;
+          _isLoadingPopular = false;
+        });
+      } else {
+        _loadPopularRecipes();
+      }
 
-        if (mounted) {
-          setState(() {
-            recommendedRecipes = recommended;
-            popularRecipes = popular;
-            feedRecipes = feed;
-            isLoading = false;
-          });
-        }
+      if (cachedFeed != null) {
+        setState(() {
+          feedRecipes = cachedFeed;
+          _isLoadingFeed = false;
+        });
+      } else {
+        _loadFeedRecipes();
+      }
+
+      // Update overall loading state
+      if (mounted) {
+        setState(() {
+          isLoading = _isLoadingRecentlyViewed || 
+                      _isLoadingRecommended || 
+                      _isLoadingPopular || 
+                      _isLoadingFeed;
+        });
       }
     } catch (e) {
       if (mounted) {
@@ -752,10 +764,126 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Future<void> _loadRecentlyViewedRecipes() async {
+    try {
+      final recipes = await _firestoreService.getRecentlyViewedRecipes();
+      if (mounted) {
+        setState(() {
+          recentlyViewedRecipes = recipes;
+          _isLoadingRecentlyViewed = false;
+          isLoading = _isLoadingRecommended || 
+                      _isLoadingPopular || 
+                      _isLoadingFeed;
+        });
+      }
+    } catch (e) {
+      print('Error loading recently viewed recipes: $e');
+      if (mounted) {
+        setState(() {
+          _isLoadingRecentlyViewed = false;
+          isLoading = _isLoadingRecommended || 
+                      _isLoadingPopular || 
+                      _isLoadingFeed;
+        });
+      }
+    }
+  }
+
+  Future<void> _loadRecommendedRecipes() async {
+    try {
+      final recipes = await _mealDBService.getRecommendedRecipes();
+      if (mounted) {
+        setState(() {
+          recommendedRecipes = recipes;
+          _isLoadingRecommended = false;
+          isLoading = _isLoadingRecentlyViewed || 
+                      _isLoadingPopular || 
+                      _isLoadingFeed;
+        });
+        await _cacheService.cacheRecipes(
+          CacheService.RECOMMENDED_CACHE_KEY,
+          recipes
+        );
+      }
+    } catch (e) {
+      print('Error loading recommended recipes: $e');
+      if (mounted) {
+        setState(() {
+          _isLoadingRecommended = false;
+          isLoading = _isLoadingRecentlyViewed || 
+                      _isLoadingPopular || 
+                      _isLoadingFeed;
+        });
+      }
+    }
+  }
+
+  Future<void> _loadPopularRecipes() async {
+    try {
+      final recipes = await _mealDBService.getPopularRecipes();
+      if (mounted) {
+        setState(() {
+          popularRecipes = recipes;
+          _isLoadingPopular = false;
+          isLoading = _isLoadingRecentlyViewed || 
+                      _isLoadingRecommended || 
+                      _isLoadingFeed;
+        });
+        await _cacheService.cacheRecipes(
+          CacheService.POPULAR_CACHE_KEY,
+          recipes
+        );
+      }
+    } catch (e) {
+      print('Error loading popular recipes: $e');
+      if (mounted) {
+        setState(() {
+          _isLoadingPopular = false;
+          isLoading = _isLoadingRecentlyViewed || 
+                      _isLoadingRecommended || 
+                      _isLoadingFeed;
+        });
+      }
+    }
+  }
+
+  Future<void> _loadFeedRecipes() async {
+    try {
+      final recipes = await _mealDBService.getFeedRecipes();
+      if (mounted) {
+        setState(() {
+          feedRecipes = recipes;
+          _isLoadingFeed = false;
+          isLoading = _isLoadingRecentlyViewed || 
+                      _isLoadingRecommended || 
+                      _isLoadingPopular;
+        });
+        await _cacheService.cacheRecipes(
+          CacheService.FEED_CACHE_KEY,
+          recipes
+        );
+      }
+    } catch (e) {
+      print('Error loading feed recipes: $e');
+      if (mounted) {
+        setState(() {
+          _isLoadingFeed = false;
+          isLoading = _isLoadingRecentlyViewed || 
+                      _isLoadingRecommended || 
+                      _isLoadingPopular;
+        });
+      }
+    }
+  }
+
   Future<void> _handleRefresh() async {
     setState(() {
       _isRefreshing = true;
       errorMessage = null;
+      _isLoadingRecentlyViewed = true;
+      _isLoadingRecommended = true;
+      _isLoadingPopular = true;
+      _isLoadingFeed = true;
     });
 
     await _loadRecipes();
@@ -793,20 +921,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> _loadRecentlyViewedRecipes() async {
-    try {
-      final recipes = await _firestoreService.getRecentlyViewedRecipes();
-      if (mounted) {
-        setState(() {
-          recentlyViewedRecipes = recipes;
-        });
-      }
-    } catch (e) {
-      print('Error loading recently viewed recipes: $e');
-    }
-  }
-
-  void _viewRecipe(Recipe recipe) async {
+  Future<void> _viewRecipe(Recipe recipe) async {
     await _firestoreService.addToRecentlyViewed(recipe);
     if (mounted) {
       await Navigator.push(
@@ -1447,128 +1562,55 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildHomeContent() {
-    if (_isFirstTimeLoading && isLoading) {
-      return _buildHomeLoadingContent();
-    } else if (errorMessage != null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.error_outline,
-              color: AppColors.error,
-              size: Dimensions.iconXL * 2,
-            ),
-            SizedBox(height: Dimensions.paddingM),
-            Text(
-              'Oops! Something Went Wrong',
-              style: TextStyle(
-                color: AppColors.text,
-                fontSize: ResponsiveHelper.getAdaptiveTextSize(
-                  context,
-                  FontSizes.heading3
-                ),
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            SizedBox(height: Dimensions.paddingS),
-            Text(
-              errorMessage!,
-              style: TextStyle(
-                color: AppColors.textSecondary,
-                fontSize: ResponsiveHelper.getAdaptiveTextSize(
-                  context,
-                  FontSizes.body
-                ),
-              ),
-              textAlign: TextAlign.center,
-            ),
-            SizedBox(height: Dimensions.paddingM),
-            ElevatedButton(
-              onPressed: _handleRefresh,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                padding: EdgeInsets.symmetric(
-                  horizontal: Dimensions.paddingL,
-                  vertical: Dimensions.paddingM,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(Dimensions.radiusM),
-                ),
-              ),
-              child: Text(
-                'Try Again',
-                style: TextStyle(
-                  fontSize: ResponsiveHelper.getAdaptiveTextSize(
-                    context,
-                    FontSizes.body
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
     return ListView(
       children: [
-        if (recentlyViewedRecipes.isNotEmpty) ...[
+        if (_isLoadingRecentlyViewed)
+          _buildSkeletonSection('Recently Viewed')
+        else if (recentlyViewedRecipes.isNotEmpty)
           _buildRecipeSection('Recently Viewed', recentlyViewedRecipes),
-        ],
-        _buildRecipeSection('Recommended', recommendedRecipes),
 
-        _buildRecipeSection('Popular', popularRecipes),
-        SizedBox(height: Dimensions.paddingL),
-        _buildRecipeFeed(),
-      ],
-    );
-  }
+        if (_isLoadingRecommended)
+          _buildSkeletonSection('Recommended')
+        else
+          _buildRecipeSection('Recommended', recommendedRecipes),
 
-  Widget _buildHomeLoadingContent() {
-    return ListView(
-      children: [
-        // Skeleton for Recently Viewed (show only if needed)
-        if (_isFirstTimeLoading) ...[
-          _buildSkeletonSection('Recently Viewed'),
-        ],
-        
-        // Skeleton for Recommended
-        _buildSkeletonSection('Recommended'),
-        
-        // Skeleton for Popular
-        _buildSkeletonSection('Popular'),
-        
+        if (_isLoadingPopular)
+          _buildSkeletonSection('Popular')
+        else
+          _buildRecipeSection('Popular', popularRecipes),
+
         SizedBox(height: Dimensions.paddingL),
-        
-        // Skeleton for Recipe Feed
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: Text(
-                'Recipe Feed',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: ResponsiveHelper.getAdaptiveTextSize(
-                    context,
-                    FontSizes.heading3
+
+        if (_isLoadingFeed)
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                child: Text(
+                  'Recipe Feed',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: ResponsiveHelper.getAdaptiveTextSize(
+                      context,
+                      FontSizes.heading3
+                    ),
+                    fontWeight: FontWeight.bold,
                   ),
-                  fontWeight: FontWeight.bold,
                 ),
               ),
-            ),
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: 3,
-              itemBuilder: (context, index) {
-                return RecipeFeedSkeleton();
-              },
-            ),
-          ],
-        ),
+              ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: 3,
+                itemBuilder: (context, index) {
+                  return RecipeFeedSkeleton();
+                },
+              ),
+            ],
+          )
+        else
+          _buildRecipeFeed(),
       ],
     );
   }
